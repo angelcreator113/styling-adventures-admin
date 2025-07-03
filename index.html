@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Styling Adventures Admin</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Styling Adventures with Lala – Admin Portal</h1>
+  </header>
+
+  <main>
+
+    <!-- Episodes Upload Section -->
+    <details class="upload-section" open>
+      <summary><h2>Episodes</h2></summary>
+      <input type="file" id="episode-upload" accept="video/*">
+      <p id="episode-file-name" class="file-name-preview">No file selected</p>
+      <div class="button-group">
+        <button id="episode-edit">✏️ Edit</button>
+        <button id="episode-thumb">🖼️ Thumbnail</button>
+        <button id="episode-upload-btn">⬆️ Upload</button>
+      </div>
+    </details>
+
+    <!-- Voice Files Upload Section -->
+    <details class="upload-section" open>
+      <summary><h2>Voice Files</h2></summary>
+      <input type="file" id="voice-upload" accept="audio/*">
+      <p id="voice-file-name" class="file-name-preview">No file selected</p>
+      <div class="button-group">
+        <button id="voice-edit">✏️ Edit</button>
+        <button id="voice-upload-btn">⬆️ Upload</button>
+      </div>
+    </details>
+
+    <!-- Closet Items Upload Section -->
+    <details class="upload-section" open>
+      <summary><h2>Closet Items</h2></summary>
+      <input type="file" id="closet-upload" accept="image/*">
+      <p id="closet-file-name" class="file-name-preview">No file selected</p>
+      <div class="button-group">
+        <button id="closet-edit">✏️ Edit</button>
+        <button id="closet-upload-btn">⬆️ Upload</button>
+      </div>
+    </details>
+
+    <!-- Metadata Section -->
+    <details class="upload-section" open>
+      <summary><h2>Metadata</h2></summary>
+      <label for="meta-title">Title:</label>
+      <input type="text" id="meta-title">
+
+      <label for="meta-description">Description:</label>
+      <textarea id="meta-description"></textarea>
+
+      <label for="meta-tags">Tags (comma-separated):</label>
+      <input type="text" id="meta-tags">
+      
+      <div class="button-group">
+        <button id="meta-publish-btn">🚀 Publish</button>
+      </div>
+    </details>
+
+  </main>
+
+  <script type="module" src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+/* Global Reset */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+}
+
+header {
+  background: #4a90e2;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* Layout */
+main {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  padding: 2rem;
+}
+
+/* Upload Section Styling */
+.upload-section {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+summary {
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  outline: none;
+}
+
+/* Form Inputs */
+.upload-section input,
+.upload-section textarea {
+  width: 100%;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+}
+
+/* Button Group Layout */
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Button Base Styles */
+.upload-section button {
+  padding: 0.5rem 1rem;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.upload-section button:hover {
+  background-color: #357ab7;
+  transform: scale(1.03);
+}
+
+.upload-section button:active {
+  transform: scale(0.98);
+}
+
+/* Publish Button Styling */
+#meta-publish-btn {
+  background-color: #4caf50;
+}
+
+#meta-publish-btn:hover {
+  background-color: #3e8e41;
+}
+
+/* File Name Preview */
+.file-name-preview {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 0.3rem;
+}
+.upload-list {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.upload-item {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.upload-item button {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+}
