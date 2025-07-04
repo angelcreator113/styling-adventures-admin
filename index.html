@@ -17,9 +17,27 @@
           <summary>🎬 Episodes</summary>
           <input type="file" id="episode-upload" />
           <p id="episode-filename">No file selected</p>
+
+          <label for="episode-category">Category:</label>
+          <select id="episode-category"></select>
+
+          <label for="episode-subcategory">Subcategory:</label>
+          <select id="episode-subcategory"></select>
+
+          <label for="episode-sub-subcategory">Part:</label>
+          <select id="episode-sub-subcategory"></select>
+
           <button id="episode-edit-btn">✏️ Edit</button>
-          <button id="episode-thumbnail-btn">🖼️ Thumbnail</button>
-          <button id="episode-upload-btn">🕅 Upload</button>
+          <div id="episode-edit-panel" class="edit-panel" style="display: none;">
+            <input type="text" id="new-episode-category" placeholder="New Category">
+            <button id="add-episode-category">Add Category</button>
+            <input type="text" id="new-episode-subcategory" placeholder="New Subcategory">
+            <button id="add-episode-subcategory">Add Subcategory</button>
+            <input type="text" id="new-episode-sub-subcategory" placeholder="New Part">
+            <button id="add-episode-part">Add Part</button>
+          </div>
+
+          <button id="episode-upload-btn">📄 Upload</button>
           <ul id="episode-list"></ul>
         </details>
       </section>
@@ -30,8 +48,27 @@
           <summary>🎤 Voice Files</summary>
           <input type="file" id="voice-upload" />
           <p id="voice-filename">No file selected</p>
+
+          <label for="voice-category">Category:</label>
+          <select id="voice-category"></select>
+
+          <label for="voice-subcategory">Subcategory:</label>
+          <select id="voice-subcategory"></select>
+
+          <label for="voice-sub-subcategory">Part:</label>
+          <select id="voice-sub-subcategory"></select>
+
           <button id="voice-edit-btn">✏️ Edit</button>
-          <button id="voice-upload-btn">🕅 Upload</button>
+          <div id="voice-edit-panel" class="edit-panel" style="display: none;">
+            <input type="text" id="new-voice-category" placeholder="New Category">
+            <button id="add-voice-category">Add Category</button>
+            <input type="text" id="new-voice-subcategory" placeholder="New Subcategory">
+            <button id="add-voice-subcategory">Add Subcategory</button>
+            <input type="text" id="new-voice-sub-subcategory" placeholder="New Part">
+            <button id="add-voice-part">Add Part</button>
+          </div>
+
+          <button id="voice-upload-btn">📄 Upload</button>
           <ul id="voice-list"></ul>
         </details>
       </section>
@@ -43,31 +80,46 @@
           <input type="file" id="closet-upload" />
           <p id="closet-filename">No file selected</p>
 
-          <!-- Category Dropdowns -->
           <label for="closet-category">Category:</label>
-          <select id="closet-category">
-            <option value="outfit">Outfit</option>
-            <option value="shoes">Shoes</option>
-            <option value="jewelry">Jewelry</option>
-            <option value="perfume">Perfume</option>
-            <option value="accessories">Accessories</option>
-            <option value="purse">Purse</option>
-          </select>
+          <select id="closet-category"></select>
 
           <label for="closet-subcategory">Subcategory:</label>
-          <select id="closet-subcategory">
-            <!-- Filled dynamically by JS -->
-          </select>
+          <select id="closet-subcategory"></select>
 
           <button id="closet-edit-btn">✏️ Edit</button>
-          <button id="closet-upload-btn">🕅 Upload</button>
+          <div id="closet-edit-panel" class="edit-panel" style="display: none;"></div>
+
+          <button id="closet-upload-btn">📄 Upload</button>
           <ul id="closet-list"></ul>
         </details>
       </section>
-
     </div>
   </div>
 
-  <script type="module" src="js/main.js"></script>
+  <script type="module">
+    import { loadDefaults } from './js/default-loader.js';
+    import { toggleEdit, addOption } from './js/shared-ui.js';
+    import { setupClosetDropdowns } from './js/closet-dropdown.js';
+    import { renderClosetEditPanel } from './js/closet-editor.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDefaults();
+      setupClosetDropdowns();
+      renderClosetEditPanel();
+
+      document.getElementById('episode-edit-btn')?.addEventListener('click', () => toggleEdit('episode'));
+      document.getElementById('add-episode-category')?.addEventListener('click', () => addOption('episode-category', 'new-episode-category'));
+      document.getElementById('add-episode-subcategory')?.addEventListener('click', () => addOption('episode-subcategory', 'new-episode-subcategory'));
+      document.getElementById('add-episode-part')?.addEventListener('click', () => addOption('episode-sub-subcategory', 'new-episode-sub-subcategory'));
+
+      document.getElementById('voice-edit-btn')?.addEventListener('click', () => toggleEdit('voice'));
+      document.getElementById('add-voice-category')?.addEventListener('click', () => addOption('voice-category', 'new-voice-category'));
+      document.getElementById('add-voice-subcategory')?.addEventListener('click', () => addOption('voice-subcategory', 'new-voice-subcategory'));
+      document.getElementById('add-voice-part')?.addEventListener('click', () => addOption('voice-sub-subcategory', 'new-voice-sub-subcategory'));
+
+      document.getElementById('closet-edit-btn')?.addEventListener('click', () => toggleEdit('closet'));
+    });
+  </script>
+  <script type="module" src="./js/main.js"></script>
 </body>
 </html>
