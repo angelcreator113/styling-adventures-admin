@@ -24,57 +24,84 @@ export async function displayUploads(collectionName, containerId, renderType = "
       return;
     }
 
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const docId = docSnap.id;
-      let content = "";
-
-      if (renderType === "link") {
-        content = `
-          <div class="upload-item" data-doc-id="${docId}">
-            <a href="${data.url}" target="_blank">${data.filename || "Download File"}</a><br/>
-            ${data.category ? `<strong>${data.category}</strong> → ${data.subcategory || ""}<br/>` : ""}
-            <button class="delete-btn" data-doc-id="${docId}">🗑️ Delete</button>
-          </div>
-        `;
-      } else if (renderType === "image") {
-        content = `
-          <div class="upload-item" data-doc-id="${docId}">
-            <img src="${data.url}" alt="${data.filename || "Image"}" style="max-width:100%; max-height:100px;" />
-            <p>${data.filename}</p>
-            ${data.category ? `<strong>${data.category}</strong> → ${data.subcategory || ""}<br/>` : ""}
-            <button class="delete-btn" data-doc-id="${docId}">🗑️ Delete</button>
-          </div>
-        `;
-      } else {
-        content = `
-          <div class="upload-item" data-doc-id="${docId}">
-            <strong>${data.title || "Untitled"}</strong><br/>
-            <em>${data.description || "No description"}</em><br/>
-            <span>Tags: ${Array.isArray(data.tags) ? data.tags.join(", ") : "None"}</span><br/>
-            <button class="delete-btn" data-doc-id="${docId}">🗑️ Delete</button>
-          </div>
-        `;
-      }
-
-      container.insertAdjacentHTML("beforeend", content);
+    // Group by category/subcategory
+    const grouped = {};
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      const cat = data.category || "Uncategorized";
+      const sub = data.subcategory || "Other";
+      if (!grouped[cat]) grouped[cat] = {};
+      if (!grouped[cat][sub]) grouped[cat][sub] = [];
+      grouped[cat][sub].push({ id: doc.id, ...data });
     });
 
-    container.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const docId = btn.getAttribute('data-doc-id');
-        if (confirm("Are you sure you want to delete this item?")) {
-          try {
-            await deleteDoc(doc(db, collectionName, docId));
-            alert("Deleted successfully!");
-            displayUploads(collectionName, containerId, renderType);
-          } catch (err) {
-            console.error("Delete failed:", err);
-            alert("Error deleting item.");
+    const sortSeasons = (a, b) => {
+      const seasonA = parseInt(a.replace("s", ""));
+      const seasonB = parseInt(b.replace("s", ""));
+      return seasonA - seasonB;
+    };
+
+    for (const category in grouped) {
+      const catSection = document.createElement("div");
+      catSection.className = "closet-category";
+      catSection.innerHTML = `<h3>${category}</h3>`;
+
+      let subKeys = Object.keys(grouped[category]);
+      if (["Seasons", "Filler"].includes(category)) {
+        subKeys = subKeys.sort(sortSeasons);
+      }
+
+      for (const sub of subKeys) {
+        const subSection = document.createElement("div");
+        subSection.className = "closet-subcategory";
+        subSection.innerHTML = `<h4>${sub}</h4>`;
+
+        grouped[category][sub].forEach((item) => {
+          const itemDiv = document.createElement("div");
+          itemDiv.className = "upload-item";
+          itemDiv.dataset.docId = item.id;
+
+          const ext = item.url.split('.').pop().toLowerCase();
+
+          if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext)) {
+            itemDiv.innerHTML = `
+              <img src="${item.url}" alt="${item.filename}" style="max-width:100px; max-height:80px;" /><br>
+              <a href="${item.url}" target="_blank">${item.filename}</a>
+              <button class="delete-btn" data-doc-id="${item.id}" data-path="${item.url}">🗑️</button>
+            `;
+          } else if (["mp4", "mov", "webm"].includes(ext)) {
+            itemDiv.innerHTML = `
+              <video src="${item.url}" controls style="max-width:150px; max-height:100px;"></video><br>
+              <a href="${item.url}" target="_blank">${item.filename}</a>
+              <button class="delete-btn" data-doc-id="${item.id}" data-path="${item.url}">🗑️</button>
+            `;
+          } else {
+            itemDiv.innerHTML = `
+              <a href="${item.url}" target="_blank">${item.filename || "Download File"}</a>
+              <button class="delete-btn" data-doc-id="${item.id}" data-path="${item.url}">🗑️</button>
+            `;
           }
+
+          subSection.appendChild(itemDiv);
+        });
+
+        catSection.appendChild(subSection);
+      }
+
+      container.appendChild(catSection);
+    }
+
+    // Attach delete listeners
+    container.querySelectorAll(".delete-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const docId = btn.dataset.docId;
+        if (confirm("Delete this item?")) {
+          await deleteDoc(doc(db, collectionName, docId));
+          displayUploads(collectionName, containerId, renderType);
         }
       });
     });
+
   } catch (error) {
     console.error("Error loading uploads:", error);
     container.innerHTML = `<div class="upload-item">Error loading uploads.</div>`;

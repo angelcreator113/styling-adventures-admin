@@ -17,8 +17,25 @@
           <summary>🎬 Episodes</summary>
           <input type="file" id="episode-upload" />
           <p id="episode-filename">No file selected</p>
+
+          <!-- Episode Category Dropdown -->
+          <label for="episode-category">Category:</label>
+          <select id="episode-category">
+            <option value="seasons">Seasons</option>
+            <option value="filler">Filler</option>
+          </select>
+
+          <!-- Episode Subcategory Dropdown -->
+          <label for="episode-subcategory">Subcategory:</label>
+          <select id="episode-subcategory">
+            <option value="s1">S1</option>
+            <option value="s2">S2</option>
+            <option value="s3">S3</option>
+            <option value="s4">S4</option>
+            <option value="s5">S5</option>
+          </select>
+
           <button id="episode-edit-btn">✏️ Edit</button>
-          <button id="episode-thumbnail-btn">🖼️ Thumbnail</button>
           <button id="episode-upload-btn">🕅 Upload</button>
           <ul id="episode-list"></ul>
         </details>
