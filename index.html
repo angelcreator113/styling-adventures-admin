@@ -1,70 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Styling Adventures Admin</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Styling Adventures with Lala – Admin Portal</title>
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <header>
+  <div class="container">
     <h1>Styling Adventures with Lala – Admin Portal</h1>
-  </header>
 
-  <main>
+    <div class="grid">
+      <!-- Episodes Section -->
+      <section class="card">
+        <details open>
+          <summary>🎬 Episodes</summary>
+          <input type="file" id="episode-upload" />
+          <p id="episode-filename">No file selected</p>
+          <button id="episode-edit-btn">✏️ Edit</button>
+          <button id="episode-thumbnail-btn">🖼️ Thumbnail</button>
+          <button id="episode-upload-btn">🡅 Upload</button>
+          <ul id="episode-list"></ul>
+        </details>
+      </section>
 
-    <!-- Episodes Upload Section -->
-    <details class="upload-section" open>
-      <summary><h2>Episodes</h2></summary>
-      <input type="file" id="episode-upload" accept="video/*">
-      <p id="episode-file-name" class="file-name-preview">No file selected</p>
-      <div class="button-group">
-        <button id="episode-edit">✏️ Edit</button>
-        <button id="episode-thumb">🖼️ Thumbnail</button>
-        <button id="episode-upload-btn">⬆️ Upload</button>
-      </div>
-    </details>
+      <!-- Voice Files Section -->
+      <section class="card">
+        <details open>
+          <summary>🎤 Voice Files</summary>
+          <input type="file" id="voice-upload" />
+          <p id="voice-filename">No file selected</p>
+          <button id="voice-edit-btn">✏️ Edit</button>
+          <button id="voice-upload-btn">🡅 Upload</button>
+          <ul id="voice-list"></ul>
+        </details>
+      </section>
 
-    <!-- Voice Files Upload Section -->
-    <details class="upload-section" open>
-      <summary><h2>Voice Files</h2></summary>
-      <input type="file" id="voice-upload" accept="audio/*">
-      <p id="voice-file-name" class="file-name-preview">No file selected</p>
-      <div class="button-group">
-        <button id="voice-edit">✏️ Edit</button>
-        <button id="voice-upload-btn">⬆️ Upload</button>
-      </div>
-    </details>
+      <!-- Closet Items Section -->
+      <section class="card">
+        <details open>
+          <summary>👗 Closet Items</summary>
+          <input type="file" id="closet-upload" />
+          <p id="closet-filename">No file selected</p>
+          <button id="closet-edit-btn">✏️ Edit</button>
+          <button id="closet-upload-btn">🡅 Upload</button>
+          <ul id="closet-list"></ul>
+        </details>
+      </section>
 
-    <!-- Closet Items Upload Section -->
-    <details class="upload-section" open>
-      <summary><h2>Closet Items</h2></summary>
-      <input type="file" id="closet-upload" accept="image/*">
-      <p id="closet-file-name" class="file-name-preview">No file selected</p>
-      <div class="button-group">
-        <button id="closet-edit">✏️ Edit</button>
-        <button id="closet-upload-btn">⬆️ Upload</button>
-      </div>
-    </details>
+      <!-- Metadata Section -->
+      <section class="card">
+        <details open>
+          <summary>📝 Metadata</summary>
+          <label>Title:<input type="text" id="meta-title" /></label><br />
+          <label>Description:<br /><textarea id="meta-description"></textarea></label><br />
+          <label>Tags (comma-separated):<input type="text" id="meta-tags" /></label><br />
+          <button id="meta-publish-btn">📌 Publish</button>
+          <ul id="meta-list"></ul>
+        </details>
+      </section>
+    </div>
+  </div>
 
-    <!-- Metadata Section -->
-    <details class="upload-section" open>
-      <summary><h2>Metadata</h2></summary>
-      <label for="meta-title">Title:</label>
-      <input type="text" id="meta-title">
-
-      <label for="meta-description">Description:</label>
-      <textarea id="meta-description"></textarea>
-
-      <label for="meta-tags">Tags (comma-separated):</label>
-      <input type="text" id="meta-tags">
-      
-      <div class="button-group">
-        <button id="meta-publish-btn">🚀 Publish</button>
-      </div>
-    </details>
-
-  </main>
-
-  <script type="module" src="js/script.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

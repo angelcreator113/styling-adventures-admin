@@ -1,4 +1,8 @@
 /* Global Reset */
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -6,80 +10,92 @@ body {
   background-color: #f4f4f4;
 }
 
-header {
+/* Header */
+h1 {
   background: #4a90e2;
   color: white;
-  padding: 1rem;
+  padding: 1.5rem;
   text-align: center;
+  margin: 0;
 }
 
-/* Layout */
-main {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1rem;
+/* Layout Container */
+.container {
   padding: 2rem;
 }
 
-/* Upload Section Styling */
-.upload-section {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: #fafafa;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+/* Responsive Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
 }
 
+/* Card Style */
+.card {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  padding: 1rem;
+}
+
+/* Collapse card content when details is closed */
+.card details:not([open]) {
+  max-height: 2.2rem; /* enough to show summary */
+  padding: 0.5rem 1rem;
+  overflow: hidden;
+}
+
+.card details[open] {
+  max-height: 1000px; /* arbitrary large height */
+}
+
+/* Summary */
 summary {
   cursor: pointer;
   font-weight: bold;
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
-  outline: none;
 }
 
 /* Form Inputs */
-.upload-section input,
-.upload-section textarea {
+input[type="file"],
+input[type="text"],
+textarea {
   width: 100%;
   margin: 0.5rem 0;
   padding: 0.5rem;
+  font-size: 0.95rem;
   border: 1px solid #ccc;
   border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 0.95rem;
 }
 
-/* Button Group Layout */
-.button-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-/* Button Base Styles */
-.upload-section button {
-  padding: 0.5rem 1rem;
+/* Buttons */
+button {
+  padding: 0.45rem 0.8rem;
   background: #4a90e2;
   color: white;
   border: none;
   border-radius: 4px;
+  font-size: 0.9rem;
   cursor: pointer;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
+  margin-top: 0.3rem;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.upload-section button:hover {
+button:hover {
   background-color: #357ab7;
   transform: scale(1.03);
 }
 
-.upload-section button:active {
+button:active {
   transform: scale(0.98);
 }
 
-/* Publish Button Styling */
+/* Publish Button Style */
 #meta-publish-btn {
   background-color: #4caf50;
 }
@@ -88,15 +104,20 @@ summary {
   background-color: #3e8e41;
 }
 
-/* File Name Preview */
-.file-name-preview {
+/* File Name Display */
+#episode-filename,
+#voice-filename,
+#closet-filename {
   font-size: 0.9rem;
   color: #555;
-  margin-top: 0.3rem;
+  margin: 0.3rem 0;
 }
-.upload-list {
+
+/* Uploaded List */
+ul {
+  list-style: none;
+  padding-left: 0;
   margin-top: 1rem;
-  font-size: 0.9rem;
 }
 
 .upload-item {
@@ -105,9 +126,5 @@ summary {
   border-radius: 4px;
   padding: 0.5rem;
   margin-bottom: 0.5rem;
-}
-
-.upload-item button {
-  margin-top: 0.3rem;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
