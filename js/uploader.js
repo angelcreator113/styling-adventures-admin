@@ -7,14 +7,13 @@ import { db, storage } from "./firebase-config.js";
  * Uploads a file to Firebase Storage
  * @param {File} file - The file to upload
  * @param {string} basePath - The base storage folder (e.g., "closet")
- * @param {string} [category] - Optional category folder
- * @param {string} [subcategory] - Optional subcategory folder
+ * @param  {...string} folders - Optional nested folders (e.g., category, subcategory, subsubcategory)
  * @returns {Promise<string>} - File download URL
  */
-export async function uploadFile(file, basePath, category = '', subcategory = '') {
+export async function uploadFile(file, basePath, ...folders) {
   try {
     const safeFileName = encodeURIComponent(file.name);
-    const fullPath = [basePath, category, subcategory].filter(Boolean).join("/");
+    const fullPath = [basePath, ...folders].filter(Boolean).join("/");
     const fileRef = ref(storage, `${fullPath}/${safeFileName}`);
     const snapshot = await uploadBytes(fileRef, file);
     const url = await getDownloadURL(snapshot.ref);
