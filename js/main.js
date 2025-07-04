@@ -13,6 +13,17 @@ signInAnonymously(auth)
   .then(() => console.log("Signed in anonymously"))
   .catch((error) => console.error("Firebase Auth error:", error));
 
+// Helper: Show progress bar
+function showProgress(containerId) {
+  const bar = document.createElement('div');
+  bar.className = 'progress-bar';
+  const fill = document.createElement('div');
+  fill.className = 'progress-fill';
+  bar.appendChild(fill);
+  document.getElementById(containerId).after(bar);
+  return fill;
+}
+
 // Upload Episodes
 document.getElementById('episode-upload-btn')?.addEventListener('click', async () => {
   const file = document.getElementById('episode-upload').files[0];
@@ -23,8 +34,13 @@ document.getElementById('episode-upload-btn')?.addEventListener('click', async (
   if (!file || !category || !subcategory || !subsubcategory)
     return alert("Please select all episode fields and choose a file.");
 
+  const progressFill = showProgress('episode-filename');
+
   const path = `episodes/${category}/${subcategory}/${subsubcategory}`;
-  const url = await uploadFile(file, path);
+  const url = await uploadFile(file, path, (progress) => {
+    progressFill.style.width = `${progress}%`;
+  });
+
   await saveFileMetadata("episodes", { filename: file.name, url, type: "video", category, subcategory, subsubcategory });
 
   alert("Episode uploaded!");
@@ -41,8 +57,13 @@ document.getElementById('voice-upload-btn')?.addEventListener('click', async () 
   if (!file || !category || !subcategory || !subsubcategory)
     return alert("Please select all voice fields and choose a file.");
 
+  const progressFill = showProgress('voice-filename');
+
   const path = `voice/${category}/${subcategory}/${subsubcategory}`;
-  const url = await uploadFile(file, path);
+  const url = await uploadFile(file, path, (progress) => {
+    progressFill.style.width = `${progress}%`;
+  });
+
   await saveFileMetadata("voice", { filename: file.name, url, type: "audio", category, subcategory, subsubcategory });
 
   alert("Voice file uploaded!");
@@ -58,8 +79,13 @@ document.getElementById('closet-upload-btn')?.addEventListener('click', async ()
   if (!file || !category || !subcategory)
     return alert("Please select closet category/subcategory and choose a file.");
 
+  const progressFill = showProgress('closet-filename');
+
   const path = `closet/${category}/${subcategory}`;
-  const url = await uploadFile(file, path);
+  const url = await uploadFile(file, path, (progress) => {
+    progressFill.style.width = `${progress}%`;
+  });
+
   await saveFileMetadata("closet", { filename: file.name, url, type: "image", category, subcategory });
 
   alert("Closet item uploaded!");
