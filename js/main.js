@@ -4,6 +4,7 @@
 import { uploadFile, saveFileMetadata } from './uploader.js';
 import { displayUploads } from './renderer.js';
 import { setupModalEvents } from './editor.js';
+import { initClosetDropdowns } from './closet-categories.js';
 
 document.getElementById('episode-upload-btn')?.addEventListener('click', async () => {
   const file = document.getElementById('episode-upload').files[0];
@@ -30,33 +31,28 @@ document.getElementById('voice-upload-btn')?.addEventListener('click', async () 
 document.getElementById('closet-upload-btn')?.addEventListener('click', async () => {
   const file = document.getElementById('closet-upload').files[0];
   if (!file) return alert("No closet item selected.");
-  console.log("Uploading closet item:", file.name);
 
-  const url = await uploadFile(file, "closet");
-  await saveFileMetadata("closet", { filename: file.name, url, type: "image" });
+  const category = document.getElementById('closet-category')?.value;
+  const subcategory = document.getElementById('closet-subcategory')?.value;
+
+  if (!category || !subcategory) return alert("Please select both a category and subcategory.");
+
+  const url = await uploadFile(file, "closet", category, subcategory);
+  await saveFileMetadata("closet", {
+    filename: file.name,
+    url,
+    type: "image",
+    category,
+    subcategory
+  });
   alert("Closet item uploaded!");
   displayUploads('closet', 'closet-list', 'link');
-});
-
-document.getElementById('meta-publish-btn')?.addEventListener('click', async () => {
-  const title = document.getElementById('meta-title').value;
-  const description = document.getElementById('meta-description').value;
-  const tags = document.getElementById('meta-tags').value;
-
-  await saveFileMetadata("metadata", {
-    title,
-    description,
-    tags: tags.split(',').map(t => t.trim())
-  });
-
-  alert("Metadata saved!");
-  displayUploads('metadata', 'meta-list', 'text');
 });
 
 // Initial Loads and Modal Setup
 displayUploads('episodes', 'episode-list', 'link');
 displayUploads('voice', 'voice-list', 'link');
 displayUploads('closet', 'closet-list', 'link');
-displayUploads('metadata', 'meta-list', 'text');
 
 setupModalEvents();
+initClosetDropdowns();

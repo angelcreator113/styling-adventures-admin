@@ -19,7 +19,7 @@
           <p id="episode-filename">No file selected</p>
           <button id="episode-edit-btn">✏️ Edit</button>
           <button id="episode-thumbnail-btn">🖼️ Thumbnail</button>
-          <button id="episode-upload-btn">🡅 Upload</button>
+          <button id="episode-upload-btn">🕅 Upload</button>
           <ul id="episode-list"></ul>
         </details>
       </section>
@@ -31,7 +31,7 @@
           <input type="file" id="voice-upload" />
           <p id="voice-filename">No file selected</p>
           <button id="voice-edit-btn">✏️ Edit</button>
-          <button id="voice-upload-btn">🡅 Upload</button>
+          <button id="voice-upload-btn">🕅 Upload</button>
           <ul id="voice-list"></ul>
         </details>
       </section>
@@ -42,23 +42,29 @@
           <summary>👗 Closet Items</summary>
           <input type="file" id="closet-upload" />
           <p id="closet-filename">No file selected</p>
+
+          <!-- Category Dropdowns -->
+          <label for="closet-category">Category:</label>
+          <select id="closet-category">
+            <option value="outfit">Outfit</option>
+            <option value="shoes">Shoes</option>
+            <option value="jewelry">Jewelry</option>
+            <option value="perfume">Perfume</option>
+            <option value="accessories">Accessories</option>
+            <option value="purse">Purse</option>
+          </select>
+
+          <label for="closet-subcategory">Subcategory:</label>
+          <select id="closet-subcategory">
+            <!-- Filled dynamically by JS -->
+          </select>
+
           <button id="closet-edit-btn">✏️ Edit</button>
-          <button id="closet-upload-btn">🡅 Upload</button>
+          <button id="closet-upload-btn">🕅 Upload</button>
           <ul id="closet-list"></ul>
         </details>
       </section>
 
-      <!-- Metadata Section -->
-      <section class="card">
-        <details open>
-          <summary>📝 Metadata</summary>
-          <label>Title:<input type="text" id="meta-title" /></label><br />
-          <label>Description:<br /><textarea id="meta-description"></textarea></label><br />
-          <label>Tags (comma-separated):<input type="text" id="meta-tags" /></label><br />
-          <button id="meta-publish-btn">📌 Publish</button>
-          <ul id="meta-list"></ul>
-        </details>
-      </section>
     </div>
   </div>
 
