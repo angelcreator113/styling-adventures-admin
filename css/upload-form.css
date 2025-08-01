@@ -1,0 +1,30 @@
+.upload-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.upload-panel input[type="file"] {
+  padding: 6px;
+  font-size: 0.9rem;
+}
+
+.upload-panel button {
+  padding: 8px 14px;
+  background-color: #b892ff;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.upload-panel button:hover {
+  background-color: #a173f0;
+}
+.drag-over {
+  border: 2px dashed #555;
+  background-color: #fafafa;
+}

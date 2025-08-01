@@ -1,0 +1,120 @@
+/* --------------------------------------------------
+🎞️ episode-dashboard.css — Styling Adventures with Lala
+-------------------------------------------------- */
+
+.episode-dashboard-wrapper {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #fcf4ff;
+  border-radius: 16px;
+  border: 1px solid #ecdaf8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+#episode-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 1rem;
+}
+
+/* 🎬 Each Episode Card */
+.episode-card {
+  background: linear-gradient(145deg, #fff0f6, #ffffff);
+  border: 1px solid #f0c9dc;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 10px rgba(255, 192, 203, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.episode-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
+.episode-thumbnail,
+.episode-card video {
+  width: 100%;
+  max-height: 160px;
+  border-radius: 10px;
+  object-fit: cover;
+  margin-bottom: 12px;
+}
+
+/* 🎤 Filename Text */
+.episode-filename {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #d63384;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+/* 🏷️ Category Tags */
+.episode-tags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: #a184c5;
+  margin-top: 4px;
+}
+
+.episode-tags span {
+  background-color: #efe5ff;
+  color: #7b4995;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* 📂 Dashboard Messages */
+.dashboard-loading,
+.empty-dashboard,
+.error-message {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #7a5c94;
+  padding: 1rem;
+  background-color: #f8efff;
+  border-radius: 12px;
+  border: 1px solid #e2d2f5;
+}
+/* 🎬 Episode Dashboard Styling */
+
+#episode-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.episode-card {
+  background: linear-gradient(145deg, #f0f4ff, #ffffff);
+  border: 1px solid #dfe6fa;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(130, 160, 255, 0.1);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s ease;
+}
+
+.episode-card:hover {
+  transform: scale(1.02);
+}
+
+.episode-thumbnail {
+  width: 100%;
+  border-radius: 8px;
+  max-height: 200px;
+  object-fit: cover;
+}

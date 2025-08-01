@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up – Styling Adventures with Lala</title>
+  <link rel="stylesheet" href="../css/auth.css" />
+  <style>
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-wrapper input {
+      width: 100%;
+      padding-right: 2.5rem;
+    }
+
+    .toggle-icon {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      -webkit-user-select: none; /* ✅ Put vendor prefix first */
+      user-select: none;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <h1>Create Your Account</h1>
+
+    <input type="email" id="signup-email" placeholder="Email" />
+
+    <div class="password-wrapper">
+      <input type="password" id="signup-password" placeholder="Password (min 6 chars)" />
+      <span id="toggle-password" class="toggle-icon">👁️</span>
+    </div>
+
+    <button id="signup-btn">Sign Up</button>
+
+    <div class="auth-footer">
+      Already registered?
+      <a href="login.html">Sign in here</a>.
+    </div>
+  </div>
+
+  <script type="module">
+    import { app } from '../js/utils/firebase-client.js';
+    import {
+      getAuth,
+      createUserWithEmailAndPassword
+    } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+    const auth = getAuth(app);
+
+    const emailInput = document.getElementById('signup-email');
+    const passwordInput = document.getElementById('signup-password');
+    const signupBtn = document.getElementById('signup-btn');
+    const toggleIcon = document.getElementById('toggle-password');
+
+    // 👁️ Toggle password visibility
+    toggleIcon.addEventListener('click', () => {
+      const isVisible = passwordInput.type === 'text';
+      passwordInput.type = isVisible ? 'password' : 'text';
+      toggleIcon.textContent = isVisible ? '👁️' : '🙈';
+    });
+
+    // 📝 Sign-up logic
+    signupBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!email.includes('@')) {
+        alert('❌ Please enter a valid email.');
+        return;
+      }
+
+      if (password.length < 6) {
+        alert('❌ Password must be at least 6 characters.');
+        return;
+      }
+
+      signupBtn.disabled = true;
+      signupBtn.textContent = 'Creating...';
+
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert('✅ Account created! Redirecting...');
+        window.location.href = 'home.html';
+      } catch (err) {
+        alert(`❌ Sign up failed: ${err.message}`);
+        console.error('Signup error:', err);
+      } finally {
+        signupBtn.disabled = false;
+        signupBtn.textContent = 'Sign Up';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+/* --------------------------------------------------
+👚 closet-dashboard.css — Styling Adventures with Lala
+-------------------------------------------------- */
+
+/* 🌸 Filter Bar */
+.closet-dashboard-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+}
+
+.closet-dashboard-filters input,
+.closet-dashboard-filters select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #fff;
+  color: #333;
+}
+
+#closet-clear-filters {
+  background: #f8e1ff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  color: #944cad;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+#closet-clear-filters:hover {
+  background: #f0d4f5;
+}
+
+/* 🎁 Filter Wrapper (upload section) */
+.closet-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.closet-filters select,
+.closet-filters input {
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  color: #333;
+  flex: 1 1 200px;
+}
+
+.closet-filters select:focus,
+.closet-filters input:focus {
+  outline: none;
+  border-color: #c398ec;
+  box-shadow: 0 0 0 2px rgba(179, 138, 236, 0.2);
+}
+
+#closet-sync-btn {
+  background-color: #b98beb;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 0.65rem 1.2rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+#closet-sync-btn:hover {
+  background-color: #9e6dd7;
+}
+
+/* 🧺 Upload Wrapper Styling */
+.closet-dashboard-wrapper {
+  background-color: #fef1fd;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid #e5c6f3;
+}
+
+/* 🖼️ Dashboard Grid */
+#closet-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  padding: 0 1rem;
+}
+
+/* 💖 Closet Cards */
+.closet-card {
+  background: linear-gradient(to bottom, #fff9fe, #f8f4ff);
+  border: 1px solid #e7d5f7;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(165, 140, 255, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.closet-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 14px rgba(165, 140, 255, 0.12);
+}
+
+/* 👗 Image Preview */
+.closet-thumbnail {
+  max-width: 100%;
+  max-height: 160px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+/* 🏷️ Metadata */
+.closet-meta {
+  width: 100%;
+}
+
+/* 📁 Filename */
+.closet-filename {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #6b528e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.25rem;
+}
+
+/* 📌 Tags */
+.closet-tags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: #a184c5;
+}
+
+.closet-tags span {
+  background-color: #efe5ff;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 500;
+}

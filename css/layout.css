@@ -1,0 +1,60 @@
+/* =============== 🌈 Page Layout =============== */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--blush-light, #fff4f9);
+  overflow: auto; /* allow scrolling */
+  display: flex;
+}
+
+/* =============== ⚙️ Flex Parent =============== */
+body {
+  display: flex;
+  flex-direction: row;
+}
+
+/* =============== 🧭 Sidebar =============== */
+#sidebar-container {
+  width: 260px;
+  background: linear-gradient(to bottom, #5e3b84, #8a5ca0);
+  color: #fff;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  min-height: 100vh;
+}
+
+/* Sidebar Buttons */
+#sidebar-container button {
+  background: none;
+  border: 2px solid #ff9de2;
+  color: #ff3399;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.75rem;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#sidebar-container button:hover {
+  background: #ffeffa;
+}
+
+/* =============== 🎯 Main Content =============== */
+#main-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: #fff9fc;
+  max-width: calc(100% - 260px);
+}
+
+/* Ensure cards don’t duplicate vertically */
+#main-content > *:not(:last-child) {
+  margin-bottom: 2rem;
+}

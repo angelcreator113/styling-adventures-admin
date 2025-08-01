@@ -1,0 +1,22 @@
+<section id="manage-panels-panel" class="panel" role="tabpanel" aria-labelledby="manage-panels-tab">
+  <h2>Manage Upload Panels</h2>
+  <form id="add-panel-form" class="form-group">
+    <label for="panel-name">Panel Name</label>
+    <input type="text" id="panel-name" name="panel-name" placeholder="e.g., Guest Uploads" required />
+
+    <label for="file-type">Accepted File Types</label>
+    <select id="file-type" name="file-type">
+      <option value="image/*">Image</option>
+      <option value="audio/*">Audio</option>
+      <option value="video/*">Video</option>
+      <option value="*/*">Any</option>
+    </select>
+
+    <button type="submit">Add Panel</button>
+  </form>
+
+  <div class="panel-list" id="panel-list">
+    <h3>Existing Panels</h3>
+    <!-- dynamically rendered list -->
+  </div>
+</section>

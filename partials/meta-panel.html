@@ -1,0 +1,41 @@
+<!-- 🧠 Meta Upload Panel -->
+<section id="meta-panel" class="panel" role="tabpanel" aria-labelledby="meta-tab">
+  <h2>Meta Upload</h2>
+  <form id="meta-upload-form">
+    <div class="form-group">
+      <label for="meta-file-input" class="visually-hidden">Upload meta file</label>
+      <div id="meta-drop-area" class="drop-area">
+        <input type="file" id="meta-file-input" accept="*/*" />
+        <p>Choose a file...</p>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="meta-category">Category</label>
+      <select id="meta-category"></select>
+    </div>
+    <div class="form-group">
+      <label for="meta-subcategory">Subcategory</label>
+      <select id="meta-subcategory"></select>
+    </div>
+    <button type="submit">Upload</button>
+  </form>
+
+  <button type="button" class="toggle-cat-panel">⚙️ Manage Categories</button>
+  <div class="category-manager hidden" data-type="meta">
+    <h3>Manage Categories</h3>
+    <div class="form-group">
+      <label>Main Category</label>
+      <input type="text" class="cat-input" placeholder="e.g. Info" />
+    </div>
+    <div class="form-group">
+      <label>Subcategory</label>
+      <input type="text" class="subcat-input" placeholder="e.g. Tags" />
+    </div>
+    <div class="form-group">
+      <label>Sub-subcategory</label>
+      <input type="text" class="subsubcat-input" placeholder="e.g. Keywords" />
+    </div>
+    <button class="add-cat-btn">➕ Add</button>
+    <button class="delete-cat-btn">🗑️ Delete</button>
+  </div>
+</section>

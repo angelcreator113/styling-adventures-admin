@@ -1,0 +1,54 @@
+<section id="closet-panel" class="panel" role="tabpanel" aria-labelledby="closet-tab">
+  <h2>Closet Upload</h2>
+
+  <form id="closet-upload-form">
+    <div class="form-group">
+      <label for="closet-file-input" class="visually-hidden">Upload closet image</label>
+      <div id="closet-drop-area" class="drop-area">
+        <input type="file" id="closet-file-input" accept="image/*" />
+        <p>Choose a file...</p>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="closet-category">Category</label>
+      <select id="closet-category" class="smart-dropdown"></select>
+    </div>
+
+    <div class="form-group">
+      <label for="closet-subcategory">Subcategory</label>
+      <select id="closet-subcategory" class="smart-dropdown"></select>
+    </div>
+
+    <div class="form-group">
+      <label for="closet-subsubcategory">Sub-subcategory</label>
+      <select id="closet-subsubcategory" class="smart-dropdown"></select>
+    </div>
+
+    <button type="submit">Upload</button>
+  </form>
+
+  <button type="button" class="toggle-cat-panel">⚙️ Manage Categories</button>
+
+  <div class="category-manager hidden" data-type="closet">
+    <h3>Manage Categories</h3>
+
+    <div class="form-group">
+      <label>Main Category</label>
+      <input type="text" class="cat-input" placeholder="e.g. Tops" />
+    </div>
+
+    <div class="form-group">
+      <label>Subcategory</label>
+      <input type="text" class="subcat-input" placeholder="e.g. Shirts" />
+    </div>
+
+    <div class="form-group">
+      <label>Sub-subcategory</label>
+      <input type="text" class="subsubcat-input" placeholder="e.g. Button-up" />
+    </div>
+
+    <button class="add-cat-btn">➕ Add</button>
+    <button class="delete-cat-btn">🗑️ Delete</button>
+  </div>
+</section>

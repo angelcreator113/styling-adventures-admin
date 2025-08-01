@@ -3,147 +3,221 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Styling Adventures with Lala – Admin Portal</title>
-  <link rel="stylesheet" href="css/styles.css" />
+  <title>Styling Adventures Upload Zone</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/lala-avatar.png" />
+
+  <!-- Base & Panel Styles -->
+  <link rel="stylesheet" href="./css/styles.css" />
+  <link rel="stylesheet" href="./css/upload-closet.css" />
+  <link rel="stylesheet" href="./css/upload-voice.css" />
+  <link rel="stylesheet" href="./css/upload-episode.css" />
+  <link rel="stylesheet" href="./css/meta-panel.css" />
+  <link rel="stylesheet" href="./css/smart-dropdown.css" />
+  <link rel="stylesheet" href="./css/manage-categories.css" />
+
+  <!-- Persisted Theme -->
+  <script>
+    const userTheme = localStorage.getItem("theme");
+    if (userTheme === "dark") {
+      document.documentElement.classList.add("dark-mode");
+    }
+  </script>
+
+  <!-- Inline Essentials -->
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background-color: #fdf9ff;
+      display: flex;
+    }
+
+    #sidebar {
+      width: 200px;
+      background: linear-gradient(to bottom, #f4d9ff, #e6c4ff);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      height: 100vh;
+    }
+
+    #logo-container {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    #logo {
+      width: 80px;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(90, 42, 130, 0.2);
+    }
+
+    .nav-item {
+      background-color: transparent;
+      border: none;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #5a2a82;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .nav-item.active,
+    .nav-item:hover {
+      background-color: #e5c7ff;
+    }
+
+    a.nav-item {
+      text-decoration: none;
+      display: block;
+    }
+
+    #panel-wrapper {
+      flex: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    .panel {
+      display: none;
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #fff9ff;
+      border: 2px solid #f1e2ff;
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: #39104a;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #3f1d4e;
+    }
+
+    select,
+    input[type="file"],
+    input[type="text"] {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d6b5ee;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+
+    .drop-area {
+      border: 2px dashed #c5a8ea;
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      background-color: #fef6ff;
+      color: #854fcf;
+      font-weight: 500;
+    }
+
+    button[type="submit"],
+    .add-cat-btn,
+    .delete-cat-btn {
+      width: 100%;
+      padding: 1rem;
+      background-color: #d7a9ff;
+      color: white;
+      border: none;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-top: 1rem;
+    }
+
+    button[type="submit"]:hover {
+      background-color: #c38fff;
+    }
+
+    .toggle-cat-panel {
+      display: inline-block;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #854fcf;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      border: 0;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+
+    .category-manager {
+      margin-top: 2rem;
+      border-top: 1px dashed #d3b1f5;
+      padding-top: 1.5rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="container">
-    <h1>Styling Adventures with Lala – Admin Portal</h1>
-
-    <div class="grid">
-      <!-- Episodes Section -->
-      <section class="card">
-        <details open>
-          <summary>🎬 Episodes</summary>
-          <div class="filter-row">
-            <input type="search" id="episode-search" placeholder="Search by filename or tag" />
-            <select id="episode-filter-subcategory"><option value="">All Parts</option></select>
-            <button id="episode-clear-filters">Clear</button>
-          </div>
-          <input type="file" id="episode-upload" />
-          <p id="episode-filename">No file selected</p>
-          <label for="episode-category">Category:</label>
-          <select id="episode-category"></select>
-          <label for="episode-subcategory">Subcategory:</label>
-          <select id="episode-subcategory"></select>
-          <label for="episode-sub-subcategory">Part:</label>
-          <select id="episode-sub-subcategory"></select>
-          <button id="episode-edit-btn">✏️ Edit</button>
-          <div id="episode-edit-panel" class="edit-panel" style="display: none;">
-            <input type="text" id="new-episode-category" placeholder="New Category">
-            <button id="add-episode-category">Add Category</button>
-            <input type="text" id="new-episode-subcategory" placeholder="New Subcategory">
-            <button id="add-episode-subcategory">Add Subcategory</button>
-            <input type="text" id="new-episode-sub-subcategory" placeholder="New Part">
-            <button id="add-episode-part">Add Part</button>
-          </div>
-          <button id="episode-upload-btn">📄 Upload</button>
-          <progress id="episode-progress" value="0" max="100" hidden></progress>
-          <ul id="episode-list"></ul>
-        </details>
-      </section>
-
-      <!-- Voice Files Section -->
-      <section class="card">
-        <details open>
-          <summary>🎤 Voice Files</summary>
-          <div class="filter-row">
-            <input type="search" id="voice-search" placeholder="Search by filename or tag" />
-            <select id="voice-filter-subcategory"><option value="">All Parts</option></select>
-            <button id="voice-clear-filters">Clear</button>
-          </div>
-          <input type="file" id="voice-upload" />
-          <p id="voice-filename">No file selected</p>
-          <label for="voice-category">Category:</label>
-          <select id="voice-category"></select>
-          <label for="voice-subcategory">Subcategory:</label>
-          <select id="voice-subcategory"></select>
-          <label for="voice-sub-subcategory">Part:</label>
-          <select id="voice-sub-subcategory"></select>
-          <button id="voice-edit-btn">✏️ Edit</button>
-          <div id="voice-edit-panel" class="edit-panel" style="display: none;">
-            <input type="text" id="new-voice-category" placeholder="New Category">
-            <button id="add-voice-category">Add Category</button>
-            <input type="text" id="new-voice-subcategory" placeholder="New Subcategory">
-            <button id="add-voice-subcategory">Add Subcategory</button>
-            <input type="text" id="new-voice-sub-subcategory" placeholder="New Part">
-            <button id="add-voice-part">Add Part</button>
-          </div>
-          <button id="voice-upload-btn">📄 Upload</button>
-          <progress id="voice-progress" value="0" max="100" hidden></progress>
-          <ul id="voice-list"></ul>
-        </details>
-      </section>
-
-      <!-- Closet Items Section -->
-      <section class="card">
-        <details open>
-          <summary>👗 Closet Items</summary>
-          <div class="filter-row">
-            <input type="search" id="closet-search" placeholder="Search by filename or tag" />
-            <select id="closet-filter-subcategory"><option value="">All Subcategories</option></select>
-            <button id="closet-clear-filters">Clear</button>
-          </div>
-          <input type="file" id="closet-upload" />
-          <p id="closet-filename">No file selected</p>
-          <label for="closet-category">Category:</label>
-          <select id="closet-category"></select>
-          <label for="closet-subcategory">Subcategory:</label>
-          <select id="closet-subcategory"></select>
-          <button id="closet-edit-btn">✏️ Edit</button>
-          <div id="closet-edit-panel" class="edit-panel" style="display: none;"></div>
-          <button id="closet-upload-btn">📄 Upload</button>
-          <progress id="closet-progress" value="0" max="100" hidden></progress>
-          <ul id="closet-list"></ul>
-        </details>
-      </section>
-
-      <!-- Closet Dashboard Panel -->
-      <section class="card">
-        <details open>
-          <summary>🗂 Closet Dashboard</summary>
-          <div class="filter-row">
-            <label for="closet-view-category">Category:</label>
-            <select id="closet-view-category"></select>
-            <label for="closet-view-subcategory">Subcategory:</label>
-            <select id="closet-view-subcategory"></select>
-            <label for="closet-sort">Sort by:</label>
-            <select id="closet-sort">
-              <option value="name">Name</option>
-              <option value="date">Upload Date</option>
-            </select>
-            <input type="search" id="closet-search" placeholder="Search by filename" />
-          </div>
-          <div id="closet-dashboard-grid" class="upload-list"></div>
-        </details>
-      </section>
+  <!-- Sidebar Navigation -->
+  <nav id="sidebar">
+    <div id="logo-container">
+      <img src="./favicon.png" alt="Styling Adventures Logo" id="logo" />
     </div>
-  </div>
 
-  <script type="module">
-    import { loadDefaults } from './js/default-loader.js';
-    import { toggleEdit, addOption } from './js/shared-ui.js';
-    import { setupClosetDropdowns } from './js/closet-dropdown.js';
-    import { renderClosetEditPanel } from './js/closet-editor.js';
-    import { initClosetDashboard } from './js/closet-dashboard.js';
+    <a href="./pages/home.html" class="nav-item">🏠 Dashboard</a>
+    <a href="./pages/upload.html" class="nav-item">📤 Upload Manager</a>
+    <button id="theme-toggle" class="nav-item">Toggle Theme 🌗</button>
+    <button id="logout-button" class="nav-item">Logout</button>
+  </nav>
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadDefaults();
-      setupClosetDropdowns();
-      renderClosetEditPanel();
-      initClosetDashboard();
+  <!-- Panel Content Area -->
+  <main id="panel-wrapper">
+    <h1>Welcome to the Admin Panel</h1>
+    <p>Use the sidebar to navigate between dashboard tools.</p>
+  </main>
 
-      document.getElementById('episode-edit-btn')?.addEventListener('click', () => toggleEdit('episode'));
-      document.getElementById('add-episode-category')?.addEventListener('click', () => addOption('episode-category', 'new-episode-category'));
-      document.getElementById('add-episode-subcategory')?.addEventListener('click', () => addOption('episode-subcategory', 'new-episode-subcategory'));
-      document.getElementById('add-episode-part')?.addEventListener('click', () => addOption('episode-sub-subcategory', 'new-episode-sub-subcategory'));
-
-      document.getElementById('voice-edit-btn')?.addEventListener('click', () => toggleEdit('voice'));
-      document.getElementById('add-voice-category')?.addEventListener('click', () => addOption('voice-category', 'new-voice-category'));
-      document.getElementById('add-voice-subcategory')?.addEventListener('click', () => addOption('voice-subcategory', 'new-voice-subcategory'));
-      document.getElementById('add-voice-part')?.addEventListener('click', () => addOption('voice-sub-subcategory', 'new-voice-sub-subcategory'));
-
-      document.getElementById('closet-edit-btn')?.addEventListener('click', () => toggleEdit('closet'));
+  <!-- Scripts -->
+  <script type="module" src="./js/app-init.js"></script>
+  <script type="module" src="./js/auth/logout.js"></script>
+  <script>
+    document.getElementById("theme-toggle")?.addEventListener("click", () => {
+      const root = document.documentElement;
+      root.classList.toggle("dark-mode");
+      localStorage.setItem("theme", root.classList.contains("dark-mode") ? "dark" : "light");
     });
   </script>
 </body>

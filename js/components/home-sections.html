@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Closet Dashboard Preview</title>
+
+  <!-- 🧼 Styles -->
+  <link rel="stylesheet" href="../../css/styles.css" />
+  <link rel="stylesheet" href="../../css/home.css" />
+  <link rel="stylesheet" href="../../css/outfit.css" />
+</head>
+<body>
+  <!-- 📊 Closet Stats Section -->
+  <section class="dashboard-section" id="stats-section">
+    <h2>Closet Stats 📊</h2>
+    <div id="closet-stats" class="stats-grid">
+      <div class="stat-block">
+        <span class="stat-label">Total Pieces</span>
+        <span class="stat-value" id="total-pieces">0</span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-label">Categories</span>
+        <span class="stat-value" id="category-count">0</span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-label">Recent Uploads</span>
+        <span class="stat-value" id="recent-uploads">0</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 🧃 Just In Carousel -->
+  <section class="dashboard-section" id="carousel-section">
+    <h2>Just In 🧃</h2>
+    <div id="just-in-carousel" class="carousel-scroll">
+      <!-- Images dynamically injected -->
+    </div>
+  </section>
+
+  <!-- 💅 Outfit Generator -->
+  <section class="dashboard-section" id="outfit-section">
+    <h2>Outfit Generator 💅</h2>
+    <div id="outfit-display" class="outfit-preview">
+      <p>No outfit yet... tap below to generate!</p>
+    </div>
+    <button id="generate-outfit-btn" class="generate-btn">✨ Generate Outfit</button>
+  </section>
+
+  <!-- 🔌 Firebase & Component Scripts -->
+  <script type="module">
+    import { auth } from "../../js/utils/firebase-client.js";
+    import { loadStats } from "../../js/components/stats.js";
+    import { loadCarousel } from "../../js/components/carousel.js";
+    import { generateOutfit } from "../../js/components/outfit.js";
+
+    async function waitForAuth() {
+      return new Promise((resolve) => {
+        const unsub = auth.onAuthStateChanged((user) => {
+          unsub();
+          if (!user) {
+            alert("Not signed in. Redirecting...");
+            window.location.href = "../../login.html";
+          } else {
+            resolve(user);
+          }
+        });
+      });
+    }
+
+    async function initPreview() {
+      await waitForAuth();
+      loadStats();
+      loadCarousel();
+      const btn = document.getElementById("generate-outfit-btn");
+      btn?.addEventListener("click", generateOutfit);
+    }
+
+    initPreview();
+  </script>
+</body>
+</html>

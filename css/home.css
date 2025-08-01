@@ -1,0 +1,70 @@
+/* =============================
+   🌙 Dark Theme Overrides
+   ============================= */
+body.dark {
+  background: #1b1121;
+  color: #fefefe;
+}
+
+body.dark .home-container {
+  background: #2a1838;
+  color: #fdf0ff;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.05);
+}
+
+body.dark .card {
+  background: #2c1b3c;
+  color: #eee;
+}
+
+body.dark .card__header,
+body.dark .card__content {
+  color: #fefefe;
+}
+
+body.dark .cta {
+  background: #2a1838;
+}
+
+body.dark .cta__button,
+body.dark .btn {
+  background: #d96bff;
+  color: white;
+}
+
+body.dark .cta__button:hover,
+body.dark .btn:hover {
+  background: #b857db;
+}
+
+/* =============================
+   🌓 Theme Toggle Button
+   ============================= */
+#theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  background: #f0c7ff;
+  border: none;
+  border-radius: 10px;
+  color: #4a2154;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: background 0.3s ease;
+  z-index: 9999;
+}
+
+#theme-toggle:hover {
+  background: #e2a9fa;
+}
+
+body.dark #theme-toggle {
+  background: #562865;
+  color: #fff;
+}
+
+body.dark #theme-toggle:hover {
+  background: #703a87;
+}

@@ -1,5 +1,15 @@
-import { displayUploads } from '../../renderer.js';
+import { initUploadPanel } from "../upload-handlers.js";
 
-export function renderEpisodeUploads() {
-  displayUploads('episodes', 'episode-list', 'preview');
-}
+initUploadPanel({
+  panelType: "episode",
+  fileInputId: "episode-file-input",
+  uploadBtnId: "episode-upload-btn",
+  categoryId: "episode-category",
+  subcategoryId: "episode-subcategory",
+  subsubcategoryId: "episode-subsubcategory",
+  dropAreaId: "episode-drop-area",
+  filterInputId: "episode-filter",
+  clearFilterBtnId: "episode-clear-btn",
+  gridSelector: "#episode-dashboard-grid",
+  fileType: "video"
+});

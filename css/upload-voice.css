@@ -1,0 +1,98 @@
+/* --------------------------------------------------
+🎙️ upload-voice.css — Styling Adventures with Lala
+-------------------------------------------------- */
+
+#voice-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: #fdf7ff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px #f0e2fd;
+}
+
+#voice-upload-file {
+  padding: 1rem;
+  border: 2px dashed #d6b0f2;
+  background-color: #fcf4ff;
+  border-radius: 12px;
+  text-align: center;
+  color: #8241b8;
+  cursor: pointer;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+#voice-upload-file:hover {
+  border-color: #b98beb;
+  background-color: #f9f0ff;
+}
+
+#voice-category,
+#voice-subcategory,
+#voice-subsubcategory {
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  color: #333;
+  transition: border 0.3s ease;
+}
+
+#voice-category:focus,
+#voice-subcategory:focus,
+#voice-subsubcategory:focus {
+  outline: none;
+  border-color: #c398ec;
+  box-shadow: 0 0 0 2px rgba(179, 138, 236, 0.2);
+}
+
+#voice-upload-btn {
+  background-color: #b98beb;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: background 0.3s ease;
+}
+
+#voice-upload-btn:hover {
+  background-color: #9e6dd7;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  #voice-upload-section {
+    padding: 1.5rem;
+  }
+
+  #voice-upload-btn {
+    width: 100%;
+  }
+}
+.upload-preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 2px dashed #d6a7f9;
+  border-radius: 12px;
+  background-color: #f9f5ff;
+  max-width: 100%;
+  max-height: 300px;
+  overflow: hidden;
+  position: relative;
+}
+
+.upload-preview img,
+.upload-preview video,
+.upload-preview audio {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}

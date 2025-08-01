@@ -1,0 +1,41 @@
+<!-- 🎤 Voice Upload Panel -->
+<section id="voice-panel" class="panel" role="tabpanel" aria-labelledby="voice-tab">
+  <h2>Voice Upload</h2>
+  <form id="voice-upload-form">
+    <div class="form-group">
+      <label for="voice-file-input" class="visually-hidden">Upload voice file</label>
+      <div id="voice-drop-area" class="drop-area">
+        <input type="file" id="voice-file-input" accept="audio/*" />
+        <p>Choose a file...</p>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="voice-category">Category</label>
+      <select id="voice-category"></select>
+    </div>
+    <div class="form-group">
+      <label for="voice-subcategory">Subcategory</label>
+      <select id="voice-subcategory"></select>
+    </div>
+    <button type="submit">Upload</button>
+  </form>
+
+  <button type="button" class="toggle-cat-panel">⚙️ Manage Categories</button>
+  <div class="category-manager hidden" data-type="voice">
+    <h3>Manage Categories</h3>
+    <div class="form-group">
+      <label>Main Category</label>
+      <input type="text" class="cat-input" placeholder="e.g. Dialogue" />
+    </div>
+    <div class="form-group">
+      <label>Subcategory</label>
+      <input type="text" class="subcat-input" placeholder="e.g. Voices" />
+    </div>
+    <div class="form-group">
+      <label>Sub-subcategory</label>
+      <input type="text" class="subsubcat-input" placeholder="e.g. Character A" />
+    </div>
+    <button class="add-cat-btn">➕ Add</button>
+    <button class="delete-cat-btn">🗑️ Delete</button>
+  </div>
+</section>

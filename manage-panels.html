@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Upload Panels</title>
+  <link rel="stylesheet" href="./css/manage-panels.css" />
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #fdf9ff;
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+    }
+    h1 {
+      color: #5a2a82;
+    }
+    form, .panel-list {
+      margin-top: 2rem;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    input, select, button {
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background-color: #d7a9ff;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    .panel-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #eee;
+    }
+    .panel-item:last-child {
+      border-bottom: none;
+    }
+    .panel-item button {
+      width: auto;
+      padding: 0.4rem 0.8rem;
+      background-color: #ff6b6b;
+    }
+  </style>
+</head>
+<body>
+  <h1>Manage Upload Panels</h1>
+
+  <form id="add-panel-form">
+    <label for="panel-name">Panel Name</label>
+    <input type="text" id="panel-name" name="panel-name" placeholder="e.g., Guest Uploads" required />
+
+    <label for="file-type">Accepted File Types</label>
+    <select id="file-type" name="file-type" title="Accepted File Types">
+      <option value="image/*">Image</option>
+      <option value="audio/*">Audio</option>
+      <option value="video/*">Video</option>
+      <option value="*/*">Any</option>
+    </select>
+
+    <button type="submit">Add Panel</button>
+  </form>
+
+  <div class="panel-list" id="panel-list">
+    <h2>Existing Panels</h2>
+    <!-- Panels rendered here -->
+  </div>
+
+  <script src="./js/manage-panels.js"></script>
+</body>
+</html>

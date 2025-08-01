@@ -1,0 +1,44 @@
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background: #4b3269;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: auto;
+    z-index: 1000;
+  }
+
+  .nav-links {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+  }
+
+  .nav-item {
+    font-size: 1.1rem;
+    padding: 0.5rem;
+  }
+
+  .logout-button {
+    display: none;
+  }
+
+  .main-content {
+    margin-bottom: 60px;
+    padding: 1rem;
+  }
+
+  .panel.active {
+    flex-direction: column;
+  }
+}

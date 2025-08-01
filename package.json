@@ -1,0 +1,27 @@
+{
+  "name": "styling-adventures-admin",
+  "version": "1.0.0",
+  "description": "Welcome to the content management dashboard for *Styling Adventures with Lala*. This tool powers all uploads, category management, and dashboard control for episodes, voiceovers, and closet items.",
+  "main": "auth.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/angelcreator113/styling-adventures-admin.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/angelcreator113/styling-adventures-admin/issues"
+  },
+  "homepage": "https://github.com/angelcreator113/styling-adventures-admin#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "uuid": "^11.1.0"
+  }
+}

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" class="loading">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – Styling Adventures with Lala</title>
+
+  <link rel="stylesheet" href="css/auth.css" />
+  <style>
+    html.loading, body.loading { visibility: hidden; }
+    html.loaded, body.loaded { visibility: visible; }
+
+    .login-container {
+      max-width: 400px;
+      margin: 10% auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #b450ec;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    button {
+      background: #b450ec;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .input-error {
+      color: red;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body class="loading">
+  <div class="login-container">
+    <h1>✨ Lala Admin Login</h1>
+    <input type="email" id="login-email" placeholder="Email" required />
+    <input type="password" id="login-password" placeholder="Password" required />
+    <button id="login-btn">Log In</button>
+    <div class="input-error" id="login-error"></div>
+  </div>
+
+  <script type="module">
+    window.addEventListener("DOMContentLoaded", () => {
+      document.documentElement.classList.remove("loading");
+      document.documentElement.classList.add("loaded");
+    });
+  </script>
+  <script type="module" src="js/auth/login.js"></script>
+</body>
+</html>

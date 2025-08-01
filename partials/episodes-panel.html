@@ -1,0 +1,99 @@
+<!-- 🧥 Closet Upload Panel -->
+<section id="closet-panel" class="panel" role="tabpanel" aria-labelledby="closet-tab">
+  <h2>Closet Upload</h2>
+  <form id="closet-upload-form">
+    <div class="form-group">
+      <label for="closet-file-input" class="visually-hidden">Upload closet image</label>
+      <div id="closet-drop-area" class="drop-area">
+        <input type="file" id="closet-file-input" accept="image/*" />
+        <p>Choose a file...</p>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="closet-category">Category</label>
+      <select id="closet-category"></select>
+    </div>
+    <div class="form-group">
+      <label for="closet-subcategory">Subcategory</label>
+      <select id="closet-subcategory"></select>
+    </div>
+    <button type="submit">Upload</button>
+  </form>
+
+  <button type="button" class="toggle-cat-panel">⚙️ Manage Categories</button>
+  <div class="category-manager hidden" data-type="closet">
+    <h3>Manage Categories</h3>
+    <div class="form-group"><label>Main Category</label><input type="text" class="cat-input" placeholder="e.g. Tops" /></div>
+    <div class="form-group"><label>Subcategory</label><input type="text" class="subcat-input" placeholder="e.g. Shirts" /></div>
+    <div class="form-group"><label>Sub-subcategory</label><input type="text" class="subsubcat-input" placeholder="e.g. Button-up" /></div>
+    <button class="add-cat-btn">➕ Add</button>
+    <button class="delete-cat-btn">🗑️ Delete</button>
+  </div>
+</section>
+
+<!-- 🎤 Voice Upload Panel -->
+<section id="voice-panel" class="panel" role="tabpanel" aria-labelledby="voice-tab">
+  <h2>Voice Upload</h2>
+  <form id="voice-upload-form">
+    <div class="form-group">
+      <label for="voice-file-input" class="visually-hidden">Upload voice file</label>
+      <div id="voice-drop-area" class="drop-area">
+        <input type="file" id="voice-file-input" accept="audio/*" />
+        <p>Choose a file...</p>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="voice-category">Category</label>
+      <select id="voice-category"></select>
+    </div>
+    <div class="form-group">
+      <label for="voice-subcategory">Subcategory</label>
+      <select id="voice-subcategory"></select>
+    </div>
+    <button type="submit">Upload</button>
+  </form>
+
+  <button type="button" class="toggle-cat-panel">⚙️ Manage Categories</button>
+  <div class="category-manager hidden" data-type="voice">
+    <h3>Manage Categories</h3>
+    <div class="form-group"><label>Main Category</label><input type="text" class="cat-input" placeholder="e.g. Dialogue" /></div>
+    <div class="form-group"><label>Subcategory</label><input type="text" class="subcat-input" placeholder="e.g. Voices" /></div>
+    <div class="form-group"><label>Sub-subcategory</label><input type="text" class="subsubcat-input" placeholder="e.g. Character A" /></div>
+    <button class="add-cat-btn">➕ Add</button>
+    <button class="delete-cat-btn">🗑️ Delete</button>
+  </div>
+</section>
+
+<!-- 🎬 Episode Upload Panel -->
+<section id="episodes-panel" class="panel" role="tabpanel" aria-labelledby="episodes-tab">
+  <h2>Episode Upload</h2>
+  <form id="episode-upload-form">
+    <div class="form-group">
+      <label for="episode-file-input" class="visually-hidden">Upload episode file</label>
+      <div id="episode-drop-area" class="drop-area">
+        <input type="file" id="episode-file-input" accept="video/*" />
+        <p>Choose a file...</p>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="episodes-category">Category</label>
+      <select id="episodes-category"></select>
+    </div>
+    <div class="form-group">
+      <label for="episode-subcategory">Subcategory</label>
+      <select id="episode-subcategory"></select>
+    </div>
+    <button type="submit">Upload</button>
+  </form>
+
+  <button type="button" class="toggle-cat-panel">⚙️ Manage Categories</button>
+  <div class="category-manager hidden" data-type="episodes">
+    <h3>Manage Categories</h3>
+    <div class="form-group"><label>Main Category</label><input type="text" class="cat-input" placeholder="e.g. Season 1" /></div>
+    <div class="form-group"><label>Subcategory</label><input type="text" class="subcat-input" placeholder="e.g. Episode 2" /></div>
+    <div class="form-group"><label>Sub-subcategory</label><input type="text" class="subsubcat-input" placeholder="e.g. Scene A" /></div>
+    <button class="add-cat-btn">➕ Add</button>
+    <button class="delete-cat-btn">🗑️ Delete</button>
+  </div>
+</section>
+

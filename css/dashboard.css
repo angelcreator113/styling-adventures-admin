@@ -1,0 +1,43 @@
+/* 🎙️ Voice & 🎬 Episode Dashboards */
+.dashboard-section {
+  background-color: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  flex-grow: 2;
+  margin-top: 1rem;
+}
+
+.voice-grid,
+.episode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.voice-item, .episode-item {
+  background: white;
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.voice-item:hover, .episode-item:hover {
+  transform: translateY(-4px);
+}
+
+.voice-item img,
+.episode-item img {
+  width: 100%;
+  border-radius: var(--border-radius);
+  margin-bottom: 0.5rem;
+}
+
+.voice-item .title,
+.episode-item .title {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}

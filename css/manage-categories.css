@@ -1,0 +1,63 @@
+.category-manager {
+  background-color: #fff9ff;
+  border: 1px solid #ecd9ff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 2px 8px rgba(90, 42, 130, 0.1);
+  display: none;
+  transition: all 0.3s ease;
+}
+
+.category-manager.visible {
+  display: block;
+}
+
+.category-manager h3 {
+  margin-top: 0;
+  color: #5a2a82;
+  font-size: 1.3rem;
+}
+
+.category-manager .form-group {
+  margin-bottom: 1rem;
+}
+
+.category-manager input[type="text"] {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #d1b3ee;
+  background-color: #fff;
+}
+
+.category-manager button {
+  margin-right: 0.5rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.category-manager .add-cat-btn {
+  background-color: #b2e3af;
+  color: #224422;
+}
+
+.category-manager .delete-cat-btn {
+  background-color: #f8b6c1;
+  color: #701c2c;
+}
+
+.toggle-cat-panel {
+  margin-top: 1rem;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: #5a2a82;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  text-align: left;
+}
