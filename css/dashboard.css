@@ -1,43 +1,56 @@
-/* 🎙️ Voice & 🎬 Episode Dashboards */
-.dashboard-section {
-  background-color: var(--card-bg);
-  border-radius: var(--border-radius);
+/* ---------- Dashboard Wrapper ---------- */
+.panel-dashboard {
+  background: white;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  flex-grow: 2;
-  margin-top: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
-.voice-grid,
-.episode-grid {
+/* ---------- Filter Controls ---------- */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filters select,
+.filters input[type="text"] {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-base);
+  font-size: 0.9rem;
+}
+
+/* ---------- Grid List ---------- */
+.grid-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
 
-.voice-item, .episode-item {
-  background: white;
-  padding: 0.75rem;
-  border-radius: var(--border-radius);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+.grid-item {
+  background: #f9f5ff;
+  padding: 1rem;
+  border-radius: 12px;
   text-align: center;
-  transition: transform 0.2s ease;
+  transition: box-shadow 0.2s ease;
 }
 
-.voice-item:hover, .episode-item:hover {
-  transform: translateY(-4px);
+.grid-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.voice-item img,
-.episode-item img {
-  width: 100%;
-  border-radius: var(--border-radius);
-  margin-bottom: 0.5rem;
+.grid-item img {
+  max-width: 100%;
+  border-radius: 8px;
 }
 
-.voice-item .title,
-.episode-item .title {
-  font-size: 0.9rem;
-  color: var(--text-muted);
+/* ---------- Empty State ---------- */
+.dashboard-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #888;
+  font-size: 0.95rem;
 }

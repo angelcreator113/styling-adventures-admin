@@ -26,7 +26,13 @@
   <!-- 🔔 Toast Container -->
   <div id="toast-container"></div>
 
-  <!-- 🚀 Scripts -->
+  <!-- 🔌 Firebase bootstrapping (must precede any scripts that use Firebase) -->
+  <!-- 1) Loads env-backed Firebase config and initializes app/auth/db/storage -->
+  <script type="module" src="../js/firebase-config.js"></script>
+  <!-- 2) Helper exports (onAuthStateChanged wrapper, etc.) -->
+  <script type="module" src="../js/login-init.js"></script>
+
+  <!-- 🚀 Page logic that uses Firebase -->
   <script type="module">
     import { auth } from "../js/utils/firebase-client.js";
     import { loadCarousel } from "../js/components/carousel.js";

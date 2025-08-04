@@ -1,8 +1,48 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if true; // ⚠️ TEMPORARY for local testing only
+
+    function isAuthed() { return request.auth != null; }
+    function isAdmin() { return isAuthed() && request.auth.token.admin == true; }
+
+    // Validate common upload constraints
+    function okContent() {
+      return request.resource.contentType.matches('^[^/]+/[^/]+$')
+             && request.resource.size < 250 * 1024 * 1024;
+    }
+    function hasVisibilityMeta() {
+      return request.resource.metadata.visibility in ['public', 'private'];
+    }
+
+    // ---- Folder-specific rules ----
+    // CLOSET files: public readable if metadata.visibility == "public"; admin-only writes
+    match /closet/{path=**} {
+      allow read: if resource.metadata.visibility == "public" || isAdmin();
+      allow write: if isAdmin() && okContent() && hasVisibilityMeta();
+    }
+
+    // EPISODES files
+    match /episodes/{path=**} {
+      allow read: if resource.metadata.visibility == "public" || isAdmin();
+      allow write: if isAdmin() && okContent() && hasVisibilityMeta();
+    }
+
+    // VOICE files
+    match /voice/{path=**} {
+      allow read: if resource.metadata.visibility == "public" || isAdmin();
+      allow write: if isAdmin() && okContent() && hasVisibilityMeta();
+    }
+
+    // (Optional) Fully public CDN folder for static assets you intend to expose
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && okContent()
+                   && request.resource.metadata.visibility == "public";
+    }
+
+    // Default: admin-only everywhere else
+    match /{path=**} {
+      allow read, write: if isAdmin();
     }
   }
 }

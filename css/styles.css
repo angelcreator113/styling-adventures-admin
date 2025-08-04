@@ -258,3 +258,7 @@ h1 {
 .hidden {
   display: none !important;
 }
+/* Utility: span full grid width */
+.grid-span-full {
+  grid-column: 1 / -1;
+}

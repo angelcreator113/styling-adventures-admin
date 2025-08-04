@@ -1,33 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="loading">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign Up – Styling Adventures with Lala</title>
   <link rel="stylesheet" href="../css/auth.css" />
   <style>
-    .password-wrapper {
-      position: relative;
+    html.loading, body.loading { visibility: hidden; }
+    html.loaded, body.loaded { visibility: visible; }
+
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: #fdf9ff;
     }
 
-    .password-wrapper input {
+    .auth-container {
+      max-width: 400px;
+      margin: 10% auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #6b21a8;
+      margin-bottom: 1.5rem;
+    }
+
+    input, button {
       width: 100%;
-      padding-right: 2.5rem;
+      padding: 10px;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
     }
 
     .toggle-icon {
       position: absolute;
+      right: 12px;
       top: 50%;
-      right: 10px;
       transform: translateY(-50%);
       cursor: pointer;
-      -webkit-user-select: none; /* ✅ Put vendor prefix first */
-      user-select: none;
       font-size: 1.1rem;
+      user-select: none;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    button#signup-btn {
+      background-color: #b450ec;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .auth-footer a {
+      color: #6b21a8;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
-<body>
+<body class="loading">
   <div class="auth-container">
     <h1>Create Your Account</h1>
 
@@ -42,10 +92,23 @@
 
     <div class="auth-footer">
       Already registered?
-      <a href="login.html">Sign in here</a>.
+      <a href="../login.html">Sign in here</a>
     </div>
   </div>
 
+  <!-- Visibility bootstrapping -->
+  <script type="module">
+    window.addEventListener("DOMContentLoaded", () => {
+      document.documentElement.classList.remove("loading");
+      document.documentElement.classList.add("loaded");
+    });
+  </script>
+
+  <!-- Firebase setup -->
+  <script type="module" src="/js/firebase-config.js"></script>
+  <script type="module" src="/js/utils/firebase-client.js"></script>
+
+  <!-- Signup logic -->
   <script type="module">
     import { app } from '../js/utils/firebase-client.js';
     import {
@@ -60,14 +123,12 @@
     const signupBtn = document.getElementById('signup-btn');
     const toggleIcon = document.getElementById('toggle-password');
 
-    // 👁️ Toggle password visibility
     toggleIcon.addEventListener('click', () => {
       const isVisible = passwordInput.type === 'text';
       passwordInput.type = isVisible ? 'password' : 'text';
       toggleIcon.textContent = isVisible ? '👁️' : '🙈';
     });
 
-    // 📝 Sign-up logic
     signupBtn.addEventListener('click', async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
@@ -88,7 +149,7 @@
       try {
         await createUserWithEmailAndPassword(auth, email, password);
         alert('✅ Account created! Redirecting...');
-        window.location.href = 'home.html';
+        window.location.href = '../index.html';
       } catch (err) {
         alert(`❌ Sign up failed: ${err.message}`);
         console.error('Signup error:', err);

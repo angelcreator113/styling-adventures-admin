@@ -1,22 +1,56 @@
-// js/auth/logout.js
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { app } from "../utils/firebase-client.js";
-import { showToast } from "../utils/firebase-helpers.js";
+import {
+  getAuth,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const auth = getAuth(app);
+// Wait for refs to initialize
+import { ready } from "../utils/firebase-client.js";
+
+// Toast fallback
+let showToast = (msg, type) => alert(msg);
+try {
+  const mod = await import("../utils/firebase-helpers.js");
+  if (typeof mod.showToast === "function") showToast = mod.showToast;
+} catch {}
+
+// Modal DOM elements
+const modal = document.getElementById("logout-modal");
 const logoutBtn = document.getElementById("logout-btn");
+const confirm = document.getElementById("confirm-logout");
+const cancel = document.getElementById("cancel-logout");
 
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", async () => {
+if (logoutBtn && modal && confirm && cancel) {
+  logoutBtn.addEventListener("click", () => {
+    modal.classList.add("active");
+  });
+
+  cancel.addEventListener("click", () => {
+    modal.classList.remove("active");
+  });
+
+  confirm.addEventListener("click", async () => {
     try {
+      const { app } = await ready(); // wait for firebaseRefs to be ready
+      const auth = getAuth(app);
       await signOut(auth);
-      showToast("Logged out successfully", "success");
-      setTimeout(() => {
-        window.location.href = "login.html";
-      }, 800);
-    } catch (error) {
-      console.error("Logout error:", error.message);
+      showToast("Logged out", "success");
+      window.location.href = "login.html";
+    } catch (err) {
       showToast("Logout failed", "error");
+      console.error(err);
     }
   });
+
+  // Optional redirect if not authenticated
+  ready().then(({ app }) => {
+    const auth = getAuth(app);
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+      }
+    });
+  });
+} else {
+  console.warn("[logout] Modal or buttons not found.");
 }

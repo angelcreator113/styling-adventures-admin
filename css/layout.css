@@ -1,60 +1,168 @@
-/* =============== 🌈 Page Layout =============== */
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: 'Inter', sans-serif;
-  background-color: var(--blush-light, #fff4f9);
-  overflow: auto; /* allow scrolling */
-  display: flex;
-}
-
-/* =============== ⚙️ Flex Parent =============== */
 body {
-  display: flex;
-  flex-direction: row;
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background-color: var(--lavender);
 }
 
-/* =============== 🧭 Sidebar =============== */
-#sidebar-container {
-  width: 260px;
-  background: linear-gradient(to bottom, #5e3b84, #8a5ca0);
-  color: #fff;
-  padding: 1.5rem 1rem;
+/* ---------- Topbar ---------- */
+.topbar {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  min-height: 100vh;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background-color: white;
+  border-bottom: 1px solid var(--purple-light);
+  box-shadow: 0 2px 4px rgba(237, 233, 254, 0.5);
+  position: relative;
+  z-index: 50;
 }
 
-/* Sidebar Buttons */
-#sidebar-container button {
-  background: none;
-  border: 2px solid #ff9de2;
-  color: #ff3399;
-  font-weight: 600;
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar__logo {
+  height: 32px;
+  width: 32px;
   border-radius: 8px;
-  padding: 0.75rem;
-  width: 100%;
+  box-shadow: 0 0 4px rgba(90, 42, 130, 0.1);
+}
+
+.topbar__title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--purple-dark);
+  margin: 0;
+}
+
+.topbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.topbar__link,
+.dropdown-toggle {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--purple-accent);
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: background 0.3s;
+  text-decoration: none;
+  padding: 6px 8px;
 }
 
-#sidebar-container button:hover {
-  background: #ffeffa;
+.topbar__link:hover {
+  opacity: 0.75;
 }
 
-/* =============== 🎯 Main Content =============== */
-#main-content {
-  flex: 1;
+/* Dropdown nav */
+.nav-group {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: white;
+  border: 1px solid var(--purple-light);
+  border-radius: 6px;
+  display: none;
+  flex-direction: column;
+  min-width: 160px;
+  z-index: 100;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dropdown-menu a {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: var(--purple-dark);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dropdown-menu a:hover {
+  background-color: #f4ebff;
+}
+
+/* ---------- Main Container ---------- */
+#panel-container {
   padding: 2rem;
-  overflow-y: auto;
-  background-color: #fff9fc;
-  max-width: calc(100% - 260px);
+  max-width: 960px;
+  margin: 0 auto;
 }
 
-/* Ensure cards don’t duplicate vertically */
-#main-content > *:not(:last-child) {
-  margin-bottom: 2rem;
+.placeholder-heading {
+  font-size: 1.8rem;
+  color: var(--purple-dark);
+}
+
+.placeholder-subtext {
+  font-size: 1rem;
+  color: #444;
+}
+
+/* ---------- Modal ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+.modal h1 {
+  font-size: 1.5rem;
+  color: var(--purple-dark);
+  margin-bottom: 0.5rem;
+
+.modal h2 {
+  font-size: 1.2rem;
+  color: var(--purple-dark);
+  margin-bottom: 1rem;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.modal button {
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+
+.modal .confirm {
+  background-color: #d946ef;
+  color: white;
+}
+
+.modal .cancel {
+  background-color: #f3e8ff;
+  color: var(--purple-dark);
 }

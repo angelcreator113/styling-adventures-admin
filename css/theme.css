@@ -1,60 +1,11 @@
 :root {
-  --lavender: #d7b9eb;
-  --lavender-dark: #c6a4dd;
-  --blush-light: #fef6fa;
-  --text-dark: #222;
-  --text-muted: #555;
-  --card-bg: #f2e7fa;
-  --white: #fff;
-  --border-radius: 12px;
-  --transition: 0.3s ease;
+  --lavender: #fdf9ff;
+  --purple-dark: #4c1d95;
+  --purple-light: #e9d8fd;
+  --purple-accent: #6b21a8;
 
-  /* Dark mode variants */
-  --dark-bg: #1e1b26;
-  --dark-panel: #2c2438;
-  --dark-text: #f1e2ff;
-  --dark-muted: #bba5d6;
-  --dark-drop-area: #332a42;
-}
-
-/* 🌞 Light Mode (default) */
-body.light {
-  background-color: var(--blush-light);
-  color: var(--text-dark);
-}
-
-body.light .panel {
-  background-color: var(--white);
-  color: var(--text-dark);
-  border-color: var(--lavender);
-}
-
-body.light .nav-item {
-  color: var(--text-dark);
-}
-
-body.light .drop-area {
-  background-color: var(--card-bg);
-  color: var(--text-muted);
-}
-
-/* 🌙 Dark Mode */
-body.dark {
-  background-color: var(--dark-bg);
-  color: var(--dark-text);
-}
-
-body.dark .panel {
-  background-color: var(--dark-panel);
-  color: var(--dark-text);
-  border-color: var(--lavender-dark);
-}
-
-body.dark .nav-item {
-  color: var(--dark-text);
-}
-
-body.dark .drop-area {
-  background-color: var(--dark-drop-area);
-  color: var(--dark-muted);
+  --text-main: #333;
+  --text-muted: #666;
+  --border-base: #ddd;
+  --bg-light: #fafafa;
 }

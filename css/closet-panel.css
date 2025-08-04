@@ -1,0 +1,60 @@
+.panel-grid {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding: 2rem;
+  background: #fdf9ff;
+}
+
+.closet-card,
+.closet-categories {
+  flex: 1;
+  min-width: 300px;
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.closet-dashboard {
+  flex: 2;
+  background: #f4ebff;
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.closet-heading {
+  color: #4c1d95;
+}
+
+.upload-btn {
+  background: #a855f7;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+}
+
+.add-cat-btn {
+  background: #a855f7;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.delete-cat-btn {
+  background: #f3e8ff;
+  color: #4c1d95;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+/* In closet-panel.css */
+.closet-grid {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding: 2rem;
+  background: #fdf9ff;
+}

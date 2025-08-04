@@ -1,0 +1,65 @@
+:root {
+  --lavender: #fdf9ff;
+  --purple-dark: #4c1d95;
+  --purple-light: #e9d8fd;
+  --purple-accent: #6b21a8;
+}
+
+/* Layout & Spacing */
+.p-2rem { padding: 2rem; }
+.gap-1rem { gap: 1rem; }
+.gap-2rem { gap: 2rem; }
+.mt-1rem { margin-top: 1rem; }
+.m-auto { margin: 0 auto; }
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+.minw-300 { min-width: 300px; }
+.maxw-960 { max-width: 960px; }
+
+/* Colors */
+.bg-white { background: white; }
+.bg-lavender { background: var(--lavender); }
+.bg-purple-light { background: #f4ebff; }
+.text-purple-dark { color: var(--purple-dark); }
+.text-purple-accent { color: var(--purple-accent); }
+
+/* Borders & Radius */
+.rounded-sm { border-radius: 6px; }
+.rounded-md { border-radius: 8px; }
+.rounded-lg { border-radius: 12px; }
+.rounded-xl { border-radius: 16px; }
+.border-dashed { border-style: dashed; }
+.border-2 { border-width: 2px; }
+.border-purple-light { border-color: #e0d4fa; }
+
+/* Typography */
+.text-center { text-align: center; }
+.text-sm { font-size: 0.9rem; }
+.text-md { font-size: 1rem; }
+.text-lg { font-size: 1.1rem; }
+.text-xl { font-size: 1.8rem; }
+.font-bold { font-weight: 600; }
+
+/* Shadows */
+.shadow-sm { box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.shadow-md { box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+.shadow-lg { box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+/* Buttons */
+.btn {
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.btn-primary {
+  background: #a855f7;
+  color: white;
+}
+.btn-secondary {
+  background: #f3e8ff;
+  color: var(--purple-dark);
+}

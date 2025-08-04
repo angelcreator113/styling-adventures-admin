@@ -1,5 +1,7 @@
+/* stylelint-disable property-no-vendor-prefix */
+
 /* ============================== */
-/* 🌗 Theme Variables */
+/* 🥗 Theme Variables */
 /* ============================== */
 :root {
   --bg: #fff;
@@ -161,8 +163,7 @@ button:disabled {
 }
 
 /* ============================== */
-/* 👁️ Password Toggle Styles */
-/* ============================== */
+/* 🕁️ Password Toggle Styles */
 .password-wrapper {
   position: relative;
   width: 100%;
@@ -173,29 +174,22 @@ button:disabled {
   padding-right: 40px;
 }
 
-.toggle-icon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;
-  font-size: 1.2rem;
-}
-
+.toggle-icon,
 .toggle-eye {
   position: absolute;
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   user-select: none;
+  font-size: 1.2rem;
 }
 
 /* ============================== */
 /* 📱 Responsive */
-/* ============================== */
 @media (max-width: 480px) {
   .auth-container {
     width: 90%;
@@ -215,17 +209,15 @@ button:disabled {
   button {
     font-size: 1rem;
   }
-}
-.theme-toggle {
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  font-size: 0.9rem;
-  z-index: 1001;
-  color: var(--text);
-}
 
-.theme-toggle input[type="checkbox"] {
-  margin-right: 0.4rem;
-  transform: scale(1.2);
+  .toggle-icon {
+    right: 12px;
+    font-size: 1.1rem;
+  }
+}
+#login-error {
+  display: none;
+  color: #e53935;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
 }

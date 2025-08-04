@@ -5,73 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Upload Manager</title>
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="../css/styles.css" />
-  <link rel="stylesheet" href="../css/upload-closet.css" />
-  <link rel="stylesheet" href="../css/upload-voice.css" />
-  <link rel="stylesheet" href="../css/upload-episode.css" />
-  <link rel="stylesheet" href="../css/meta-panel.css" />
-  <link rel="stylesheet" href="../css/smart-dropdown.css" />
-  <link rel="stylesheet" href="../css/manage-categories.css" />
+  <!-- Topbar + site styles -->
+  <link rel="stylesheet" href="/css/topbar.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
 
+  <!-- Panel styles -->
+  <link rel="stylesheet" href="/css/upload-closet.css" />
+  <link rel="stylesheet" href="/css/upload-voice.css" />
+  <link rel="stylesheet" href="/css/upload-episode.css" />
+  <link rel="stylesheet" href="/css/meta-panel.css" />
+  <link rel="stylesheet" href="/css/smart-dropdown.css" />
+  <link rel="stylesheet" href="/css/manage-categories.css" />
   <style>
-    body { background-color: #fdf7ff; margin: 0; font-family: "Segoe UI", sans-serif; }
-    .topbar { display: flex; align-items: center; padding: 1rem 2rem; background: linear-gradient(to right, #f4d9ff, #e6c4ff); }
-    .topbar h1 { margin-left: 0.5rem; color: #39104a; font-size: 1.5rem; }
-    .tab-buttons { display: flex; gap: 1rem; padding: 1rem 2rem; flex-wrap: wrap; }
-    .tab-button { background-color: #e9c9ff; border: none; border-radius: 12px; padding: 0.75rem 1.5rem; font-weight: bold; font-size: 1rem; color: #39104a; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.3s; }
-    .tab-button:hover, .tab-button.active { background-color: #d1a4ff; }
-    #panel-wrapper { padding: 2rem; }
-    .panel { display: none; }
-    .panel.active { display: block; }
+    /* Utility moved from inline → CSS to satisfy no-inline-styles */
+    .grid-span-full { grid-column: 1 / -1; }
   </style>
 </head>
 <body>
+  <!-- Reusable topbar container (mountTopbar injects the .topbar-inner markup) -->
+  <div id="app-topbar"></div>
 
-  <!-- Header -->
-  <header class="topbar">
-    <img src="../assets/lala-avatar.png" alt="Icon" width="32" height="32" />
-    <h1>Upload Manager</h1>
-  </header>
-
-  <!-- Tab Buttons -->
-  <div class="tab-buttons">
-    <button class="tab-button active" data-panel="closet-panel">🧵 Closet</button>
-    <button class="tab-button" data-panel="voice-panel">🎤 Voice</button>
-    <button class="tab-button" data-panel="episodes-panel">🎬 Episodes</button>
-    <button class="tab-button" data-panel="meta-panel">🧠 Meta</button>
-    <button class="tab-button" data-panel="manage-panels-panel">🛠️ Upload Manager</button>
+  <!-- Page grid -->
+  <div class="page">
+    <!-- Panels inject here -->
+    <main id="panel-wrapper" class="panel-card grid-span-full"></main>
   </div>
 
-  <!-- Panel Container -->
-  <main id="panel-wrapper">
-    <!-- Panels loaded dynamically -->
-  </main>
+  <!-- Toasts -->
+  <div id="toasts" class="toast-area" aria-live="polite"></div>
 
-  <!-- Panel Loader + Closet/Voice/Episode UI Init -->
+  <!-- Firebase first -->
+  <script type="module" src="/js/firebase-config.js"></script>
+  <script type="module" src="/js/utils/firebase-client.js"></script>
+
+  <!-- Mount the topbar (new markup with .topbar-inner comes from /js/ui/topbar.js) -->
   <script type="module">
-    const wrapper = document.getElementById("panel-wrapper");
+    import { mountTopbar } from '/js/ui/topbar.js';
+    mountTopbar('#app-topbar');
+  </script>
 
+  <!-- Loader + smart-jump target -->
+  <script type="module">
+    import { ready } from '/js/utils/firebase-client.js';
+    await ready();
+
+    const wrapper = document.getElementById('panel-wrapper');
+
+    // Panels to load
     const panels = [
-      { id: "closet-panel", path: "../partials/closet-panel.html" },
-      { id: "voice-panel", path: "../partials/voice-panel.html" },
-      { id: "episodes-panel", path: "../partials/episodes-panel.html" },
-      { id: "meta-panel", path: "../partials/meta-panel.html" },
-      { id: "manage-panels-panel", path: "../partials/manage-panels-panel.html" }
+      { id: 'closet-panel',   path: '/partials/closet-panel.html' },
+      { id: 'voice-panel',    path: '/partials/voice-panel.html' },
+      { id: 'episodes-panel', path: '/partials/episodes-panel.html' },
+      { id: 'meta-panel',     path: '/partials/meta-panel.html' },
+      { id: 'manage-panels-panel', path: '/partials/manage-panels-panel.html' }
     ];
 
-    // 🔒 one-time init guards
-    const initGuards = {
-      closet: false,
-      voice: false,
-      episodes: false,
-    };
+    // Prevent double-init
+    const initGuards = { closet: false, voice: false, episodes: false };
 
-    // Helper: try a list of function names exported by a module
     function tryInit(mod, fnNames = []) {
       for (const name of fnNames) {
         if (typeof mod[name] === 'function') {
-          queueMicrotask(() => mod[name]());
+          setTimeout(() => mod[name](), 0);
           return true;
         }
       }
@@ -82,38 +77,41 @@
       try {
         const res = await fetch(panel.path);
         const html = await res.text();
-        const container = document.createElement("div");
+
+        const container = document.createElement('div');
         container.innerHTML = html.trim();
+
         const el = container.firstElementChild;
         if (!el) return;
+
         el.id = panel.id;
-        el.classList.add("panel");
-        if (panel.id === "closet-panel") el.classList.add("active");
+        el.classList.add('panel');
+        if (panel.id === 'closet-panel') el.classList.add('active');
+
         wrapper.appendChild(el);
 
-        // ✅ Initialize corresponding UI AFTER the panel has been injected
+        // Lazy init per panel (first-touch)
         if (panel.id === 'closet-panel' && !initGuards.closet) {
           try {
-            const mod = await import('../js/uploads/closet/closet-upload.js');
-            if (tryInit(mod, ['setupClosetUploadUI', 'initClosetUpload', 'setupUploadUI'])) {
+            const mod = await import('/js/uploads/closet/closet-upload.js');
+            if (tryInit(mod, ['setupClosetUploadUI', 'initClosetUpload', 'setupUploadUI']))
               initGuards.closet = true;
-            }
           } catch (err) { console.error('Closet UI init failed:', err); }
         }
+
         if (panel.id === 'voice-panel' && !initGuards.voice) {
           try {
-            const mod = await import('../js/uploads/voice/index.js');
-            if (tryInit(mod, ['setupVoiceUploadUI', 'initVoiceUpload', 'setupUploadUI'])) {
+            const mod = await import('/js/uploads/voice/voice-upload.js');
+            if (tryInit(mod, ['setupVoiceUploadUI', 'initVoiceUpload', 'setupUploadUI']))
               initGuards.voice = true;
-            }
           } catch (err) { console.error('Voice UI init failed:', err); }
         }
+
         if (panel.id === 'episodes-panel' && !initGuards.episodes) {
           try {
-            const mod = await import('../js/uploads/episodes/index.js');
-            if (tryInit(mod, ['setupEpisodeUploadUI', 'initEpisodeUpload', 'setupUploadUI'])) {
+            const mod = await import('/js/uploads/episodes/episode-upload.js');
+            if (tryInit(mod, ['setupEpisodeUploadUI', 'initEpisodeUpload', 'setupUploadUI']))
               initGuards.episodes = true;
-            }
           } catch (err) { console.error('Episodes UI init failed:', err); }
         }
       } catch (err) {
@@ -121,37 +119,83 @@
       }
     }
 
-    // Load all panels
+    // Load all partials
     panels.forEach(loadPanel);
 
-    // Tab switching + lazy safety init on first activation
-    document.addEventListener("click", async e => {
-      const btn = e.target.closest(".tab-button");
-      if (!btn) return;
-      const targetId = btn.dataset.panel;
+    // --- Smart-jump target for topbar links ---
+    // topbar.js will call window.activateUploadPanel('closet' | 'voice' | 'episodes' | 'meta')
+    const idMap = {
+      closet:   'closet-panel',
+      voice:    'voice-panel',
+      episodes: 'episodes-panel',
+      meta:     'meta-panel'
+    };
 
-      document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      document.querySelectorAll(".panel").forEach(p => p.classList.toggle("active", p.id === targetId));
+    window.activateUploadPanel = async function(which) {
+      const targetId = idMap[which] || which; // allow direct '#...-panel' too
+      // Ensure panel element exists (partials might still be loading)
+      const waitFor = async (id, tries = 20) => {
+        for (let i = 0; i < tries; i++) {
+          const el = document.getElementById(id);
+          if (el) return el;
+          await new Promise(r => setTimeout(r, 50));
+        }
+        return null;
+      };
 
-      // On-demand init if panel was loaded before guards flipped
-      try {
-        if (targetId === 'voice-panel' && !initGuards.voice && document.getElementById('voice-panel')) {
-          const mod = await import('../js/uploads/voice/index.js');
-          if (tryInit(mod, ['setupVoiceUploadUI', 'initVoiceUpload', 'setupUploadUI'])) initGuards.voice = true;
-        }
-        if (targetId === 'episodes-panel' && !initGuards.episodes && document.getElementById('episodes-panel')) {
-          const mod = await import('../js/uploads/episodes/index.js');
-          if (tryInit(mod, ['setupEpisodeUploadUI', 'initEpisodeUpload', 'setupUploadUI'])) initGuards.episodes = true;
-        }
-        if (targetId === 'closet-panel' && !initGuards.closet && document.getElementById('closet-panel')) {
-          const mod = await import('../js/uploads/closet/closet-upload.js');
-          if (tryInit(mod, ['setupClosetUploadUI', 'initClosetUpload', 'setupUploadUI'])) initGuards.closet = true;
-        }
-      } catch (lazyErr) {
-        console.error('Lazy init error:', lazyErr);
+      const panelEl = await waitFor(targetId);
+      if (!panelEl) {
+        console.warn('[upload] panel not found for', which);
+        return;
       }
-    });
+
+      // Toggle visible panel
+      document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === targetId));
+
+      // Lazy init on jump (if user jumped before opening via any tab)
+      try {
+        if (targetId === 'voice-panel' && !initGuards.voice) {
+          const mod = await import('/js/uploads/voice/voice-upload.js');
+          if (tryInit(mod, ['setupVoiceUploadUI', 'initVoiceUpload', 'setupUploadUI']))
+            initGuards.voice = true;
+        }
+        if (targetId === 'episodes-panel' && !initGuards.episodes) {
+          const mod = await import('/js/uploads/episodes/episode-upload.js');
+          if (tryInit(mod, ['setupEpisodeUploadUI', 'initEpisodeUpload', 'setupUploadUI']))
+            initGuards.episodes = true;
+        }
+        if (targetId === 'closet-panel' && !initGuards.closet) {
+          const mod = await import('/js/uploads/closet/closet-upload.js');
+          if (tryInit(mod, ['setupClosetUploadUI', 'initClosetUpload', 'setupUploadUI']))
+            initGuards.closet = true;
+        }
+      } catch (err) {
+        console.error('Lazy init error on smart-jump:', err);
+      }
+
+      // Keep URL hash in sync (nice for reload/back)
+      location.hash = `#${targetId}`;
+    };
+
+    // Open panel from hash on first load
+    const initialHash = (location.hash || '').replace(/^#/, '');
+    if (initialHash) {
+      // Accept either panel-id or short key
+      const which = idMap[initialHash] ? initialHash : Object.keys(idMap).find(k => idMap[k] === initialHash) ? initialHash : null;
+      if (which) window.activateUploadPanel(which);
+      else if (document.getElementById(initialHash)) window.activateUploadPanel(initialHash);
+    }
+
+    // Toast helper
+    const toasts = document.getElementById('toasts');
+    window.showToast = (msg) => {
+      if (!toasts) return alert(msg);
+      const node = document.createElement('div');
+      node.className = 'toast';
+      node.textContent = msg;
+      toasts.appendChild(node);
+      setTimeout(() => node.remove(), 3500);
+    };
   </script>
 </body>
 </html>

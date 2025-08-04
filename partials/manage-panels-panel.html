@@ -1,22 +1,47 @@
-<section id="manage-panels-panel" class="panel" role="tabpanel" aria-labelledby="manage-panels-tab">
-  <h2>Manage Upload Panels</h2>
-  <form id="add-panel-form" class="form-group">
-    <label for="panel-name">Panel Name</label>
-    <input type="text" id="panel-name" name="panel-name" placeholder="e.g., Guest Uploads" required />
+<!-- manage-panels-panel.html -->
+<link rel="stylesheet" href="css/theme.css" />
+<link rel="stylesheet" href="css/panel.css" />
+<link rel="stylesheet" href="css/forms-and-filters.css" />
+<link rel="stylesheet" href="css/upload-form.css" />
+<link rel="stylesheet" href="css/closet-panel.css" />
+<link rel="stylesheet" href="css/utility.css" />
 
-    <label for="file-type">Accepted File Types</label>
-    <select id="file-type" name="file-type">
-      <option value="image/*">Image</option>
-      <option value="audio/*">Audio</option>
-      <option value="video/*">Video</option>
-      <option value="*/*">Any</option>
-    </select>
+<main>
+  <section id="manage-panels-panel" class="panel" role="tabpanel" aria-labelledby="manage-panels-tab">
+    <div class="panel-grid flex-wrap gap-2rem p-2rem bg-lavender">
 
-    <button type="submit">Add Panel</button>
-  </form>
+      <!-- Create Panel Form -->
+      <section class="panel panel-card flex-1 minw-300 bg-white rounded-lg p-2rem shadow-sm" aria-labelledby="manage-panels-heading">
+        <h2 id="manage-panels-heading" class="text-purple-dark">Manage Upload Panels</h2>
 
-  <div class="panel-list" id="panel-list">
-    <h3>Existing Panels</h3>
-    <!-- dynamically rendered list -->
-  </div>
-</section>
+        <form id="add-panel-form" class="upload-panel flex-col gap-1rem">
+          <div class="form-group">
+            <label for="panel-name">Panel Name</label>
+            <input type="text" id="panel-name" name="panel-name" class="text-input" placeholder="e.g., Guest Uploads" required />
+          </div>
+
+          <div class="form-group">
+            <label for="file-type">Accepted File Types</label>
+            <select id="file-type" name="file-type" class="smart-dropdown">
+              <option value="image/*">Image</option>
+              <option value="audio/*">Audio</option>
+              <option value="video/*">Video</option>
+              <option value="*/*">Any</option>
+            </select>
+          </div>
+
+          <button type="submit" class="primary-btn bg-purple-accent text-white border-none px-1_5rem py-0_75rem rounded-md">➕ Add Panel</button>
+        </form>
+      </section>
+
+      <!-- Existing Panels -->
+      <section class="panel panel-dashboard flex-2 bg-purple-light rounded-lg p-2rem" aria-labelledby="panel-list-heading">
+        <h3 id="panel-list-heading" class="text-purple-dark">Existing Panels</h3>
+        <div id="panel-list" class="panel-list mt-1rem">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </section>
+
+    </div>
+  </section>
+</main>
