@@ -15,18 +15,19 @@
       <section class="card">
         <details open>
           <summary>🎬 Episodes</summary>
+          <div class="filter-row">
+            <input type="search" id="episode-search" placeholder="Search by filename or tag" />
+            <select id="episode-filter-subcategory"><option value="">All Parts</option></select>
+            <button id="episode-clear-filters">Clear</button>
+          </div>
           <input type="file" id="episode-upload" />
           <p id="episode-filename">No file selected</p>
-
           <label for="episode-category">Category:</label>
           <select id="episode-category"></select>
-
           <label for="episode-subcategory">Subcategory:</label>
           <select id="episode-subcategory"></select>
-
           <label for="episode-sub-subcategory">Part:</label>
           <select id="episode-sub-subcategory"></select>
-
           <button id="episode-edit-btn">✏️ Edit</button>
           <div id="episode-edit-panel" class="edit-panel" style="display: none;">
             <input type="text" id="new-episode-category" placeholder="New Category">
@@ -36,7 +37,6 @@
             <input type="text" id="new-episode-sub-subcategory" placeholder="New Part">
             <button id="add-episode-part">Add Part</button>
           </div>
-
           <button id="episode-upload-btn">📄 Upload</button>
           <progress id="episode-progress" value="0" max="100" hidden></progress>
           <ul id="episode-list"></ul>
@@ -47,18 +47,19 @@
       <section class="card">
         <details open>
           <summary>🎤 Voice Files</summary>
+          <div class="filter-row">
+            <input type="search" id="voice-search" placeholder="Search by filename or tag" />
+            <select id="voice-filter-subcategory"><option value="">All Parts</option></select>
+            <button id="voice-clear-filters">Clear</button>
+          </div>
           <input type="file" id="voice-upload" />
           <p id="voice-filename">No file selected</p>
-
           <label for="voice-category">Category:</label>
           <select id="voice-category"></select>
-
           <label for="voice-subcategory">Subcategory:</label>
           <select id="voice-subcategory"></select>
-
           <label for="voice-sub-subcategory">Part:</label>
           <select id="voice-sub-subcategory"></select>
-
           <button id="voice-edit-btn">✏️ Edit</button>
           <div id="voice-edit-panel" class="edit-panel" style="display: none;">
             <input type="text" id="new-voice-category" placeholder="New Category">
@@ -68,7 +69,6 @@
             <input type="text" id="new-voice-sub-subcategory" placeholder="New Part">
             <button id="add-voice-part">Add Part</button>
           </div>
-
           <button id="voice-upload-btn">📄 Upload</button>
           <progress id="voice-progress" value="0" max="100" hidden></progress>
           <ul id="voice-list"></ul>
@@ -79,21 +79,42 @@
       <section class="card">
         <details open>
           <summary>👗 Closet Items</summary>
+          <div class="filter-row">
+            <input type="search" id="closet-search" placeholder="Search by filename or tag" />
+            <select id="closet-filter-subcategory"><option value="">All Subcategories</option></select>
+            <button id="closet-clear-filters">Clear</button>
+          </div>
           <input type="file" id="closet-upload" />
           <p id="closet-filename">No file selected</p>
-
           <label for="closet-category">Category:</label>
           <select id="closet-category"></select>
-
           <label for="closet-subcategory">Subcategory:</label>
           <select id="closet-subcategory"></select>
-
           <button id="closet-edit-btn">✏️ Edit</button>
           <div id="closet-edit-panel" class="edit-panel" style="display: none;"></div>
-
           <button id="closet-upload-btn">📄 Upload</button>
           <progress id="closet-progress" value="0" max="100" hidden></progress>
           <ul id="closet-list"></ul>
+        </details>
+      </section>
+
+      <!-- Closet Dashboard Panel -->
+      <section class="card">
+        <details open>
+          <summary>🗂 Closet Dashboard</summary>
+          <div class="filter-row">
+            <label for="closet-view-category">Category:</label>
+            <select id="closet-view-category"></select>
+            <label for="closet-view-subcategory">Subcategory:</label>
+            <select id="closet-view-subcategory"></select>
+            <label for="closet-sort">Sort by:</label>
+            <select id="closet-sort">
+              <option value="name">Name</option>
+              <option value="date">Upload Date</option>
+            </select>
+            <input type="search" id="closet-search" placeholder="Search by filename" />
+          </div>
+          <div id="closet-dashboard-grid" class="upload-list"></div>
         </details>
       </section>
     </div>
@@ -104,11 +125,13 @@
     import { toggleEdit, addOption } from './js/shared-ui.js';
     import { setupClosetDropdowns } from './js/closet-dropdown.js';
     import { renderClosetEditPanel } from './js/closet-editor.js';
+    import { initClosetDashboard } from './js/closet-dashboard.js';
 
     document.addEventListener('DOMContentLoaded', () => {
       loadDefaults();
       setupClosetDropdowns();
       renderClosetEditPanel();
+      initClosetDashboard();
 
       document.getElementById('episode-edit-btn')?.addEventListener('click', () => toggleEdit('episode'));
       document.getElementById('add-episode-category')?.addEventListener('click', () => addOption('episode-category', 'new-episode-category'));
@@ -123,6 +146,5 @@
       document.getElementById('closet-edit-btn')?.addEventListener('click', () => toggleEdit('closet'));
     });
   </script>
-  <script type="module" src="./js/main.js"></script>
 </body>
 </html>

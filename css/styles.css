@@ -262,3 +262,54 @@ progress::-webkit-progress-value {
   transition: width 0.2s ease;
   border-radius: 4px;
 }
+.filter-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+.filter-row input,
+.filter-row select {
+  flex: 1;
+}
+.filter-row button {
+  flex-shrink: 0;
+}
+.dashboard-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.dashboard-filters label {
+  font-size: 0.9rem;
+  margin-right: 0.25rem;
+}
+
+.dashboard-filters input,
+.dashboard-filters select {
+  flex: 1 1 150px;
+  min-width: 120px;
+}
+/* Dashboard Item Buttons */
+.upload-item button {
+  margin: 0.25rem 0.15rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Closet Dashboard Grid */
+#closet-dashboard-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* Editable upload item styling (optional future expansion) */
+.upload-item.editing {
+  background-color: #fff8e1;
+  border-color: #ffeb3b;
+}
