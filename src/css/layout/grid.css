@@ -1,0 +1,22 @@
+/* Container width used by header/grid/hero */
+.container{
+  width: min(var(--container), 100%);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* 12-col helpers used on the home dashboard */
+.dashboard-grid{
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px; /* or var(--gap) if you prefer */
+}
+
+.two-thirds{ grid-column: span 8; }
+.third{ grid-column: span 4; }
+.full-width{ grid-column: 1 / -1; }
+
+@media (max-width: 960px){
+  .dashboard-grid{ grid-template-columns: 1fr; }
+  .two-thirds, .third, .full-width{ grid-column: 1 / -1; }
+}

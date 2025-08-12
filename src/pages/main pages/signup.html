@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up – Styling Adventures</title>
+  <link rel="stylesheet" href="/src/css/theme.css" />
+  <link rel="stylesheet" href="/src/css/styles.css" />
+</head>
+<body class="app-body">
+  <div class="auth-container">
+    <h1>Create Your Account</h1>
+
+    <form id="signup-form">
+      <label for="signup-email">Email</label>
+      <input type="email" id="signup-email" placeholder="Enter your email" required />
+
+      <label for="signup-password">Password</label>
+      <input type="password" id="signup-password" placeholder="Create a password" required />
+
+      <label for="signup-confirm">Confirm Password</label>
+      <input type="password" id="signup-confirm" placeholder="Repeat your password" required />
+
+      <button type="submit" class="button-primary">Sign Up</button>
+      <p id="signup-error" class="error-text"></p>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account?
+      <a href="login.html">Log In</a>
+    </div>
+  </div>
+
+  <script type="module" src="/src/js/auth/signup.js"></script>
+</body>
+</html>

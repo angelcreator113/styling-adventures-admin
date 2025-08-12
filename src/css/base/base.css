@@ -1,0 +1,23 @@
+html{scroll-padding-top:var(--topbar-h)}
+body{
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  background:var(--lavender);
+  color:var(--text);
+  line-height:1.6;
+}
+
+/* shared container */
+.container{
+  width:min(1100px, 100% - 48px);
+  margin-inline:auto;
+  padding-block:24px;
+}
+
+/* generic card/panel look used across app */
+.card,.panel,.dashboard-card{
+  background:var(--surface);
+  border:1px solid rgba(76,29,149,.06);
+  border-radius:var(--radius-lg);
+  padding:22px 24px;
+  box-shadow:var(--shadow-sm);
+}

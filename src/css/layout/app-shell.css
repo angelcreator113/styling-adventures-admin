@@ -1,0 +1,69 @@
+/* ===== App shell layout ===== */
+:root {
+  --topbar-h: 64px;
+  --sidebar-w: 260px;
+
+  /* NEW: shared content width + gutters */
+  --container: clamp(320px, 92vw, 1120px);
+  --gutter: clamp(16px, 3vw, 24px);
+}
+
+/* NEW: universal container */
+.container {
+  width: min(var(--container), 100%);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* App grid: topbar row + body (sidebar | main) */
+.app-shell {
+  display: grid;
+  grid-template-rows: var(--topbar-h, 56px) 1fr;
+  min-height: 100dvh;
+  background: var(--bg, #fff);
+}
+.app-shell__body {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100dvh - var(--topbar-h, 56px));
+}
+/* Collapse on desktop */
+.app-shell[data-sidebar="collapsed"] .app-shell__body { grid-template-columns: 76px 1fr; }
+/* Mobile: single column */
+@media (max-width: 768px) { .app-shell__body { grid-template-columns: 1fr; } }
+
+/* Sidebar column */
+.sidebar {
+  position: sticky;
+  top: 0; /* topbar is static; if fixed, offset with var */
+  height: 100dvh;
+  overflow: auto;
+}
+
+/* Main content column */
+.app-main {
+  min-width: 0; /* ✅ prevent grid child from shrinking to 0 */
+  overflow: auto;
+  padding: 20px 0 60px;
+  background: transparent;
+}
+
+/* Elements that should align with the container */
+.app-main > .container,
+.home {               /* <- center the new Home page root */
+  width: min(var(--container), 100%);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Mobile */
+@media (max-width: 960px) {
+  .sidebar {
+    position: static;
+    height: auto;
+  }
+  .app-main {
+    padding-top: 12px;
+  }
+}
+

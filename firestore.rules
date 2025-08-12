@@ -3,17 +3,51 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // This rule allows anyone with your Firestore database reference to view, edit,
-    // and delete all data in your Firestore database. It is useful for getting
-    // started, but it is configured to expire after 30 days because it
-    // leaves your app open to attackers. At that time, all client
-    // requests to your Firestore database will be denied.
-    //
-    // Make sure to write security rules for your app before that time, or else
-    // all client requests to your Firestore database will be denied until you Update
-    // your rules
+    // --- helpers ---
+    function isAuthed() { return request.auth != null; }
+    function isAdmin()  { return isAuthed() && request.auth.token.admin == true; }
+    function hasVisibility(d) { return d.visibility in ['public','private']; }
+    function creatingOwn() { return isAuthed() && request.resource.data.uid == request.auth.uid; }
+    function isOwner() { return isAuthed() && resource.data.uid == request.auth.uid; }
+
+    // --- panel registry ---
+    match /panel_defs/{id} {
+      allow read: if true;                 // change to isAuthed() if you want private
+      allow create, update, delete: if isAdmin();
+    }
+
+    // --- categories tree (matches /categories/{panel}/items/{docId}) ---
+    match /categories/{panel}/items/{docId} {
+      allow read: if true;                 // or isAuthed() if you want private
+      // Choose your write policy:
+      allow create, update, delete: if isAuthed();     // creators can manage categories
+      // allow create, update, delete: if isAdmin();   // admin-only management
+    }
+
+    // --- user content: Closet ---
+    match /closet/{docId} {
+      allow read: if resource.data.visibility == 'public' || isOwner() || isAdmin();
+      allow create: if creatingOwn() && hasVisibility(request.resource.data);
+      allow update, delete: if (isOwner() || isAdmin()) && hasVisibility(request.resource.data);
+    }
+
+    // --- user content: Voice ---
+    match /voice/{docId} {
+      allow read: if resource.data.visibility == 'public' || isOwner() || isAdmin();
+      allow create: if creatingOwn() && hasVisibility(request.resource.data);
+      allow update, delete: if (isOwner() || isAdmin()) && hasVisibility(request.resource.data);
+    }
+
+    // --- user content: Episodes ---
+    match /episodes/{docId} {
+      allow read: if resource.data.visibility == 'public' || isOwner() || isAdmin();
+      allow create: if creatingOwn() && hasVisibility(request.resource.data);
+      allow update, delete: if (isOwner() || isAdmin()) && hasVisibility(request.resource.data);
+    }
+
+    // --- fallback: admin-only ---
     match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2025, 8, 2);
+      allow read, write: if isAdmin();
     }
   }
 }
