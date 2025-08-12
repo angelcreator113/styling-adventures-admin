@@ -1,0 +1,37 @@
+/* Buttons */
+.btn{
+  padding:.65rem 1rem; border-radius:14px; border:1px solid rgba(76,29,149,.12);
+  background:#fff; color:var(--text);
+  transition:filter .15s ease, transform .05s ease;
+}
+.btn:hover{ filter:brightness(1.03); transform:translateY(-1px); }
+
+.btn-primary,.dashboard-btn{
+  background:var(--purple-accent); color:#fff; border:0; box-shadow:var(--shadow-sm);
+  padding:.75rem 1rem; border-radius:14px; font-weight:700;
+}
+.btn-primary:hover,.dashboard-btn:hover{ filter:brightness(1.04); }
+.btn-primary:active,.dashboard-btn:active{ transform:translateY(1px); }
+
+/* Inputs */
+input[type="text"],input[type="file"],select{
+  width:100%; padding:.75rem 1rem; border-radius:12px; background:#fff;
+  border:1px solid rgba(76,29,149,.18); transition: box-shadow .2s, border-color .2s;
+}
+input:focus,select:focus{
+  outline:none; border-color:var(--purple-accent);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--purple-accent), transparent 80%);
+}
+
+/* Lists used in ‘Just In’ */
+.list{ list-style:none; margin:8px 0 0; padding:0; }
+.list li{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 10px; border:1px solid rgba(76,29,149,.08);
+  border-radius:10px; background:#fff;
+}
+
+/* Modals/Toast placeholders keep your tokens */
+.toastify{
+  background:#fff0fb !important; color:var(--purple-dark) !important; font-weight:500;
+}

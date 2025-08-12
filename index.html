@@ -1,300 +1,62 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Styling Adventures Admin Portal</title>
-  <link rel="icon" href="assets/lala-avatar.png" type="image/png" />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Styling Adventures Admin</title>
 
-  <style>
-    :root {
-      --lavender: #fdf9ff;
-      --purple-dark: #4c1d95;
-      --purple-light: #e9d8fd;
-      --purple-accent: #6b21a8;
-    }
+    <!-- Zero-flash theme bootstrap -->
+    <script>
+      (function () {
+        try {
+          var mode = localStorage.getItem('theme') || 'auto';
+          var effective = mode === 'auto' ? 'light' : mode;
+          var root = document.documentElement;
+          root.setAttribute('data-theme', effective);
+          root.classList.toggle('light', effective === 'light');
+          root.classList.toggle('dark',  effective === 'dark');
+          // body might not exist yet in some browsers; this is harmless if it does
+          document.addEventListener('DOMContentLoaded', function () {
+            document.body.classList.toggle('light', effective === 'light');
+            document.body.classList.toggle('dark',  effective === 'dark');
+          });
+        } catch (_) {}
+      })();
+    </script>
 
-    body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background-color: var(--lavender);
-    }
+    <!-- Favicon lives in /public (or whatever your Vite public base is) -->
+    <link rel="icon" href="/assets/lala-avatar.png" type="image/png" />
 
-    /* Utility Classes */
-    .p-2rem { padding: 2rem; }
-    .bg-white { background: white; }
-    .rounded-lg { border-radius: 16px; }
-    .rounded-md { border-radius: 6px; }
-    .rounded-xl { border-radius: 12px; }
-    .shadow-sm { box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-    .shadow-md { box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
-    .shadow-lg { box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-    .flex-1 { flex: 1; }
-    .minw-300 { min-width: 300px; }
-    .gap-2rem { gap: 2rem; }
-    .flex-wrap { flex-wrap: wrap; }
-    .maxw-960 { max-width: 960px; }
-    .m-auto { margin: 0 auto; }
-    .text-purple-dark { color: var(--purple-dark); }
-    .text-center { text-align: center; }
+    <!-- 🔒 Boot-time styles only. Keep tiny. -->
+    <style>
+      /* Optional: prevent flash of white while React mounts */
+      html, body { background: #fbf7ff; }
+      body { margin: 0; }
+    </style>
+  </head>
 
-    /* Existing Styles */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 24px;
-      background-color: white;
-      border-bottom: 1px solid var(--purple-light);
-      box-shadow: 0 2px 4px rgba(237, 233, 254, 0.5);
-      position: sticky;
-      top: 0;
-      z-index: 500;
-    }
+  <body class="app-body">
+    <div id="root"></div>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
 
-    .topbar__brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    <!-- ✅ Vite mounts your React app (which imports all CSS via /src/main.jsx) -->
+    <script type="module" src="/src/main.jsx"></script>
 
-    .topbar__logo {
-      height: 32px;
-      width: 32px;
-      border-radius: 8px;
-      box-shadow: 0 0 4px rgba(90, 42, 130, 0.1);
-    }
-
-    .topbar__title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--purple-dark);
-      margin: 0;
-    }
-
-    .topbar__nav {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      position: relative;
-      z-index: 600;
-    }
-
-    .topbar__link,
-    .dropdown-toggle {
-      font-size: 0.95rem;
-      font-weight: 500;
-      color: var(--purple-accent);
-      background: none;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      padding: 6px 8px;
-    }
-
-    .topbar__link:hover,
-    .dropdown-toggle:hover {
-      opacity: 0.75;
-    }
-
-    .nav-group {
-      position: relative;
-    }
-
-    .dropdown-menu {
-      position: absolute;
-      top: calc(100% + 6px);
-      left: 0;
-      background: white;
-      border: 1px solid var(--purple-light);
-      border-radius: 6px;
-      display: none;
-      flex-direction: column;
-      min-width: 160px;
-      z-index: 999;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .dropdown-menu.show {
-      display: flex;
-    }
-
-    .dropdown-menu a {
-      padding: 8px 12px;
-      font-size: 0.9rem;
-      color: var(--purple-dark);
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    .dropdown-menu a:hover {
-      background-color: #f4ebff;
-    }
-
-    #panel-container {
-      padding: 2rem;
-      max-width: 960px;
-      margin: 0 auto;
-    }
-
-    .placeholder-heading {
-      font-size: 1.8rem;
-      color: var(--purple-dark);
-    }
-
-    .placeholder-subtext {
-      font-size: 1rem;
-      color: #444;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.3);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 10000;
-    }
-
-    .modal-overlay.active {
-      display: flex;
-    }
-
-    .modal {
-      background: white;
-      padding: 1.5rem 2rem;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      text-align: center;
-      max-width: 400px;
-      width: 100%;
-    }
-
-    .modal h2 {
-      font-size: 1.2rem;
-      color: var(--purple-dark);
-      margin-bottom: 1rem;
-    }
-
-    .modal-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-
-    .modal button {
-      padding: 0.5rem 1rem;
-      font-weight: 600;
-      border-radius: 6px;
-      cursor: pointer;
-      border: none;
-    }
-
-    .modal .confirm {
-      background-color: #d946ef;
-      color: white;
-    }
-
-    .modal .cancel {
-      background-color: #f3e8ff;
-      color: var(--purple-dark);
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Topbar -->
-  <div class="topbar">
-    <div class="topbar__brand">
-      <img src="assets/lala-avatar.png" alt="Lala Logo" class="topbar__logo" />
-      <h1 class="topbar__title">Styling Adventures with Lala – Admin Portal</h1>
-    </div>
-
-    <nav class="topbar__nav">
-      <a href="#" class="topbar__link" data-panel="home">Home</a>
-
-      <div class="nav-group">
-        <button class="dropdown-toggle">Profile ▾</button>
-        <div class="dropdown-menu">
-          <a href="#" data-panel="settings">Settings</a>
-          <a href="#" data-panel="payment">Payment</a>
-          <hr />
-          <a href="#" id="logout-btn">Logout</a>
-        </div>
-      </div>
-
-      <div class="nav-group">
-        <button class="dropdown-toggle">Upload Files ▾</button>
-        <div class="dropdown-menu">
-          <a href="#" data-panel="closet-upload">Closet Upload</a>
-          <a href="#" data-panel="voice-upload">Voice Upload</a>
-          <a href="#" data-panel="episode-upload">Episode Upload</a>
-          <a href="#" data-panel="meta-upload">Meta Upload</a>
-          <a href="#" data-panel="panel-manager">Manage Panels</a>
-        </div>
-      </div>
-    </nav>
-  </div>
-
-  <!-- Main Content -->
-  <main id="panel-container" class="p-2rem maxw-960 m-auto">
-    <h1 class="placeholder-heading">Welcome to the Admin Panel</h1>
-    <p class="placeholder-subtext">Use the top navigation to get started.</p>
-  </main>
-
-  <!-- Logout Modal -->
-  <div class="modal-overlay" id="logout-modal">
-    <div class="modal rounded-xl shadow-lg">
-      <h2>Are you sure you want to log out?</h2>
-      <div class="modal-buttons">
-        <button id="confirm-logout" class="confirm">Yes, log out</button>
-        <button id="cancel-logout" class="cancel">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Firebase + App Scripts -->
-  <script type="module" src="js/firebase-config.js"></script>
-  <script type="module" src="js/utils/firebase-client.js"></script>
-  <script type="module" src="js/auth/logout.js"></script>
-  <script type="module" src="js/panels/panel-router.js"></script>
-
-  <script>
-    // Modal logic
-    const logoutBtn = document.getElementById('logout-btn');
-    const modal = document.getElementById('logout-modal');
-    const cancelBtn = document.getElementById('cancel-logout');
-
-    logoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-      setTimeout(() => modal.classList.add('active'), 100);
-    });
-
-    cancelBtn.addEventListener('click', () => {
-      modal.classList.remove('active');
-    });
-
-    // Dropdown logic
-    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-      toggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const parent = toggle.closest('.nav-group');
-        const menu = parent.querySelector('.dropdown-menu');
-
-        document.querySelectorAll('.dropdown-menu').forEach(m => {
-          if (m !== menu) m.classList.remove('show');
+    <!-- 🛠 Toggle debug class with the "g" key -->
+    <script>
+      (function () {
+        const KEY = "__debug";
+        if (localStorage.getItem(KEY) === "1") {
+          document.documentElement.classList.add("debug");
+        }
+        document.addEventListener("keydown", (e) => {
+          if (e.key.toLowerCase() === "g") {
+            const root = document.documentElement;
+            root.classList.toggle("debug");
+            localStorage.setItem(KEY, root.classList.contains("debug") ? "1" : "0");
+          }
         });
-
-        menu.classList.toggle('show');
-      });
-    });
-
-    document.addEventListener('click', () => {
-      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('show'));
-    });
-  </script>
-</body>
+      })();
+    </script>
+  </body>
 </html>
