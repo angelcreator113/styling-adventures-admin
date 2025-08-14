@@ -1,6 +1,7 @@
 // js/loadListeners.js
-import { db } from './firebase.js';
-import { getDocs, collection } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+// imports (replace)
+import { db } from '../utils/init-firebase.js';
+import { getDocs, collection } from 'firebase/firestore';
 
 export async function initUIListeners() {
   // Style Me button

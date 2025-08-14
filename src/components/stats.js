@@ -1,28 +1,18 @@
-// src/components/stats.js
+import { authReady, db } from '@/utils/init-firebase';
+import { collection, getDocs } from 'firebase/firestore';
+
 export async function loadStats() {
-  const statsGrid = document.getElementById("closet-stats");
-  if (!statsGrid) {
-    console.warn("[stats] #closet-stats not found");
-    return;
-  }
+  const statsGrid = document.getElementById('closet-stats');
+  if (!statsGrid) return;
 
   try {
-    // ✅ use the same source as init-firebase.js
-    const { auth, db } = await import("../utils/init-firebase.js");
-    const { collection, getDocs } = await import("firebase/firestore");
-
-    if (!db) {
-      console.error("[stats] Firestore db is undefined – check init-firebase exports");
+    const user = await authReady();         // ⬅️ wait here
+    if (!user) {
+      statsGrid.innerHTML = '<p>Sign in to see stats.</p>';
       return;
     }
 
-    const uid = auth.currentUser?.uid;
-    if (!uid) {
-      console.warn("[stats] No user logged in");
-      return;
-    }
-
-    const closetRef = collection(db, `users/${uid}/closet`);
+    const closetRef = collection(db, `users/${user.uid}/closet`);
     const snapshot = await getDocs(closetRef);
 
     const totalPieces = snapshot.size;
@@ -33,27 +23,20 @@ export async function loadStats() {
     snapshot.forEach((doc) => {
       const data = doc.data() || {};
       if (data.category) categories.add(data.category);
-      if (data.uploadedAt?.toMillis && data.uploadedAt.toMillis() >= oneWeekAgo) {
-        recentUploads++;
-      }
+      const ts = data.uploadedAt?.toMillis?.();
+      if (typeof ts === 'number' && ts >= oneWeekAgo) recentUploads++;
     });
 
     statsGrid.innerHTML = `
-      <div class="stat-block">
-        <span class="stat-label">Total Pieces</span>
-        <span class="stat-value" id="total-pieces">${totalPieces}</span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-label">Categories</span>
-        <span class="stat-value" id="category-count">${categories.size}</span>
-      </div>
-      <div class="stat-block">
-        <span class="stat-label">Recent Uploads</span>
-        <span class="stat-value" id="recent-uploads">${recentUploads}</span>
-      </div>
+      <div class="stat-block"><span class="stat-label">Total Pieces</span>
+        <span class="stat-value" id="total-pieces">${totalPieces}</span></div>
+      <div class="stat-block"><span class="stat-label">Categories</span>
+        <span class="stat-value" id="category-count">${categories.size}</span></div>
+      <div class="stat-block"><span class="stat-label">Recent Uploads</span>
+        <span class="stat-value" id="recent-uploads">${recentUploads}</span></div>
     `;
   } catch (err) {
-    console.error("🧨 Failed to load closet stats:", err);
-    statsGrid.innerHTML = `<p>Failed to load closet stats.</p>`;
+    console.error('🧨 Failed to load closet stats:', err);
+    statsGrid.innerHTML = '<p>Failed to load closet stats.</p>';
   }
 }

@@ -1,12 +1,15 @@
 // src/pages/LoginPage.jsx
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../utils/init-firebase';
+import { auth } from '@/utils/init-firebase';
 import '../css/login.css';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const loc = useLocation();
+  const redirectTo = loc.state?.from || '/home';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +33,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/');
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError('Invalid email or password.');
     } finally {

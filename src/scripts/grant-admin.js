@@ -5,7 +5,8 @@ const admin = require('firebase-admin');
 function initAdmin() {
   if (admin.apps.length) return;
 
-  const bucket = process.env.FIREBASE_STORAGE_BUCKET || 'styling-admin.appspot.com';
+  const bucket = process.env.FIREBASE_STORAGE_BUCKET;
+  if (!bucket) throw new Error('FIREBASE_STORAGE_BUCKET missing');
 
   if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     admin.initializeApp({

@@ -1,7 +1,10 @@
 // js/firebase-upload.js
+// Module-based Firebase SDK (no CDN)
+// If this file lives in /src/js/, the path below is correct.
+// Adjust the ../ as needed for your project structure.
 import { db, storage } from '../../utils/firebase-client.js';
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, addDoc } from 'firebase/firestore';
 
 // 📤 Upload to Firebase Storage
 export async function uploadFile(file, path) {

@@ -1,8 +1,6 @@
-import { ready } from '../utils/firebase-client.js';
-import {
-  getAuth,
-  createUserWithEmailAndPassword
-} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+// imports (replace)
+import { auth } from '../utils/init-firebase.js';
+import { createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const emailInput = document.getElementById('signup-email');

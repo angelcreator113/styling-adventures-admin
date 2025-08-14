@@ -1,12 +1,10 @@
+// imports (replace)
+import { db } from './init-firebase.js';
 import {
-  collection,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  doc
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { ref as storageRef, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-import { db, storage } from "../../utils/firebase-client.js";
+  getDoc, getDocs, collection, doc, query, where
+} from 'firebase/firestore';
+import { ref as storageRef, getDownloadURL } from 'firebase/storage';
+
 
 // 🔍 Get all closet items (basic metadata only)
 export async function getAllClosetItems() {

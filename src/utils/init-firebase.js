@@ -1,26 +1,32 @@
 // src/utils/init-firebase.js
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import { getAuth } from 'firebase/auth';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
+import { firebaseConfig } from '@/firebase/firebase-config'; // <- your file
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDpOFCB3QzPbgzfroeoi8oxgj7rF5hmyHw",
-  authDomain: "styling-admin.firebaseapp.com",
-  projectId: "styling-admin",
-  storageBucket: "styling-admin.appspot.com",
-  messagingSenderId: "390526657916",
-  appId: "1:390526657916:web:2756988e13f45b946070f9"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const storage = getStorage(app);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
-window.firebaseRefs = { app, db, storage, auth };
-window.dispatchEvent(new Event('firebase-ready'));
+// Optional but fixes flaky “Listen 400” on some networks
+const useLongPolling =
+  String(import.meta.env?.VITE_FIRESTORE_LONG_POLLING ?? '') === 'true';
 
-console.log('[init-firebase] Firebase initialized ✅');
+const db = useLongPolling
+  ? initializeFirestore(app, { experimentalForceLongPolling: true })
+  : getFirestore(app);
 
-export { app, db, storage, auth };
+// Promise that resolves once Auth state is known
+let _authReady;
+function authReady() {
+  if (!_authReady) {
+    _authReady = new Promise((resolve) => {
+      const off = onAuthStateChanged(auth, (user) => {
+        off();
+        resolve(user || null);
+      });
+    });
+  }
+  return _authReady;
+}
+
+export { app, auth, db, authReady };

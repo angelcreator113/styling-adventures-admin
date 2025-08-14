@@ -1,9 +1,9 @@
 // src/pages/SignupPage.jsx
 
 import React, { useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { app } from '../../utils/init-firebase';
+import { auth } from '@/utils/init-firebase';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -12,7 +12,7 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const auth = getAuth(app);
+  // use the imported `auth` directly
 
   const handleSignup = async () => {
     setError('');

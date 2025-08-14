@@ -3,7 +3,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react()],
   resolve: {
     alias: {
@@ -20,4 +20,13 @@ export default defineConfig({
       '/smoke': 'http://localhost:3000',
     },
   },
-})
+  // 🔧 Stop Vite from pre-bundling Firebase (eliminates the 504 loop)
+  optimizeDeps: {
+    exclude: ['firebase', 'firebase/app', 'firebase/auth'],
+    force: command === 'serve', // force a clean optimize on first run
+  },
+  // (harmless in SPA dev; avoids edge SSR transforms treating firebase as external)
+  ssr: {
+    noExternal: ['firebase'],
+  },
+}))

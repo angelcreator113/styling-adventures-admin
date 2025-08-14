@@ -1,6 +1,7 @@
-// js/dashboard/renderUploads.js
-import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { db } from "../utils/firebase-client.js";
+// src/js/dashboard/renderUploads.js
+// ✅ Replace CDN imports with modular Firestore + unified init
+import { db } from '../../utils/init-firebase.js';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 
 /**
  * 🧙‍♀️ Render all uploads for a given panel (closet, voice, episodes)
@@ -12,14 +13,13 @@ export async function renderUploadCollection(type, gridSelector, mediaType) {
   const listEl = document.querySelector(gridSelector);
   if (!listEl) return;
 
-  // 💡 Show loading state only once
-  if (!listEl.classList.contains("populated")) {
+  if (!listEl.classList.contains('populated')) {
     listEl.innerHTML = `<div class="loading">⏳ Loading ${type}...</div>`;
   }
 
   try {
     const querySnapshot = await getDocs(collection(db, type));
-    listEl.innerHTML = ''; // 🧹 Clear after loading
+    listEl.innerHTML = '';
 
     if (querySnapshot.empty) {
       listEl.innerHTML = `<div class="no-results">No ${type} uploads found yet.</div>`;
@@ -35,7 +35,6 @@ export async function renderUploadCollection(type, gridSelector, mediaType) {
       label.className = 'upload-label';
       label.textContent = data.filename || 'Unnamed';
 
-      // 🔍 Preview element
       let preview;
       if (mediaType === 'image') {
         preview = document.createElement('img');
@@ -59,7 +58,6 @@ export async function renderUploadCollection(type, gridSelector, mediaType) {
         preview.target = '_blank';
       }
 
-      // 🗑️ Delete button
       const delBtn = document.createElement('button');
       delBtn.textContent = '❌';
       delBtn.className = 'delete-btn';
@@ -76,17 +74,13 @@ export async function renderUploadCollection(type, gridSelector, mediaType) {
       listEl.appendChild(li);
     });
 
-    // ✅ Mark grid as ready
-    listEl.classList.add("populated");
+    listEl.classList.add('populated');
   } catch (err) {
     listEl.innerHTML = `<div class="error-message">Failed to load uploads: ${err.message}</div>`;
     console.error(`❌ Error rendering ${type} uploads:`, err);
   }
 }
 
-/**
- * 🧤 Protect against double rendering
- */
 if (!window.renderedPanels) window.renderedPanels = {};
 export async function safeRenderPanel(type, selector, mediaType) {
   if (window.renderedPanels[type]) return;

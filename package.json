@@ -11,7 +11,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "fullstack": "concurrently \"npm run server\" \"npm run dev\"",
-    "deploy:rules": "firebase deploy --only firestore:rules,storage"
+    "deploy:rules": "firebase deploy --only firestore:rules,storage",
+    "smoke:hello": "node -e \"console.log('[node ok] cwd=' + process.cwd())\"",
+    "smoke:storage": "node -r dotenv/config ./src/scripts/gcs-storage-smoke.js",
+    "smoke:storage:debug": "node --trace-uncaught --trace-warnings -r dotenv/config ./src/scripts/gcs-storage-smoke.js",
+    "smoke:upload": "node -r dotenv/config ./src/scripts/gcs-upload-canary.js",
+    "storage:set-cors": "node -r dotenv/config ./src/scripts/gcs-set-cors.js"
   },
   "repository": {
     "type": "git",
@@ -25,10 +30,11 @@
   },
   "homepage": "https://github.com/angelcreator113/styling-adventures-admin#readme",
   "dependencies": {
+    "@google-cloud/storage": "^7.16.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^4.21.2",
-    "firebase": "^12.0.0",
+    "firebase": "^12.1.0",
     "firebase-admin": "^13.4.0",
     "multer": "^2.0.2",
     "react": "^19.1.1",

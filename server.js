@@ -14,7 +14,10 @@ const errl = (...a) => console.error('[server][ERROR]', ...a);
 // --- ENV ---
 const PORT   = Number(process.env.PORT) || 3000;
 const HOST   = process.env.HOST || '127.0.0.1';
-const BUCKET = process.env.FIREBASE_STORAGE_BUCKET || 'styling-admin.appspot.com';
+const BUCKET = process.env.FIREBASE_STORAGE_BUCKET;
+if (!BUCKET) {
+  throw new Error('Missing FIREBASE_STORAGE_BUCKET in .env');
+}
 const ADC    = process.env.GOOGLE_APPLICATION_CREDENTIALS || '';
 const SA_B64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64 || '';
 const BYPASS = String(process.env.FIREBASE_ADMIN_BYPASS || '').toLowerCase() === 'true';
@@ -75,7 +78,6 @@ async function initAdmin() {
     db = admin.firestore();
     storage = admin.storage().bucket();
 
-    // Make available globally
     global.admin = admin;
     log(`Firebase Admin READY in ${Date.now() - t0}ms`);
   } catch (e) {

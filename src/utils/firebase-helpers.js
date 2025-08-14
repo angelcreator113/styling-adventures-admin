@@ -1,90 +1,60 @@
-import {
-  ref,
-  uploadBytesResumable,
-  getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+// src/utils/firebase-helpers.js
+// ✅ Real uploader + DOM events; no CDN imports
+import { storage, db } from './init-firebase.js';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
-import { addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { storage, db } from "./firebase-client.js"; // ✅ FIXED PATH
-
-/**
- * 🍞 Show toast message
- * @param {string} message
- * @param {"success"|"error"} type
- */
-export function showToast(message, type = "success") {
-  const toastContainer = document.getElementById("toast-container");
-  if (!toastContainer) return;
-
-  const toast = document.createElement("div");
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-
-  toastContainer.appendChild(toast);
-  setTimeout(() => {
-    toast.remove();
-  }, 3500);
+function emit(name, detail) {
+  document.dispatchEvent(new CustomEvent(name, { detail }));
 }
 
 /**
- * Upload a file to Firebase Storage and track progress.
- * @param {File} file - The file object to upload
- * @param {string} path - The full Firebase Storage path (no trailing slash)
- * @returns {Promise<string>} downloadURL
+ * Core uploader with progress + events.
+ * @param {{ file: File, path: string, uiPrefix?: string, metadata?: Record<string, any>, onProgress?: (pct:number, sent:number, total:number)=>void }} opts
+ * @returns {Promise<{ url: string, fullPath: string, bytes: number, contentType?: string }>}
  */
-export function uploadFile(file, path) {
+export function uploadFile({ file, path, uiPrefix, metadata = {}, onProgress }) {
   return new Promise((resolve, reject) => {
-    const storageRef = ref(storage, `${path}/${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    const safeName = file.name.replace(/\s+/g, '-');
+    const fullPath = `${path}/${Date.now()}-${safeName}`;
+    const sref = ref(storage, fullPath);
+    const task = uploadBytesResumable(sref, file, metadata);
 
-    const progressBar = document.getElementById("upload-progress");
-    if (progressBar) {
-      progressBar.hidden = false;
-      progressBar.value = 0;
-    }
-
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        if (progressBar) progressBar.value = percent;
+    task.on('state_changed',
+      (snap) => {
+        const pct = (snap.bytesTransferred / snap.totalBytes) * 100;
+        onProgress?.(pct, snap.bytesTransferred, snap.totalBytes);
+        emit('upload:progress', {
+          uiPrefix, progress: pct,
+          bytesTransferred: snap.bytesTransferred,
+          totalBytes: snap.totalBytes,
+          fileName: file.name, path: fullPath,
+        });
       },
       (error) => {
-        console.error("❌ Upload failed:", error);
-        showToast("❌ Upload failed", "error");
-        if (progressBar) {
-          progressBar.hidden = true;
-          progressBar.value = 0;
-        }
+        emit('upload:error', { uiPrefix, error: String(error), fileName: file.name, path: fullPath });
         reject(error);
       },
       async () => {
-        const url = await getDownloadURL(uploadTask.snapshot.ref);
-        showToast("✅ Upload complete", "success");
-        if (progressBar) {
-          progressBar.hidden = true;
-          progressBar.value = 0;
-        }
-        resolve(url);
+        const url = await getDownloadURL(task.snapshot.ref);
+        emit('upload:complete', { uiPrefix, url, fileName: file.name, path: fullPath });
+        resolve({ url, fullPath, bytes: task.snapshot.totalBytes, contentType: file.type });
       }
     );
   });
 }
 
 /**
- * Save metadata to Firestore
- * @param {string} collectionName
- * @param {object} data
+ * Convenience for your upload panels
+ * (file, { slug, public, onProgress, uiPrefix })
  */
+export function uploadFileWithProgress(file, { slug, public: isPublic = true, onProgress, uiPrefix }) {
+  const folder = slug === 'closet' ? 'closet' : slug === 'voice' ? 'voices' : 'episodes';
+  const base = isPublic ? 'public' : 'private';
+  const path = `${base}/${folder}`;
+  return uploadFile({ file, path, uiPrefix, onProgress });
+}
+
 export async function saveFileMetadata(collectionName, data) {
-  try {
-    const docRef = await addDoc(collection(db, collectionName), {
-      ...data,
-      uploadedAt: new Date()
-    });
-    console.log(`📦 Metadata saved to "${collectionName}" with ID:`, docRef.id);
-  } catch (error) {
-    console.error("❌ Error saving metadata:", error);
-    showToast("❌ Failed to save metadata", "error");
-  }
+  await addDoc(collection(db, collectionName), { ...data, uploadedAt: serverTimestamp() });
 }

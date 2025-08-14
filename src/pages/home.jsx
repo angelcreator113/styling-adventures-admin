@@ -4,9 +4,10 @@ import { Link } from "react-router-dom";
 import { auth } from "@/utils/init-firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
-import ClosetStatsCard from "@/components/ClosetStatsCard.jsx";
-import JustInCarousel from "@/features/closet/JustInCarousel.jsx";
-import OutfitPlanner from "@/components/homepage/OutfitPlanner.jsx";
+// Lazy-load heavy children so this module doesn't execute them on import
+const ClosetStatsCard  = React.lazy(() => import("@/components/ClosetStatsCard.jsx"));
+const JustInCarousel   = React.lazy(() => import("@/features/closet/JustInCarousel.jsx"));
+const OutfitPlanner    = React.lazy(() => import("@/components/homepage/OutfitPlanner.jsx"));
 
 /* ---------------------------------- */
 /* Small, file-local building blocks  */
@@ -63,16 +64,55 @@ function CarouselSkeleton() {
   );
 }
 
+/* ---------------------------------- */
+/* Local error boundary (catches child errors) */
+/* ---------------------------------- */
+
+class Boundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  componentDidCatch(error, info) {
+    // Keep this noisy so we can see the real cause in dev tools
+    console.error("[Home] child error:", error, info);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <article className="card">
+          <h2 className="section-title">Something went wrong</h2>
+          <pre style={{ color: "crimson", whiteSpace: "pre-wrap" }}>
+            {String(this.state.error?.message || this.state.error)}
+          </pre>
+        </article>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 /* -------------------------- */
 /*            Page            */
 /* -------------------------- */
 
 export default function Home() {
-  const [user, setUser] = React.useState(() => auth.currentUser);
+  // Be defensive: auth might not be ready during hot reloads
+  const [user, setUser] = React.useState(() => {
+    try {
+      return auth?.currentUser ?? null;
+    } catch {
+      return null;
+    }
+  });
 
   React.useEffect(() => {
-    const unsub = onAuthStateChanged(auth, setUser);
-    return () => unsub();
+    if (!auth) return undefined;
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u ?? null));
+    return () => { try { unsub?.(); } catch {} };
   }, []);
 
   return (
@@ -89,6 +129,10 @@ export default function Home() {
           height="600"
           decoding="async"
           fetchPriority="high"
+          onError={(e) => {
+            // never crash on broken images
+            e.currentTarget.style.display = "none";
+          }}
         />
         <div className="home-hero__overlay">
           <Link to="/planner" className="pill tb-btn">
@@ -105,13 +149,11 @@ export default function Home() {
             <h2 id="h-stats" className="section-title">
               Closet Stats 📊
             </h2>
-            <React.Suspense
-              fallback={
-                <div className="skeleton-block" style={{ height: 140, borderRadius: 12 }} />
-              }
-            >
-              <ClosetStatsCard />
-            </React.Suspense>
+            <Boundary>
+              <React.Suspense fallback={<CardSkeleton />}>
+                <ClosetStatsCard />
+              </React.Suspense>
+            </Boundary>
             <div style={{ marginTop: 12 }}>
               <Link to="/closet/upload" className="tb-btn">
                 + Add your first item
@@ -119,14 +161,17 @@ export default function Home() {
             </div>
           </article>
 
-          <React.Suspense fallback={<CarouselSkeleton />}>
-            <article className="card" aria-labelledby="h-justin">
-              <h2 id="h-justin" className="section-title">
-                Just In 🧾
-              </h2>
-              <JustInCarousel limit={12} />
-            </article>
-          </React.Suspense>
+          <Boundary>
+            <React.Suspense fallback={<CarouselSkeleton />}>
+              <article className="card" aria-labelledby="h-justin">
+                <h2 id="h-justin" className="section-title">
+                  Just In 🧾
+                </h2>
+                {/* Guard props just in case */}
+                <JustInCarousel limit={Number.isFinite(12) ? 12 : 0} />
+              </article>
+            </React.Suspense>
+          </Boundary>
 
           <article className="card" aria-labelledby="h-tip">
             <h2 id="h-tip" className="section-title">
@@ -138,9 +183,14 @@ export default function Home() {
 
         {/* RIGHT column */}
         <div className="stack">
-          <OutfitPlanner />
+          <Boundary>
+            <React.Suspense fallback={<CardSkeleton title="Planner loading…" />}>
+              <OutfitPlanner />
+            </React.Suspense>
+          </Boundary>
+
           <article className="card">
-            <QuickActions user={user} variant="row" />
+            <QuickActions user={!!user} variant="row" />
           </article>
         </div>
       </section>
