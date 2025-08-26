@@ -19,3 +19,11 @@ git push origin main
 *.zip
 server.zip
 
+
+# Dependencies
+node_modules/
+
+
+# Ignore archives
+*.zip
+
