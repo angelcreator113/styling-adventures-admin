@@ -1,4 +1,21 @@
+@"
+# environment
 .env
 *.local
-firebase-service-account.json
-Stop tracking zip archives; ignore *.zip
+
+# secrets
+src/keys/*.json
+src/config/firebase.json
+
+# archives
+*.zip
+"@ | Set-Content .gitignore -NoNewline
+
+git add .gitignore
+git commit -m "tidy: clean .gitignore"
+git push origin main
+
+# Ignore archives
+*.zip
+server.zip
+
