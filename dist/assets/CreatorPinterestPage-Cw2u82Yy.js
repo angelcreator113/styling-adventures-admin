@@ -1,0 +1,1 @@
+import{j as e}from"./index-Dpurs1Jy.js";function n(){return e.jsxs("section",{className:"container",style:{padding:16},children:[e.jsx("h1",{children:"Pinterest"}),e.jsx("p",{children:"Plan pins, track performance."})]})}export{n as default};

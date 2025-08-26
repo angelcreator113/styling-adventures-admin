@@ -1,0 +1,1 @@
+import{j as e}from"./index-Dpurs1Jy.js";function t(){return e.jsxs("section",{className:"container",style:{padding:16},children:[e.jsx("h1",{children:"YouTube"}),e.jsx("p",{children:"Video uploads, titles, thumbnails."})]})}export{t as default};

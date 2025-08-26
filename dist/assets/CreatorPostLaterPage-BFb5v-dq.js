@@ -1,0 +1,1 @@
+import{j as s}from"./index-Dpurs1Jy.js";function t(){return s.jsx("section",{className:"container",style:{padding:16},children:s.jsxs("div",{className:"dashboard-card",children:[s.jsx("h1",{style:{marginTop:0},children:"Post Me Later"}),s.jsx("p",{children:"Schedule posts to auto-publish to your channels."})]})})}export{t as default};

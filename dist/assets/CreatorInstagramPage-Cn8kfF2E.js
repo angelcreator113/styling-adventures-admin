@@ -1,0 +1,1 @@
+import{j as e}from"./index-Dpurs1Jy.js";function a(){return e.jsxs("section",{className:"container",style:{padding:16},children:[e.jsx("h1",{children:"Instagram"}),e.jsx("p",{children:"Schedule posts, manage reels."})]})}export{a as default};
