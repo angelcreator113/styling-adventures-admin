@@ -10,11 +10,14 @@
       (function () {
         try {
           var mode = localStorage.getItem('theme') || 'auto';
-          var effective = mode === 'auto' ? 'light' : mode;
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var effective = mode === 'auto' ? (prefersDark ? 'dark' : 'light') : mode;
+
           var root = document.documentElement;
           root.setAttribute('data-theme', effective);
           root.classList.toggle('light', effective === 'light');
           root.classList.toggle('dark',  effective === 'dark');
+
           document.addEventListener('DOMContentLoaded', function () {
             document.body.classList.toggle('light', effective === 'light');
             document.body.classList.toggle('dark',  effective === 'dark');
@@ -41,16 +44,34 @@
     <script>
       (function () {
         const KEY = "__debug";
-        if (localStorage.getItem(KEY) === "1") {
-          document.documentElement.classList.add("debug");
-        }
-        document.addEventListener("keydown", (e) => {
-          if (e.key.toLowerCase() === "g") {
+
+        // apply on load
+        try {
+          if (localStorage.getItem(KEY) === "1") {
+            document.documentElement.classList.add("debug");
+          }
+        } catch (_) {}
+
+        document.addEventListener(
+          "keydown",
+          (e) => {
+            // ignore while typing in inputs/textareas or during IME composition
+            const tag = (e.target && e.target.tagName || "").toLowerCase();
+            if (tag === "input" || tag === "textarea" || e.isComposing) return;
+
+            // guard against undefined/non-string keys
+            const k = typeof e.key === "string" ? e.key.toLowerCase() : "";
+            if (k !== "g") return;
+
             const root = document.documentElement;
             root.classList.toggle("debug");
-            localStorage.setItem(KEY, root.classList.contains("debug") ? "1" : "0");
-          }
-        });
+
+            try {
+              localStorage.setItem(KEY, root.classList.contains("debug") ? "1" : "0");
+            } catch (_) {}
+          },
+          { passive: true }
+        );
       })();
     </script>
   </body>

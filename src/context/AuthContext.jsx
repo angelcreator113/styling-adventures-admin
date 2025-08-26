@@ -1,44 +1,34 @@
 // src/context/AuthContext.jsx
-import { createContext, useEffect, useState, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { auth, onAuthReady } from '@/utils/init-firebase'; // onAuthReady resolves when Firebase knows user
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/utils/init-firebase';
+import { getRoles, primaryRole } from '@/utils/roles';
 
-const AuthContext = createContext();
-export const useAuth = () => useContext(AuthContext);
+const Ctx = createContext({ user: null, roles: ['guest'], role: 'guest', loading: true, refresh: async () => {} });
 
-function BootScreen() {
-  return (
-    <div
-      style={{
-        display: 'grid',
-        placeItems: 'center',
-        minHeight: '100dvh',
-        background: 'var(--lavender, #fdf9ff)'
-      }}
-    >
-      <div role="status" aria-live="polite" style={{ opacity: 0.7 }}>
-        Loading…
-      </div>
-    </div>
-  );
-}
-
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser]   = useState(null);
+  const [roles, setRoles] = useState(['guest']);
   const [loading, setLoading] = useState(true);
 
+  const refresh = async (u = auth.currentUser) => {
+    const r = u ? await getRoles() : ['guest'];
+    setRoles(r);
+  };
+
   useEffect(() => {
-    // Resolve exactly once
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser ?? null);
+    let unsub = onAuthStateChanged(auth, async (u) => {
+      setUser(u);
+      await refresh(u);
       setLoading(false);
     });
-    return () => unsub();
+    // also wait for initial readiness (handles reloads cleanly)
+    onAuthReady().finally(() => setLoading(false));
+    return () => unsub && unsub();
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, loading }}>
-      {loading ? <BootScreen /> : children}
-    </AuthContext.Provider>
-  );
-};
+  const value = { user, roles, role: primaryRole(roles), loading, refresh };
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
+export const useAuth = () => useContext(Ctx);

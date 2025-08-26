@@ -19,7 +19,7 @@
     "src/**/*",
     "server.js",
     "vite.config.js"
-  ],
+, "public/seed/spotlights", "public/seed/threads"  ],
   "exclude": [
     "node_modules",
     "dist"

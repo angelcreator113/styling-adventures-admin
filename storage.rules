@@ -1,48 +1,66 @@
 rules_version = '2';
+
 service firebase.storage {
   match /b/{bucket}/o {
 
-    function isAuthed() { return request.auth != null; }
-    function isAdmin() { return isAuthed() && request.auth.token.admin == true; }
-
-    // Validate common upload constraints
+    /* ------------ helpers ------------ */
+    function authed()    { return request.auth != null; }
+    function isAdmin()   { return authed() && (request.auth.token.admin == true || request.auth.token.role == 'admin'); }
+    function isOwner(uid) { return authed() && request.auth.uid == uid; }
     function okContent() {
       return request.resource.contentType.matches('^[^/]+/[^/]+$')
              && request.resource.size < 250 * 1024 * 1024;
     }
-    function hasVisibilityMeta() {
-      return request.resource.metadata.visibility in ['public', 'private'];
+    // private-or-owner read helper
+    function canReadPrivate(uid) {
+      return isOwner(uid) || isAdmin();
+    }
+    // public read if uploader set metadata.visibility == "public"
+    function isPublic() {
+      return resource != null && resource.metadata.visibility == "public";
     }
 
-    // ---- Folder-specific rules ----
-    // CLOSET files: public readable if metadata.visibility == "public"; admin-only writes
-    match /closet/{path=**} {
-      allow read: if resource.metadata.visibility == "public" || isAdmin();
-      allow write: if isAdmin() && okContent() && hasVisibilityMeta();
+    /* =========================================================
+       Consolidated user media buckets
+       Accept ANY bucket name under images/users/{uid}/... :
+       closet, voice, episodes, spaces, etc.
+       - Owner (or admin) may read private files.
+       - Anyone may read when visibility=="public"
+       - Only owner may write; file-type/size validated
+       ========================================================= */
+    match /images/users/{uid}/{bucketId}/{all=**} {
+      // writes: owner only
+      allow write: if isOwner(uid) && okContent();
+
+      // reads: public OR owner/admin
+      allow read:  if isPublic() || canReadPrivate(uid);
     }
 
-    // EPISODES files
-    match /episodes/{path=**} {
-      allow read: if resource.metadata.visibility == "public" || isAdmin();
-      allow write: if isAdmin() && okContent() && hasVisibilityMeta();
+    /* =========================================================
+       Legacy/alternate roots we use in the app
+       ========================================================= */
+
+    // Public site assets (admin-managed)
+    match /images/public/{all=**} {
+      allow read:  if true;
+      allow write: if isAdmin() && okContent();
     }
 
-    // VOICE files
-    match /voice/{path=**} {
-      allow read: if resource.metadata.visibility == "public" || isAdmin();
-      allow write: if isAdmin() && okContent() && hasVisibilityMeta();
+    // Non-images closet path some older code still hits
+    match /users/{uid}/closet/{all=**} {
+      allow write: if isOwner(uid) && okContent();
+      allow read:  if isPublic() || canReadPrivate(uid);
     }
 
-    // (Optional) Fully public CDN folder for static assets you intend to expose
-    match /public/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin() && okContent()
-                   && request.resource.metadata.visibility == "public";
+    // Legacy top-level “/spaces/{uid}/...” root (owner only)
+    match /spaces/{uid}/{all=**} {
+      allow write: if isOwner(uid) && okContent();
+      allow read:  if canReadPrivate(uid);
     }
 
-    // Default: admin-only everywhere else
+    /* ------------ default deny ------------ */
     match /{path=**} {
-      allow read, write: if isAdmin();
+      allow read, write: if false;
     }
   }
 }

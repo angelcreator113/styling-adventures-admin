@@ -1,5 +1,6 @@
 import React from "react";
 import { useUploadPanel } from "../hooks/useUploadPanel";
+import ClosetDashboard from "@/components/ClosetDashboard.jsx";
 
 export default function ClosetPanel() {
   useUploadPanel("closet", "closet-");
@@ -50,21 +51,8 @@ export default function ClosetPanel() {
           </div>
         </section>
 
-        {/* Right: Dashboard placeholder */}
-        <section className="card dashboard" aria-labelledby="closet-dash-title">
-          <div className="card__body">
-            <h3 id="closet-dash-title" className="card__title">Closet Dashboard</h3>
-            <div className="toolbar">
-              <select id="closet-dash-filter" defaultValue="all">
-                <option value="all">All Categories</option>
-              </select>
-              <input id="closet-dash-search" placeholder="Search filenames..." />
-            </div>
-            <div id="closet-dashboard-root" className="dashboard-grid">
-              <div className="empty">Items will appear here.</div>
-            </div>
-          </div>
-        </section>
+        {/* Right: Live dashboard */}
+        <ClosetDashboard />
       </div>
     </div>
   );

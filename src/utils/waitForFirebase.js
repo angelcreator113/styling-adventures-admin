@@ -1,45 +1,27 @@
 // src/utils/waitForFirebase.js
-export function waitForFirebase(timeoutMs = 5000) {
-  return new Promise((resolve, reject) => {
-    // ✅ 1) If already ready, resolve immediately
-    if (window.firebaseRefs?.db) {
-      return resolve();
-    }
+import { authReady, db } from '@/utils/init-firebase';
 
-    let resolved = false;
-    const onReady = () => {
-      if (!resolved) {
-        resolved = true;
-        cleanup();
-        resolve();
-      }
-    };
+// Resolve once Firebase auth has produced the initial user (or null).
+// Also publish a tiny global + event for backwards compatibility.
+export async function waitForFirebase(timeoutMs = 6000) {
+  const race = Promise.race([
+    (async () => {
+      await authReady();               // <- rely on your real init
+      try {
+        // old code may look for these:
+        window.firebaseRefs = window.firebaseRefs || {};
+        window.firebaseRefs.db = db;
+        window.dispatchEvent?.(new Event('firebase-ready'));
+      } catch {}
+      return true;
+    })(),
+    new Promise((_, rej) =>
+      setTimeout(() => rej(new Error(`[waitForFirebase] timed out after ${timeoutMs}ms`)), timeoutMs)
+    )
+  ]);
 
-    const onTimeout = () => {
-      if (!resolved) {
-        resolved = true;
-        cleanup();
-        reject(new Error(`[waitForFirebase] Firebase did not initialize within ${timeoutMs}ms`));
-      }
-    };
-
-    const cleanup = () => {
-      clearTimeout(timer);
-      window.removeEventListener("firebase-ready", onReady);
-    };
-
-    // ✅ 2) Listen for the event
-    window.addEventListener("firebase-ready", onReady, { once: true });
-
-    // ✅ 3) Also poll in case event never fires
-    const poll = setInterval(() => {
-      if (window.firebaseRefs?.db) {
-        onReady();
-      }
-    }, 100);
-    const timer = setTimeout(() => {
-      clearInterval(poll);
-      onTimeout();
-    }, timeoutMs);
+  return race.catch((e) => {
+    // Don’t hard-crash panels if this happens — just log.
+    console.warn(e.message || e);
   });
 }

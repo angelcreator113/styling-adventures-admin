@@ -1,32 +1,52 @@
 // src/utils/init-firebase.js
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, initializeFirestore } from 'firebase/firestore';
-import { firebaseConfig } from '@/firebase/firebase-config'; // <- your file
+import {
+  getFirestore,
+  initializeFirestore, // lets us force long-polling in dev
+} from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const auth = getAuth(app);
+import { firebaseConfig } from '@/firebase/firebase-config';
 
-// Optional but fixes flaky “Listen 400” on some networks
-const useLongPolling =
-  String(import.meta.env?.VITE_FIRESTORE_LONG_POLLING ?? '') === 'true';
+// Reuse existing app in dev to avoid duplicate inits
+export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-const db = useLongPolling
+// Core SDKs
+export const auth = getAuth(app);
+
+// Optional: force long-polling in dev if you have env set
+const forceLP =
+  String(import.meta.env.VITE_FIRESTORE_LONG_POLLING || '').toLowerCase() === 'true';
+
+export const db = forceLP
   ? initializeFirestore(app, { experimentalForceLongPolling: true })
   : getFirestore(app);
 
-// Promise that resolves once Auth state is known
-let _authReady;
-function authReady() {
-  if (!_authReady) {
-    _authReady = new Promise((resolve) => {
-      const off = onAuthStateChanged(auth, (user) => {
-        off();
+export const storage = getStorage(app);
+
+/**
+ * Wait for the initial auth user (or null).
+ * Usage: const user = await authReady();
+ */
+export function authReady() {
+  return new Promise((resolve) => {
+    const stop = onAuthStateChanged(
+      auth,
+      (user) => {
+        stop();
         resolve(user || null);
-      });
-    });
-  }
-  return _authReady;
+      },
+      () => {
+        stop();
+        resolve(null);
+      }
+    );
+  });
 }
 
-export { app, auth, db, authReady };
+// Convenience: a ready-made Promise some places may await directly
+export const authReadyPromise = authReady();
+
+// ✅ Back-compat alias for older imports
+export { authReady as onAuthReady };

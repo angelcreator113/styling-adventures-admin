@@ -1,3 +1,4 @@
+// src/components/stats.js
 import { authReady, db } from '@/utils/init-firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
@@ -6,7 +7,7 @@ export async function loadStats() {
   if (!statsGrid) return;
 
   try {
-    const user = await authReady();         // ⬅️ wait here
+    const user = await authReady();   // wait for initial auth
     if (!user) {
       statsGrid.innerHTML = '<p>Sign in to see stats.</p>';
       return;
@@ -37,6 +38,9 @@ export async function loadStats() {
     `;
   } catch (err) {
     console.error('🧨 Failed to load closet stats:', err);
-    statsGrid.innerHTML = '<p>Failed to load closet stats.</p>';
+    const friendly = /permission/i.test(err?.message || '') ?
+    'Sign in to view your closet stats.' :
+    'Hmm… we couldn’t load stats.';
+    statsGrid.innerHTML = `<p>${friendly}</p>`;
   }
 }

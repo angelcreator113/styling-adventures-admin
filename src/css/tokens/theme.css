@@ -1,56 +1,75 @@
-:root{
-  /* brand */
-  --lavender:#fdf9ff;
-  --purple-light:#e9d8fd;
-  --purple-dark:#4c1d95;
-  --purple-accent:#7e22ce;
-
-  /* surfaces */
-  --surface:#fff;
-  --surface-muted:#f7f4ff;
-
-  /* text */
-  --text:#1a1026;
-  --muted:#6b6477;
-
-  /* layout */
-  --topbar-h:68px;
-  --sidebar-w:240px;
-  --radius:12px;
-  --radius-lg:16px;
-  --gap:16px;
-
-  /* shadows */
-  --shadow-sm:0 4px 12px rgba(0,0,0,.06);
-  --shadow-md:0 8px 30px rgba(16,24,40,.06);
-}
-/* === Token bridge: map app-wide variables to theme tokens ================ */
+/* =============== TOKENS (global theme) =============== */
 :root {
-  /* map surfaces */
-  --panel: var(--surface);
-  --bg: var(--surface);
-  --bg-soft: var(--surface-muted);
+  /* Brand */
+  --pink: #F97C94;          /* Pop Pink */
+  --gold: #FFC74A;          /* Pixel Gold */
+  --blue: #84D2F6;          /* Sky Blue */
+  --navy: #142136;          /* Deep Navy Shadow */
+  --lav:  #E9D8F2;          /* Lavender Softness */
+  --lav-2:#F6F1FA;          /* Lighter lavender */
+  --ivory:#FFF7E2;          /* Ivory Cream */
 
-  /* text */
-  --text-dim: color-mix(in oklab, var(--text) 72%, #888 28%);
+  /* Neutrals */
+  --white:#fff;
+  --ink: var(--navy);
+  --ink-80: color-mix(in srgb, var(--ink) 80%, transparent);
+  --ink-60: color-mix(in srgb, var(--ink) 60%, transparent);
+  --ink-40: color-mix(in srgb, var(--ink) 40%, transparent);
+  --ink-20: color-mix(in srgb, var(--ink) 20%, transparent);
 
-  /* brand / focus */
-  --brand: var(--purple-accent);
-  --focus: var(--purple-accent);
-  --accent: var(--purple-accent);
+  /* Surfaces */
+  --bg: #ffffff;
+  --bg-soft: #fbfbfe;
+  --surface: #ffffff;
+  --surface-2: #FCFBFF;
 
-  /* borders & shadows (light defaults) */
-  --border: color-mix(in oklab, var(--text) 12%, var(--surface) 88%);
-  --shadow-1: 0 1px 2px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.06);
-  --shadow-2: var(--shadow-md);
+  /* Borders / Shadows / Radii */
+  --border: #ECEAF7;
+  --border-2: #E8E5F3;
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius: 14px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 2px 8px rgba(20,33,54,.05);
+  --shadow: 0 10px 30px rgba(20,33,54,.06), 0 2px 8px rgba(20,33,54,.05);
+
+  /* Typography */
+  --font: ui-rounded, "Inter", "SF Pro Rounded", "Nunito", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  --fs-xxs: .75rem;
+  --fs-xs:  .85rem;
+  --fs-sm:  .95rem;
+  --fs:     1rem;
+  --fs-lg:  1.125rem;
+  --fs-xl:  1.25rem;
+
+  /* Spacing scale */
+  --sp-1: .25rem;
+  --sp-2: .5rem;
+  --sp-3: .75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.25rem;
+  --sp-6: 1.5rem;
+
+  /* Focus */
+  --focus: 0 0 0 3px color-mix(in srgb, var(--blue) 50%, #ffffff);
 }
 
-/* Dark overrides refine contrast a bit */
-:root[data-theme="dark"] {
-  --border: color-mix(in oklab, var(--text) 20%, var(--surface) 80%);
-  --shadow-1: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.35);
-  --shadow-2: 0 10px 30px rgba(0,0,0,.5);
+/* Optional: Dark mode base (kept gentle) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1321;
+    --surface: #0f172a;
+    --surface-2: #111827;
+    --border: #23314A;
+    --border-2: #2a3855;
+    --ink: #f4f6fb;
+    --ink-80: #e6e9f3;
+    --ink-60: #c7cce0;
+    --ink-40: #9ca3b8;
+    --ink-20: #6b7280;
+    --shadow: 0 10px 30px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.25);
+    --bg-soft: #0e1628;
+  }
 }
-
-/* Optional: inputs/placeholder legibility across themes */
-::placeholder { color: color-mix(in oklab, var(--text) 55%, transparent); }
+.app-shell .btn.primary,
+.app-shell .tb-btn.primary { color:#0a223a; }

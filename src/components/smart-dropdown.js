@@ -1,24 +1,135 @@
 // src/components/smart-dropdown.js
 // @ts-check
-
 import { loadCategories, getCategories, onCategories } from "./categoryStore.js";
 
-/**
- * @typedef {Object} SmartOpts
- * @property {boolean} [skipActiveCheck]
- * @property {{ category?: string, subcategory?: string, subsubcategory?: string }} [initialValue]
- */
+/** looks like a Firestore-ish id (skip showing these) */
+function isDocIdLike(k = "") {
+  return /^[A-Za-z0-9_-]{20,}$/.test(String(k));
+}
+function isPlainObject(v) {
+  return v && typeof v === "object" && !Array.isArray(v);
+}
+
+const META_KEYS = new Set([
+  "id","uid","slug","key","value","name","label","title","displayName","text",
+  "createdAt","updatedAt","order"
+]);
+
+function labelOf(node, fallbackKey = "") {
+  if (typeof node === "string") return node;
+  if (isPlainObject(node)) {
+    return (
+      node.name ||
+      node.label ||
+      node.title ||
+      node.displayName ||
+      node.text ||
+      node.data?.name ||
+      node.data?.label ||
+      fallbackKey ||
+      ""
+    );
+  }
+  return fallbackKey || "";
+}
 
 /**
- * Populate a <select> with option strings.
- * @param {HTMLSelectElement|null} selectEl
- * @param {string[]} options
+ * Convert a branch into a flat list of option labels.
+ * - Strings are ignored (they’re leaves, not branches)
+ * - When childrenOnly is true, only include entries whose values are Array/Object
  */
+function toLabelList(branch, { childrenOnly = false } = {}) {
+  if (!branch) return [];
+
+  if (typeof branch === "string") {
+    // important: do not explode strings into letters
+    return [];
+  }
+
+  if (Array.isArray(branch)) {
+    return branch
+      .map(v => (typeof v === "string" ? v : labelOf(v)))
+      .filter(Boolean);
+  }
+
+  if (isPlainObject(branch)) {
+    const out = [];
+    for (const [k, v] of Object.entries(branch)) {
+      // skip metadata-ish keys
+      if (META_KEYS.has(k)) continue;
+
+      // when childrenOnly, only accept arrays/objects
+      if (childrenOnly && !(Array.isArray(v) || isPlainObject(v))) continue;
+
+      // avoid listing doc ids as categories
+      if (isDocIdLike(k)) continue;
+
+      const lbl = labelOf(v, k);
+      if (lbl) out.push(String(lbl));
+    }
+    // de-dup while preserving order
+    return [...new Set(out)];
+  }
+
+  return [];
+}
+
+/**
+ * Given the category tree and current selections, derive lists for each level.
+ */
+function deriveLists(tree, category, subcategory) {
+  // top-level categories should be real branches (objects/arrays)
+  const categories = toLabelList(tree, { childrenOnly: true });
+
+  let subcats = [];
+  let items = [];
+
+  const catNode =
+    category && tree
+      ? tree[category] ??
+        Object.values(tree).find(v => labelOf(v) === category)
+      : null;
+
+  if (catNode) {
+    if (Array.isArray(catNode)) {
+      // category directly contains items
+      items = toLabelList(catNode);
+    } else if (isPlainObject(catNode)) {
+      // only take real child branches for subcats
+      subcats = toLabelList(catNode, { childrenOnly: true });
+
+      const subNode =
+        subcategory && catNode
+          ? catNode[subcategory] ??
+            Object.values(catNode).find(v => labelOf(v) === subcategory)
+          : null;
+
+      if (subNode) {
+        if (Array.isArray(subNode)) {
+          items = toLabelList(subNode);
+        } else if (isPlainObject(subNode)) {
+          // items can be strings or objects; include both
+          items = toLabelList(subNode, { childrenOnly: false });
+        } else {
+          // string/number: treat as leaf -> no sub-subcategory list
+          items = [];
+        }
+      }
+    }
+  }
+
+  return { categories, subcats, items };
+}
+
+/** Populate a <select> with string options (keeps previous value if still valid) */
 function populateOptions(selectEl, options) {
   if (!selectEl) return;
   const prev = selectEl.value;
   selectEl.innerHTML = `<option value="">Select</option>`;
+  const seen = new Set();
   for (const opt of options) {
+    if (!opt || seen.has(opt)) continue;
+    seen.add(opt);
     const o = document.createElement("option");
     o.value = opt;
     o.textContent = opt;
@@ -30,28 +141,12 @@ function populateOptions(selectEl, options) {
 }
 
 /**
- * Given the category tree and current selections, derive lists for each level.
- * @param {Record<string, Record<string, string[]>>} tree
- * @param {string} category
- * @param {string} subcategory
- */
-function deriveLists(tree, category, subcategory) {
-  const categories = Object.keys(tree || {});
-  const subcats = category && tree?.[category] ? Object.keys(tree[category]) : [];
-  const items =
-    category && subcategory && tree?.[category]?.[subcategory]
-      ? tree[category][subcategory]
-      : [];
-  return { categories, subcats, items };
-}
-
-/**
  * Setup cascading dropdowns driven by categoryStore.
  * @param {HTMLSelectElement|null} categoryEl
  * @param {HTMLSelectElement|null} subcategoryEl
  * @param {HTMLSelectElement|null} subsubcategoryEl
  * @param {string} panelType
- * @param {SmartOpts} [opts]
+ * @param {{ skipActiveCheck?: boolean, initialValue?: {category?:string, subcategory?:string, subsubcategory?:string} }} [opts]
  */
 export function setupSmartDropdown(
   categoryEl,
@@ -68,20 +163,15 @@ export function setupSmartDropdown(
   }
 
   if (!skipActiveCheck) {
-    // Accept #closet, #closet-panel, or [data-panel="closet"]
     const root = document.querySelector(
       `#${panelType}, #${panelType}-panel, [data-panel="${panelType}"]`
     );
-    // If the panel isn't on this route, quietly no-op (helps in React StrictMode/dev)
     if (!root) return stubController();
   }
 
   let value = { category: "", subcategory: "", subsubcategory: "" };
 
-  const readTree = () => {
-    const snap = getCategories(panelType);
-    return (snap && snap.categories) || {};
-  };
+  const readTree = () => (getCategories(panelType)?.categories || {});
 
   const onCatChange = () => {
     value.category = categoryEl?.value || "";
@@ -145,19 +235,15 @@ export function setupSmartDropdown(
     const { categories } = deriveLists(tree, "", "");
     populateOptions(categoryEl, categories);
 
-    if (initialValue?.category && categoryEl) {
-      categoryEl.value = initialValue.category;
-    }
+    if (initialValue?.category && categoryEl) categoryEl.value = initialValue.category;
     onCatChange();
 
-    if (initialValue?.subcategory && subcategoryEl) {
+    if (initialValue?.subcategory && subcategoryEl)
       subcategoryEl.value = initialValue.subcategory;
-    }
     onSubChange();
 
-    if (initialValue?.subsubcategory && subsubcategoryEl) {
+    if (initialValue?.subsubcategory && subsubcategoryEl)
       subsubcategoryEl.value = initialValue.subsubcategory;
-    }
     onSub2Change();
 
     bindToStore();
@@ -183,16 +269,12 @@ export function setupSmartDropdown(
       categoryEl?.removeEventListener("change", onCatChange);
       subcategoryEl?.removeEventListener("change", onSubChange);
       subsubcategoryEl?.removeEventListener("change", onSub2Change);
-      try {
-        unsubscribe();
-      } catch {}
+      try { unsubscribe(); } catch {}
     },
   };
 }
 
-/**
- * Fallback no-op controller
- */
+/** fallback no-op controller */
 function stubController() {
   return {
     getValue: () => ({ category: "", subcategory: "", subsubcategory: "" }),
@@ -203,30 +285,28 @@ function stubController() {
 
 /**
  * Auto-initialize all smart dropdowns inside a given panel
- * @param {{ panelId: string, skipActiveCheck?: boolean }} opts
  */
-export function initSmartDropdownAll({ panelId, skipActiveCheck = true }) {
+export function initSmartDropdownAll({ panelId, panelTypeOverride, skipActiveCheck = true }) {
   const slug = panelId.replace(/-panel$/, "");
-  // Find the panel by id or data attribute
   const panel =
     document.getElementById(panelId) ||
     document.getElementById(slug) ||
     document.querySelector(`[data-panel="${slug}"]`);
 
-  if (!panel) return; // Not on this route — skip quietly
+  if (!panel) return;
 
-  const $ = (suffix) =>
-    /** @type {HTMLSelectElement|null} */ (
-      panel.querySelector(`#${slug}-${suffix}`)
-    );
+  const $ = (suffix) => /** @type {HTMLSelectElement|null} */ (
+    panel.querySelector(`#${slug}-${suffix}`)
+  );
 
   const categoryEl = $("category");
   const subcategoryEl = $("subcategory");
   const subsubcategoryEl = $("subsubcategory");
+  if (!categoryEl || !subcategoryEl) return;
 
-  if (!categoryEl || !subcategoryEl) return; // nothing to wire on this route
+  const panelType = panelTypeOverride || slug;
 
-  setupSmartDropdown(categoryEl, subcategoryEl, subsubcategoryEl, slug, {
+  setupSmartDropdown(categoryEl, subcategoryEl, subsubcategoryEl, panelType, {
     skipActiveCheck,
   });
 }
