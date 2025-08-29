@@ -1,66 +1,33 @@
-// src/components/RoleSwitcher.jsx
-import React, { useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useEffectiveRole } from "@/hooks/useEffectiveRole";
-import { useAuth } from "@/context/AuthContext";
+import React from "react";
+import RoleSwitcher from "@/components/RoleSwitcher.jsx";
 
-/**
- * Small, unobtrusive role switcher:
- * - Visible to admins only
- * - Persists per tab via sessionStorage
- * - Optional redirect to each role's home
- */
-export default function RoleSwitcher() {
-  const nav = useNavigate();
-  const loc = useLocation();
-  const { primaryRole } = useAuth();
-  const { effectiveRole, viewAs, setViewAs } = useEffectiveRole();
-
-  if (primaryRole !== "admin") return null; // only admins see it
-
-  const options = useMemo(
-    () => [
-      { value: "", label: "Admin (full)" },
-      { value: "creator", label: "View as: Creator" },
-      { value: "fan", label: "View as: Fan" },
-    ],
-    []
-  );
-
-  const homes = {
-    "": "/admin/home",
-    admin: "/admin/home",
-    creator: "/creator/home",
-    fan: "/closet",     // or "/home" if yours routes by role
-  };
-
-  function onChange(e) {
-    const val = e.target.value; // "", "creator", "fan"
-    setViewAs(val);             // updates sessionStorage + broadcasts event
-    const target = homes[val || "admin"] || "/home";
-    // if you’re already in a matching area, you can stay; otherwise jump to the right home
-    const isAlreadyThere =
-      (val === "creator" && loc.pathname.startsWith("/creator")) ||
-      (val === "fan" && !loc.pathname.startsWith("/admin") && !loc.pathname.startsWith("/creator")) ||
-      (val === "" && loc.pathname.startsWith("/admin"));
-    if (!isAlreadyThere) nav(target, { replace: true });
-  }
-
+export default function RoleSwitcherTopbar({ onRefresh }) {
   return (
-    <label className="role-switcher" title={`Effective role: ${effectiveRole || "admin"}`}>
-      <span className="sr-only">Role</span>
-      <select
-        className="select"
-        value={viewAs}
-        onChange={onChange}
-        aria-label="Switch role view"
+    <div className="topbar-role-switcher">
+      <RoleSwitcher />
+      <button
+        className="icon-btn ml-2"
+        title="Refresh Role"
+        aria-label="Refresh role"
+        onClick={onRefresh}
       >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="lucide lucide-refresh-cw"
+        >
+          <path d="M21 2v6h-6" />
+          <path d="M3 12a9 9 0 0 1 14.89-6.36L21 8" />
+          <path d="M3 22v-6h6" />
+          <path d="M21 12a9 9 0 0 1-14.83 6.38L3 16" />
+        </svg>
+      </button>
+    </div>
   );
 }
+

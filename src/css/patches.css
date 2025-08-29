@@ -1,0 +1,119 @@
+/* -------------------------------------------------------
+   patches.css — small overrides, safe to remove anytime
+   ---------------------------------------------------- */
+
+/* 1) A11y: hide skip link until it’s focused */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  padding: .5rem .75rem;
+  border-radius: .5rem;
+  background: var(--surface-2);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.skip-link:focus {
+  left: .5rem;
+  top: .5rem;
+  z-index: 1000;
+}
+
+/* 2) Role switcher: hide visible label text */
+.role-switcher .title,
+[data-role-switcher] .title,
+.role-switcher-label {
+  /* equivalent of sr-only */
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* 3) Topbar tweaks for dark theme readability */
+[data-theme="dark"] .topbar {
+  background: var(--surface-2);
+  border-bottom-color: var(--border);
+}
+[data-theme="dark"] .topbar .search-input,
+[data-theme="dark"] .topbar input[type="search"] {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--border);
+}
+[data-theme="dark"] .topbar .btn,
+[data-theme="dark"] .topbar .icon-btn {
+  color: var(--ink);
+  border-color: var(--border);
+}
+
+/* 4) Section headings + hairlines pop a bit more in dark */
+[data-theme="dark"] .section__title,
+[data-theme="dark"] .page-title {
+  color: var(--ink);
+  text-shadow: 0 0 0 transparent;
+}
+[data-theme="dark"] .section__hd {
+  border-bottom: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+}
+
+/* 5) Card & stat pill contrast (keeps your gradient) */
+[data-theme="dark"] .dashboard-card,
+[data-theme="dark"] .card {
+  background: var(--surface-ghost);
+  border-color: var(--border);
+  box-shadow: var(--card-shadow, 0 6px 18px rgba(0,0,0,.18));
+}
+[data-theme="dark"] .stat-pill {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--ink);
+}
+
+/* 6) Sidebar items: better idle + active states */
+[data-theme="dark"] .app-sidebar a {
+  color: color-mix(in oklab, var(--ink) 72%, #9fb1d8 28%);
+}
+[data-theme="dark"] .app-sidebar a:hover {
+  background: color-mix(in oklab, var(--surface) 70%, var(--lavender-3, #1c2440) 30%);
+}
+[data-theme="dark"] .app-sidebar .is-active,
+[data-theme="dark"] .app-sidebar a[aria-current="page"] {
+  background: color-mix(in oklab, var(--surface) 55%, var(--lavender-3, #1c2440) 45%);
+  color: var(--ink);
+  border-left: 3px solid var(--brand-pink, #f97c94);
+}
+
+/* 7) Skeleton shimmer a touch brighter */
+.skel,
+.skeleton,
+.skeleton-block {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--surface) 80%, #fff 20%);
+}
+.skel::after,
+.skeleton::after,
+.skeleton-block::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in oklab, #fff 10%, var(--surface) 90%),
+    transparent);
+  animation: skel-shimmer 1.2s infinite;
+}
+@keyframes skel-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* 8) “Hide” topbar button: ensure it’s gone everywhere */
+.hide-toggle { display: none !important; }

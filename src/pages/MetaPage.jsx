@@ -1,11 +1,12 @@
 import React from "react";
-import AppShell from "@/components/AppShell.jsx";
-import MetaPanel from "./MetaPanel.jsx";
 
 export default function MetaPage() {
   return (
-    <AppShell>
-      <MetaPanel />
-    </AppShell>
+    <section className="container" style={{ padding: 16 }}>
+      <div className="dashboard-card">
+        <h1 className="page-title">Meta</h1>
+        <p>Admin meta/debug info goes here.</p>
+      </div>
+    </section>
   );
 }

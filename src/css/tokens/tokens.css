@@ -1,0 +1,70 @@
+/* src/css/tokens/tokens.css */
+
+/* Brand palette (stable across themes) */
+:root {
+  /* Brand */
+  --brand-pink: #F97C94;
+  --brand-gold: #FFC74A;
+  --brand-sky:  #84D2F6;
+  --brand-navy: #142136;
+
+  /* Radii / spacing / shadow */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 6px 18px rgba(20,33,54,.08);
+  --card-shadow: 0 10px 24px rgba(20,33,54,.08);
+
+  /* Focus ring */
+  --ring: 0 0 0 3px rgba(132, 210, 246, .45);
+}
+
+/* LIGHT THEME */
+:root,
+html[data-theme="light"] {
+  --bg:            #FBF7FF;    /* subtle lavender canvas */
+  --ink:           #142136;    /* main text (brand navy) */
+  --text-muted:    #5E6780;
+
+  --surface:       #FFFFFF;    /* cards/inputs */
+  --surface-2:     #F6F1FA;    /* soft panels / hero bg */
+  --surface-muted: #F0EEF5;    /* muted chips/badges */
+  --surface-ghost: rgba(255,255,255,.72); /* sticky topbar */
+
+  --border:        #E6E2EE;
+
+  --link:          #3569ff;
+  --link-hover:    #1745df;
+
+  --skeleton:      #ECE9F2;
+
+  --btn-ghost-fg:  var(--ink);
+}
+
+/* DARK THEME */
+html[data-theme="dark"] {
+  --bg:            #0E1320;  /* deep navy */
+  --ink:           #E9EEF6;  /* main text */
+  --text-muted:    #A8B3C7;
+
+  --surface:       #151B2B;  /* cards/inputs */
+  --surface-2:     #111827;  /* panels / top area */
+  --surface-muted: #1A2133;  /* muted chips/badges */
+  --surface-ghost: rgba(21,27,43,.75); /* sticky topbar */
+
+  --border:        #2A3248;
+
+  --link:          #7FB8FF;
+  --link-hover:    #A7CFFF;
+
+  --skeleton:      #222A3A;
+
+  --btn-ghost-fg:  #DDE6F5;
+}

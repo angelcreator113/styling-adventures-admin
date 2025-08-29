@@ -1,99 +1,105 @@
+// src/components/topbar/Topbar.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, getIdTokenResult } from "firebase/auth";
 import { auth } from "@/utils/init-firebase";
-import toast from "react-hot-toast";
-
-import { usePrimaryAction } from "@/hooks/usePrimaryAction";
-import { useThemeMode } from "@/hooks/useThemeMode";
-import { setThemeMode, readTheme } from "@/utils/theme";
-import { saveGreetingName, markLogin, makeGreeting } from "@/js/greeting-store";
+import "@/css/components/topbar.css";
 
 import Icon from "@/components/Icon.jsx";
-
 import TopbarSearch from "@/components/topbar/TopbarSearch.jsx";
 import TopbarStatusPill from "@/components/topbar/TopbarStatusPill.jsx";
 import Breadcrumbs from "@/components/topbar/Breadcrumbs.jsx";
-import QuickActionsMenu from "@/components/topbar/QuickActionsMenu.jsx";
 import NotificationsMenu from "@/components/topbar/NotificationsMenu.jsx";
 import AvatarMenu from "@/components/topbar/AvatarMenu.jsx";
-import FanModeToggle from "@/components/settings/FanModeToggle.jsx";
+import FeaturesPopover from "@/components/topbar/FeaturesPopover.jsx";
+import RoleSwitcherTopbar from "@/components/topbar/RoleSwitcherTopbar.jsx";
+import QuickActionsMenu from "@/components/topbar/QuickActionsMenu.jsx";
 
-import RoleSwitcherTopbar from "@/components/topbar/RoleSwitcherTopbar.jsx"; // <-- NEW
-
+import { useThemeMode } from "@/hooks/useThemeMode";
+import { setThemeMode, readTheme } from "@/utils/theme";
 import { useBreadcrumbs } from "@/components/topbar/useBreadcrumbs.js";
 import { useTopbarShortcuts } from "@/components/topbar/useTopbarShortcuts.js";
+import { saveGreetingName, markLogin } from "@/js/greeting-store";
+import { useUserRole } from "@/hooks/RoleGates.jsx";
 
-/**
- * Topbar
- * - Accepts className for sticky styling from shells
- * - Accepts rightAccessory (e.g., sidebar toggle)
- * - Adds RoleSwitcherTopbar (visible for admin/creator)
- * - Adds “Refresh my role” action to force custom-claims refresh
- */
+import logo from "@/assets/img/logo.png";
+
 export default function Topbar({
   status,
   className = "",
+  onToggleSidebar,
   rightAccessory = null,
+  // shell must pass this when you want the switcher available on that shell
+  showRoleSwitcher = false,
+  roleSwitcherProps = {},
 }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const primary = usePrimaryAction();
   const themeMode = useThemeMode();
 
-  const [, setGreeting] = useState(makeGreeting());
+  // Role from your hook (e.g., /users/{uid} or local), PLUS claim from Firebase.
+  const { effectiveRole } = useUserRole();
+  const [adminClaim, setAdminClaim] = useState(false);
 
+  // One auth listener: greet + detect admin claim
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const base = user.displayName || (user.email ? user.email.split("@")[0] : "");
-        if (base) saveGreetingName(base);
-        markLogin();
-        const el = document.getElementById("sidebar-greeting");
-        if (el) {
-          el.textContent = `Bestie, ${base || "Bestie"}, Welcome Back!`;
-          setGreeting(makeGreeting());
-        }
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setAdminClaim(false);
+        return;
+      }
+      const base = user.displayName || (user.email ? user.email.split("@")[0] : "");
+      if (base) saveGreetingName(base);
+      markLogin();
+
+      try {
+        const tok = await getIdTokenResult(user);
+        setAdminClaim(!!tok.claims?.admin || tok.claims?.role === "admin");
+      } catch {
+        setAdminClaim(false);
       }
     });
     return () => unsub();
   }, []);
 
+  const isAdmin = adminClaim || effectiveRole === "admin";
+
   const [hasPageTitle, setHasPageTitle] = useState(false);
   useEffect(() => {
     setHasPageTitle(!!document.querySelector(".page-title"));
   }, [location.pathname]);
+
   const { items: breadcrumbItems, hasItems } = useBreadcrumbs(location.pathname);
 
   const [q, setQ] = useState("");
   const [pending, setPending] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const searchInputRef = useRef(null);
-
-  function onSubmit(e) {
+  const onSubmit = (e) => {
     e.preventDefault();
-    const query = q.trim();
-    if (!query) return;
+    const value = q.trim();
+    if (!value) return;
     setPending(true);
-    navigate(`/search?q=${encodeURIComponent(query)}`);
-    setMobileSearchOpen(false);
-  }
+    navigate(`/search?q=${encodeURIComponent(value)}`);
+  };
   useEffect(() => {
     if (pending) setPending(false);
-  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
-  useTopbarShortcuts({ searchInputRef, primary });
+  useTopbarShortcuts({
+    searchInputRef,
+    primary: { onClick: () => navigate("/closet/upload") },
+  });
 
   const pct = useMemo(() => {
     if (!status) return null;
-    const m = status.match(/(\d{1,3})\s*%/);
-    const n = m ? Math.max(0, Math.min(100, parseInt(m[1], 10))) : null;
+    const match = status.match(/(\d{1,3})\s*%/);
+    const n = match ? Math.max(0, Math.min(100, parseInt(match[1], 10))) : null;
     return Number.isFinite(n) ? n : null;
   }, [status]);
 
   const cycleTheme = () => {
-    const cur = readTheme();
-    const next = cur === "auto" ? "light" : cur === "light" ? "dark" : "auto";
+    const current = readTheme();
+    const next = current === "auto" ? "light" : current === "light" ? "dark" : "auto";
     setThemeMode(next);
   };
   const themeIcon = themeMode === "dark" ? "sun" : themeMode === "light" ? "moon" : "sun-moon";
@@ -101,39 +107,27 @@ export default function Topbar({
   const [compact, setCompact] = useState(false);
   useEffect(() => {
     const onScroll = () => setCompact(window.scrollY > 8);
-    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const toggleMobileSidebar = () => {
+  const fallbackToggleSidebar = () => {
     const shell = document.querySelector(".app-shell");
-    const open = shell?.getAttribute("data-sidebar") === "open";
-    shell?.setAttribute("data-sidebar", open ? "" : "open");
+    if (!shell) return;
+    const open = shell.getAttribute("data-sidebar") === "open";
+    shell.setAttribute("data-sidebar", open ? "" : "open");
     document.body.classList.toggle("body-lock", !open);
   };
+  const handleToggleSidebar = () => {
+    if (typeof onToggleSidebar === "function") onToggleSidebar();
+    else fallbackToggleSidebar();
+  };
 
-  // NEW: force-refresh custom claims for current user
-  async function refreshMyRole() {
-    try {
-      const user = auth.currentUser;
-      if (!user) {
-        toast.error("Not signed in.");
-        return;
-      }
-      toast.loading("Refreshing role…", { id: "refresh-role" });
-      await user.getIdToken(true); // force token refresh
-      toast.dismiss("refresh-role");
-      toast.success("Role refreshed!");
-      // Optional: warm your session cookie backend
-      await fetch("/whoami", { credentials: "include" }).catch(() => {});
-      // Soft reload so route guards re-evaluate claims
-      setTimeout(() => window.location.reload(), 250);
-    } catch {
-      toast.dismiss("refresh-role");
-      toast.error("Couldn’t refresh role.");
-    }
-  }
+  const primaryAction = {
+    label: "Start Closet Upload",
+    onClick: () => navigate("/closet/upload"),
+  };
 
   return (
     <header
@@ -141,16 +135,32 @@ export default function Topbar({
       className={`topbar ${compact ? "is-compact" : ""} ${className || ""}`}
       role="banner"
     >
-      <a href="#main-content" className="skip-link">Skip to content</a>
-
       <div className="container">
-        <div className="topbar__inner topbar--3col">
-          {/* LEFT: breadcrumbs */}
+        <div className="topbar__inner">
+          {/* LEFT */}
           <div className="topbar__left">
-            {!hasPageTitle && hasItems && <Breadcrumbs items={breadcrumbItems} />}
+            <a href="/home" className="topbar__brand" aria-label="Styling Adventures">
+              <img className="brand-img" src={logo} alt="" />
+            </a>
+
+            <button
+              type="button"
+              className="btn sm ghost hide-toggle"
+              onClick={handleToggleSidebar}
+              aria-label="Toggle sidebar"
+              title="Toggle sidebar"
+            >
+              <Icon name="menu" />
+            </button>
+
+            {!hasPageTitle && hasItems && (
+              <span className="hide-on-mobile" style={{ marginLeft: 6 }}>
+                <Breadcrumbs items={breadcrumbItems} />
+              </span>
+            )}
           </div>
 
-          {/* CENTER: search or status */}
+          {/* CENTER */}
           <div className="topbar__center">
             {status ? (
               <TopbarStatusPill status={status} pct={pct} />
@@ -165,50 +175,18 @@ export default function Topbar({
             )}
           </div>
 
-          {/* RIGHT: actions */}
+          {/* RIGHT */}
           <div className="topbar__right">
-            {rightAccessory}
+            <div className="menu-anchor">
+              <QuickActionsMenu primary={primaryAction} />
+            </div>
 
-            {!status && (
-              <>
-                <button
-                  className="icon-btn show-on-mobile"
-                  aria-label="Open menu"
-                  title="Menu"
-                  onClick={toggleMobileSidebar}
-                >
-                  <Icon name="menu" />
-                </button>
+            <div className="menu-anchor features-anchor">
+              <FeaturesPopover />
+            </div>
 
-                <QuickActionsMenu primary={primary} />
-
-                <button
-                  className="icon-btn show-on-mobile"
-                  aria-label="Open search"
-                  onClick={() => setMobileSearchOpen((v) => !v)}
-                  title="Search"
-                >
-                  <Icon name="search" />
-                </button>
-              </>
-            )}
-
-            {/* Role switcher (admin/creator) */}
-            <RoleSwitcherTopbar />
-
-            {/* NEW: Refresh my role (desktop) */}
             <button
-              className="btn sm ghost hide-on-mobile"
               type="button"
-              onClick={refreshMyRole}
-              title="Force-refresh your role claims"
-              style={{ marginLeft: 6 }}
-            >
-              Refresh role
-            </button>
-
-            {/* Theme */}
-            <button
               className="icon-btn"
               aria-label={`Theme: ${themeMode}`}
               title={`Theme: ${themeMode}`}
@@ -217,26 +195,25 @@ export default function Topbar({
               <Icon name={themeIcon} />
             </button>
 
-            {/* Fan mode, notifications, avatar */}
-            <FanModeToggle compact />
-            <NotificationsMenu />
-            <AvatarMenu />
+            <div className="menu-anchor">
+              <NotificationsMenu />
+            </div>
+
+            {/* Only for admins, and only when the shell opted-in */}
+            {showRoleSwitcher && isAdmin && (
+              <div className="popover-anchor select-anchor" data-role-switcher>
+                <RoleSwitcherTopbar {...roleSwitcherProps} />
+              </div>
+            )}
+
+            <div className="menu-anchor">
+              <AvatarMenu />
+            </div>
+
+            {rightAccessory}
           </div>
         </div>
       </div>
-
-      {!status && mobileSearchOpen && (
-        <div className="mobile-search">
-          <TopbarSearch
-            q={q}
-            pending={pending}
-            inputRef={searchInputRef}
-            onChange={setQ}
-            onSubmit={onSubmit}
-          />
-        </div>
-      )}
     </header>
   );
 }
-

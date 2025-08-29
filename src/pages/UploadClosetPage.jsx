@@ -1,5 +1,6 @@
 // src/pages/UploadClosetPage.jsx
 import React, { useEffect, useRef, useState } from "react";
+import "@/css/styles/upload-page.css";
 import { initSmartDropdownAll } from "@/components/smart-dropdown";
 import ClosetDashboard from "@/components/ClosetDashboard.jsx";
 import BestieToolboxPanel from "@/components/BestieToolboxPanel.jsx";

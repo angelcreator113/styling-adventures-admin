@@ -1,75 +1,49 @@
-/* =============== TOKENS (global theme) =============== */
+/* Light & dark theme surfaces + ink (text) colors and borders */
 :root {
-  /* Brand */
-  --pink: #F97C94;          /* Pop Pink */
-  --gold: #FFC74A;          /* Pixel Gold */
-  --blue: #84D2F6;          /* Sky Blue */
-  --navy: #142136;          /* Deep Navy Shadow */
-  --lav:  #E9D8F2;          /* Lavender Softness */
-  --lav-2:#F6F1FA;          /* Lighter lavender */
-  --ivory:#FFF7E2;          /* Ivory Cream */
-
-  /* Neutrals */
-  --white:#fff;
-  --ink: var(--navy);
-  --ink-80: color-mix(in srgb, var(--ink) 80%, transparent);
-  --ink-60: color-mix(in srgb, var(--ink) 60%, transparent);
-  --ink-40: color-mix(in srgb, var(--ink) 40%, transparent);
-  --ink-20: color-mix(in srgb, var(--ink) 20%, transparent);
-
   /* Surfaces */
-  --bg: #ffffff;
-  --bg-soft: #fbfbfe;
-  --surface: #ffffff;
-  --surface-2: #FCFBFF;
+  --bg: #f7f6fb;              /* page background */
+  --surface: #ffffff;         /* cards, panels */
+  --surface-muted: #f1eef8;   /* soft panels, inputs */
+  --surface-ghost: #faf9fe;
 
-  /* Borders / Shadows / Radii */
-  --border: #ECEAF7;
-  --border-2: #E8E5F3;
-  --radius-xs: 8px;
-  --radius-sm: 12px;
-  --radius: 14px;
-  --radius-lg: 16px;
-  --shadow-sm: 0 2px 8px rgba(20,33,54,.05);
-  --shadow: 0 10px 30px rgba(20,33,54,.06), 0 2px 8px rgba(20,33,54,.05);
+  /* Text (ink) */
+  --ink: #151a2b;             /* primary text */
+  --ink-2: #323a52;           /* headings / strong */
+  --ink-muted: #6a728a;       /* secondary text / placeholders */
 
-  /* Typography */
-  --font: ui-rounded, "Inter", "SF Pro Rounded", "Nunito", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-  --fs-xxs: .75rem;
-  --fs-xs:  .85rem;
-  --fs-sm:  .95rem;
-  --fs:     1rem;
-  --fs-lg:  1.125rem;
-  --fs-xl:  1.25rem;
+  /* Borders & shadows */
+  --border: rgba(17, 20, 30, 0.10);
+  --shadow-1: 0 1px 2px rgba(17,20,30,0.06);
+  --shadow-2: 0 8px 30px rgba(17,20,30,0.08);
 
-  /* Spacing scale */
-  --sp-1: .25rem;
-  --sp-2: .5rem;
-  --sp-3: .75rem;
-  --sp-4: 1rem;
-  --sp-5: 1.25rem;
-  --sp-6: 1.5rem;
+  /* Brand (unchanged) */
+  --brand-pink: #F97C94;
+  --brand-gold: #FFC74A;
+  --brand-sky:  #84D2F6;
+  --brand-navy: #142136;
+  --lavender-bg:   #F6F1FA;
+  --lavender-soft: #E9D8F2;
+  --cream-bg:      #FFF7E2;
 
-  /* Focus */
-  --focus: 0 0 0 3px color-mix(in srgb, var(--blue) 50%, #ffffff);
+  /* Radii */
+  --r-md: 12px;
+  --r-lg: 16px;
 }
 
-/* Optional: Dark mode base (kept gentle) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d1321;
-    --surface: #0f172a;
-    --surface-2: #111827;
-    --border: #23314A;
-    --border-2: #2a3855;
-    --ink: #f4f6fb;
-    --ink-80: #e6e9f3;
-    --ink-60: #c7cce0;
-    --ink-40: #9ca3b8;
-    --ink-20: #6b7280;
-    --shadow: 0 10px 30px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.25);
-    --bg-soft: #0e1628;
-  }
+html[data-theme="dark"], :root[data-theme="dark"] {
+  /* Surfaces tuned darker but “warm” */
+  --bg: #0f1320;
+  --surface: #151a2b;
+  --surface-muted: #1a2034;
+  --surface-ghost: #101524;
+
+  /* Text (higher contrast on dark) */
+  --ink: #e9eef7;
+  --ink-2: #d6deee;
+  --ink-muted: #a2acc0;
+
+  /* Borders & shadows for dark */
+  --border: rgba(255,255,255,0.08);
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.35);
+  --shadow-2: 0 12px 40px rgba(0,0,0,0.45);
 }
-.app-shell .btn.primary,
-.app-shell .tb-btn.primary { color:#0a223a; }
