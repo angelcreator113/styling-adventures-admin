@@ -12,14 +12,12 @@ function paintPaper(ctx, W, H, theme){
   const r = theme.radius ?? 20, sh = theme.shadow ?? 10;
   ctx.save();
   ctx.shadowColor="rgba(0,0,0,.10)"; ctx.shadowBlur=sh; ctx.shadowOffsetY=Math.max(2,Math.round(sh/3));
-  // rounded rect
   ctx.beginPath();
   ctx.moveTo(r,0); ctx.lineTo(W-r,0); ctx.quadraticCurveTo(W,0,W,r);
   ctx.lineTo(W,H-r); ctx.quadraticCurveTo(W,H,W-r,H);
   ctx.lineTo(r,H);   ctx.quadraticCurveTo(0,H,0,H-r);
   ctx.lineTo(0,r);   ctx.quadraticCurveTo(0,0,r,0);
   ctx.closePath(); ctx.fillStyle="#fff"; ctx.fill(); ctx.clip();
-  // fill
   if (theme.type==="solid"){
     ctx.fillStyle = theme.colors?.[0] || "#ffffff";
     ctx.fillRect(0,0,W,H);
@@ -34,7 +32,6 @@ function paintPaper(ctx, W, H, theme){
   ctx.restore();
 }
 function drawSample(ctx, W, H, img){
-  // simple, centered fit
   const pad = 0.12;
   const maxW = W*(1-pad*2), maxH = H*(1-pad*2);
   const s = Math.min(maxW/img.width, maxH/img.height);
@@ -50,18 +47,16 @@ export default function ThemesAdmin(){
   const [form, setForm] = useState({
     label:"", type:"gradient", colors:["#f4ecff","#eadfff"], angle:90, radius:20, shadow:12, marginPct:0.10, biasY:0.03,
   });
-  const [sample, setSample] = useState(null); // ImageBitmap for preview
+  const [sample, setSample] = useState(null);
   const canvasRef = useRef();
 
-  // live list
   useEffect(()=>{
-    const off = onSnapshot(collection(db,"public/themes"), snap=>{
+    const off = onSnapshot(collection(db,"themes"), snap=>{
       setThemes(snap.docs.map(d=>({ id:d.id, ...d.data() })));
     });
     return ()=>off();
   },[]);
 
-  // preview render
   useEffect(()=>{
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext("2d");
@@ -69,7 +64,6 @@ export default function ThemesAdmin(){
     paintPaper(ctx, c.width, c.height, form);
     if (sample) drawSample(ctx, c.width, c.height, sample);
     else {
-      // draw a neutral “dummy” jewel
       ctx.save();
       ctx.translate(c.width/2, c.height/2);
       ctx.fillStyle="#eee"; ctx.beginPath(); ctx.arc(0,0,140,0,Math.PI*2); ctx.fill();
@@ -99,7 +93,7 @@ export default function ThemesAdmin(){
     };
     if (!form.label) { alert("Label is required"); return; }
     const id = form.label.replace(/\s+/g,"");
-    await setDoc(doc(db,"public/themes", id), payload, { merge:true });
+    await setDoc(doc(db,"themes", id), payload, { merge:true });
     setEditing(id);
   }
 
@@ -111,15 +105,15 @@ export default function ThemesAdmin(){
   async function removeTheme(id){
     if (!id) return;
     if (!confirm("Delete this theme?")) return;
-    await deleteDoc(doc(db,"public/themes", id));
+    await deleteDoc(doc(db,"themes", id));
     if (editing===id) setEditing(null);
   }
 
   async function seedDefaults(){
-    const ids = new Set((await getDocs(collection(db,"public/themes"))).docs.map(d=>d.id));
+    const ids = new Set((await getDocs(collection(db,"themes"))).docs.map(d=>d.id));
     const entries = Object.entries(BUILTIN_THEMES);
     for (const [id, data] of entries){
-      if (!ids.has(id)) await setDoc(doc(db,"public/themes", id), { ...data, seeded: true, createdAt: serverTimestamp() });
+      if (!ids.has(id)) await setDoc(doc(db,"themes", id), { ...data, seeded: true, createdAt: serverTimestamp() });
     }
     alert("Seeded defaults (if missing).");
   }
@@ -177,17 +171,14 @@ export default function ThemesAdmin(){
         </aside>
 
         <main style={{display:"grid", gridTemplateColumns:"minmax(320px, 420px) 1fr", gap:20}}>
-          {/* Editor */}
           <div style={{border:"1px solid #eee", borderRadius:12, padding:12, background:"#fff", display:"grid", gap:10}}>
             <label>Label <input value={form.label} onChange={e=>setForm({...form, label:e.target.value})} /></label>
-
             <label>Type
               <select value={form.type} onChange={e=>setForm({...form, type:e.target.value})}>
                 <option value="gradient">gradient</option>
                 <option value="solid">solid</option>
               </select>
             </label>
-
             <div>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
                 <strong>Colors</strong>
@@ -195,25 +186,21 @@ export default function ThemesAdmin(){
               </div>
               <div style={{display:"grid", gap:6, marginTop:6}}>{colorInputs}</div>
             </div>
-
             {form.type==="gradient" && (
               <label>Angle
                 <input type="number" value={form.angle} onChange={e=>setForm({...form, angle: Number(e.target.value)})}/>
               </label>
             )}
-
             <label>Corner radius <input type="number" value={form.radius} onChange={e=>setForm({...form, radius:Number(e.target.value)})}/></label>
             <label>Shadow blur <input type="number" value={form.shadow} onChange={e=>setForm({...form, shadow:Number(e.target.value)})}/></label>
             <label>Margin % <input type="number" step="0.01" value={form.marginPct} onChange={e=>setForm({...form, marginPct: Number(e.target.value)})}/></label>
             <label>Bias Y <input type="number" step="0.01" value={form.biasY} onChange={e=>setForm({...form, biasY: Number(e.target.value)})}/></label>
-
             <div style={{display:"flex", gap:8}}>
               <button onClick={saveTheme}>Save</button>
               {editing && <button className="danger" onClick={()=>removeTheme(editing)}>Delete</button>}
             </div>
           </div>
 
-          {/* Preview */}
           <div style={{border:"1px solid #eee", borderRadius:12, padding:12, background:"#fff"}}>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
               <strong>Preview</strong>

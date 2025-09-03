@@ -1,52 +1,31 @@
-// src/utils/init-firebase.js
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import {
-  getFirestore,
-  initializeFirestore, // lets us force long-polling in dev
-} from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { initializeApp, getApps } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";  // Import Firebase Storage
 
-import { firebaseConfig } from '@/firebase/firebase-config';
+const firebaseConfig = {
+  apiKey: "AIzaSyDpOFCB3QzPbgzfroeoi8oxgj7rF5hmyHw",
+  authDomain: "styling-admin.firebaseapp.com",
+  projectId: "styling-admin",
+  storageBucket: "styling-admin.appspot.com",
+  messagingSenderId: "390526657916",
+  appId: "1:390526657916:web:YOUR_REAL_APP_ID", // ✅ FIXED
+  measurementId: "G-N9YGR4MR0E", // ✅ FIXED
+};
 
-// Reuse existing app in dev to avoid duplicate inits
-export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+// Initialize app only once
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
-// Core SDKs
-export const auth = getAuth(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app); // Initialize Firebase Storage
 
-// Optional: force long-polling in dev if you have env set
-const forceLP =
-  String(import.meta.env.VITE_FIRESTORE_LONG_POLLING || '').toLowerCase() === 'true';
-
-export const db = forceLP
-  ? initializeFirestore(app, { experimentalForceLongPolling: true })
-  : getFirestore(app);
-
-export const storage = getStorage(app);
-
-/**
- * Wait for the initial auth user (or null).
- * Usage: const user = await authReady();
- */
-export function authReady() {
-  return new Promise((resolve) => {
-    const stop = onAuthStateChanged(
-      auth,
-      (user) => {
-        stop();
-        resolve(user || null);
-      },
-      () => {
-        stop();
-        resolve(null);
-      }
-    );
+export const onAuthReady = () =>
+  new Promise((resolve) => {
+    const unsub = auth.onAuthStateChanged(() => {
+      unsub();
+      resolve();
+    });
   });
-}
 
-// Convenience: a ready-made Promise some places may await directly
-export const authReadyPromise = authReady();
-
-// ✅ Back-compat alias for older imports
-export { authReady as onAuthReady };
+export { app, auth, db, storage };  // Ensure storage is exported

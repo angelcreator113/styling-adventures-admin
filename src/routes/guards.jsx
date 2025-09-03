@@ -1,80 +1,48 @@
 // src/routes/guards.jsx
-import React from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+// 🚨 Legacy shim: funnel to canonical guards and warn once when used.
+import React, { useRef } from "react";
+import RequireAuthCanon from "@/components/RequireAuth.jsx";
+import RequireRoleCanon from "@/components/RequireRole.jsx";
+import { useUserRole } from "@/hooks/RoleGates";
 
-// Small, shared loader so we never render "nothing"
-function GateFallback({ text = "Loading…" }) {
-  return (
-    <section className="container" style={{ padding: 16 }}>
-      <div
-        className="dashboard-card"
-        role="status"
-        aria-live="polite"
-        style={{ display: "flex", gap: 12, alignItems: "center" }}
-      >
-        <div
-          style={{
-            width: 16,
-            height: 16,
-            borderRadius: "50%",
-            border: "2px solid #ccc",
-            borderTopColor: "#7c3aed",
-            animation: "spin .9s linear infinite",
-          }}
-        />
-        <span>{text}</span>
-      </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </section>
-  );
+function onceWarn(msg) {
+  if (!window.__guards_warned) window.__guards_warned = new Set();
+  if (!window.__guards_warned.has(msg)) {
+    window.__guards_warned.add(msg);
+    // eslint-disable-next-line no-console
+    console.warn(msg);
+  }
 }
 
-/**
- * RequireAuth
- * - Shows a small loader while auth is resolving
- * - If not logged in, send to /login and remember where we came from
- */
-export function RequireAuth({ children }) {
-  const { user, loading } = useAuth();
-  const loc = useLocation();
-
-  if (loading) return <GateFallback />;
-  if (!user) return <Navigate to="/login" replace state={{ from: loc }} />;
-
-  return children ?? <Outlet />;
+export function RequireAuth(props) {
+  onceWarn("[guards.jsx] Use '@/components/RequireAuth' instead of '@/routes/guards'.");
+  return <RequireAuthCanon {...props} />;
 }
 
-/**
- * PublicOnly
- * - For pages like /login. If logged in, send to /home (or back to "from")
- */
 export function PublicOnly({ children }) {
-  const { user, loading } = useAuth();
-  const loc = useLocation();
-
-  if (loading) return <GateFallback />;
-  if (user) {
-    const to = loc.state?.from?.pathname || "/home";
-    return <Navigate to={to} replace />;
+  onceWarn("[guards.jsx] PublicOnly is legacy. Prefer explicit routing + RequireAuth.");
+  // Very small public-only gate using the canonical hook
+  const { loading, effectiveRole } = useUserRole();
+  if (loading) return null;
+  // if authed (any role), bounce to /home
+  if (effectiveRole === "admin" || effectiveRole === "creator" || effectiveRole === "fan") {
+    return (window.location.href = "/home"), null;
   }
-  return children ?? <Outlet />;
+  return children ?? null;
 }
 
-/**
- * RequireAnyRole
- * - Allow if the user's primary role is in `allow`
- * - Admin is always allowed (so admin can access creator/fan dashboards)
- */
+// Minimal compatibility layer for older "any role" checks.
+// Prefer using <RequireRole role="admin|creator|fan"> directly.
 export function RequireAnyRole({ allow = [], children }) {
-  const { role, loading } = useAuth(); // primary role from context
-  const loc = useLocation();
-
-  if (loading) return <GateFallback />;
-  if (role === "admin") return children ?? <Outlet />; // superpower
-
-  if (!allow.includes(role)) {
-    return <Navigate to="/unauthorized" replace state={{ from: loc }} />;
+  onceWarn("[guards.jsx] RequireAnyRole is legacy. Prefer '@/components/RequireRole'.");
+  const { loading, effectiveRole } = useUserRole();
+  if (loading) return null;
+  if (effectiveRole === "admin") return children ?? null; // admin always allowed
+  if (!allow.includes(effectiveRole)) {
+    window.location.replace("/unauthorized");
+    return null;
   }
-  return children ?? <Outlet />;
+  return children ?? null;
 }
+
+export default { RequireAuth, PublicOnly, RequireAnyRole };

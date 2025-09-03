@@ -1,14 +1,17 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
-export default function RequireAuth({ children }) {
+export default function RequireAuth() {
   const { user, loading } = useAuth();
   const loc = useLocation();
 
-  // Minimal placeholder; swap for your real spinner if you want
-  if (loading) return null; 
-  // e.g. if (loading) return <div className="p-4">Loading…</div>;
+  // show nothing or a tiny spinner while auth resolves
+  if (loading) return null;
 
-  if (!user) return <Navigate to="/login" replace state={{ from: loc.pathname }} />;
-  return children;
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: loc.pathname || '/' }} />;
+  }
+
+  // IMPORTANT: render nested routes here
+  return <Outlet />;
 }

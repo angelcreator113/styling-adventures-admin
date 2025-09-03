@@ -1,9 +1,16 @@
-// src/firebase/firebase-config.js
-export const firebaseConfig = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore'; // Correct import for Firestore
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDpOFCB3QzPbgzfroeoi8oxgj7rF5hmyHw",
+  authDomain: "styling-admin.firebaseapp.com",
+  projectId: "styling-admin",
+  storageBucket: "styling-admin.firebasestorage.app",
+  messagingSenderId: "390526657916",
+  appId: "1:390526657916:web:2756988e13f45b946070f9"
 };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app); // Export Firestore instance
+
+export { db }; // Ensure db is exported

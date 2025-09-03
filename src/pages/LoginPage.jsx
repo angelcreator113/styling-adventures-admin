@@ -1,6 +1,7 @@
 // src/pages/LoginPage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import ThemeVoteCarousel from "@/components/ThemeVoteCarousel";
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -13,6 +14,7 @@ import {
   browserLocalPersistence,
 } from "firebase/auth";
 import { auth } from "@/utils/init-firebase";
+import { upgradeAnonymousVotes } from "@/utils/upgradeAnonymousVotes";
 
 export default function LoginPage() {
   const nav = useNavigate();
@@ -21,6 +23,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+
+  // Prevent double navigation/upgrade when both redirect handler and onAuth fire
+  const proceeded = useRef(false);
 
   useEffect(() => setErr(""), [email, password]);
 
@@ -36,7 +41,11 @@ export default function LoginPage() {
     (async () => {
       try {
         const res = await getRedirectResult(auth);
-        if (res?.user) {
+        if (res?.user && !proceeded.current) {
+          proceeded.current = true;
+          upgradeAnonymousVotes(res.user.uid).catch((e) =>
+            console.warn("[votes] upgradeAnonymousVotes (redirect) failed:", e)
+          );
           nav("/home", { replace: true });
         }
       } catch (e) {
@@ -45,10 +54,16 @@ export default function LoginPage() {
     })();
   }, [nav]);
 
-  // If already authed, go home
+  // If already authed, upgrade any anon votes and go home
   useEffect(() => {
     const off = onAuthStateChanged(auth, (u) => {
-      if (u) nav("/home", { replace: true });
+      if (u && !proceeded.current) {
+        proceeded.current = true;
+        upgradeAnonymousVotes(u.uid).catch((e) =>
+          console.warn("[votes] upgradeAnonymousVotes (authState) failed:", e)
+        );
+        nav("/home", { replace: true });
+      }
     });
     return off;
   }, [nav]);
@@ -57,7 +72,7 @@ export default function LoginPage() {
     setErr("");
     setBusy(true);
 
-    // Helper: treat any “popup-ish” or transient errors as a signal to redirect
+    // Helper: treat popup/transient errors as a signal to redirect
     const shouldFallbackToRedirect = (code = "") => {
       const c = String(code || "");
       return [
@@ -73,7 +88,7 @@ export default function LoginPage() {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
       await signInWithPopup(auth, provider);
-      // onAuthStateChanged will navigate
+      // onAuthStateChanged / redirect handler will navigate
     } catch (e) {
       console.warn("[auth] popup failed", e?.code, e?.message);
       if (shouldFallbackToRedirect(e?.code)) {
@@ -183,6 +198,11 @@ export default function LoginPage() {
         </button>
 
         {!!err && <div style={styles.err} role="alert">{err}</div>}
+      </div>
+
+      {/* Theme voting carousel */}
+      <div style={{ marginTop: 24, width: 420 }}>
+        <ThemeVoteCarousel />
       </div>
     </div>
   );
