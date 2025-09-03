@@ -1,22 +1,22 @@
-// vite.config.js
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
 
+// Vite configuration
 export default defineConfig(({ command }) => ({
-  appType: "spa", // 👈 Ensures React Router handles refreshes properly
+  appType: "spa", // Ensures React Router handles refreshes properly
 
   plugins: [react()],
 
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      "@": path.resolve(__dirname, "src"), // Ensure this resolves to the correct 'src' directory
     },
   },
 
   server: {
     host: "127.0.0.1",
-    port: 5174,       // 👈 fixed port
+    port: 5174,       // fixed port
     strictPort: true,
     open: true,
 

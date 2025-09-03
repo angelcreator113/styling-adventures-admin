@@ -1,0 +1,59 @@
+.theme-manager {
+  padding: 1rem;
+}
+
+.mapper-ui {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.mapper-ui input, .mapper-ui select {
+  padding: 6px 10px;
+  font-size: 0.95rem;
+}
+
+.mapper-ui button {
+  padding: 8px 16px;
+  background: #6a5acd;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+.icon-box {
+  text-align: center;
+  background: #f5f5f5;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.icon-box img {
+  width: 100%;
+  max-height: 80px;
+  object-fit: contain;
+}
+.vote-button {
+  background-color: #7c3aed;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.vote-button:hover {
+  background-color: #9f5cfb;
+}

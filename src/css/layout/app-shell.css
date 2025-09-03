@@ -58,3 +58,10 @@
     transform: translateX(0);
   }
 }
+/* Decorative overlays should never block clicks */
+.app-shell::before,
+.app-shell::after,
+.app-main::before,
+.app-main::after {
+  pointer-events: none !important;
+}

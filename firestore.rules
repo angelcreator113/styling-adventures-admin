@@ -2,329 +2,246 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /* ------------ helpers ------------ */
-    function isAuthed()  { return request.auth != null; }
-    function isAdmin()   { return isAuthed() && (request.auth.token.admin == true || request.auth.token.role == 'admin'); }
-    function isCreator() { return isAuthed() && (request.auth.token.role == 'creator' || request.auth.token.role == 'admin'); }
-
+    // --------- Auth Helpers ---------
+    function isAuthed()       { return request.auth != null; }
+    function isAdmin()        { return isAuthed() && (request.auth.token.admin == true || request.auth.token.role == 'admin'); }
+    function isCreator()      { return isAuthed() && (request.auth.token.role == 'creator' || request.auth.token.role == 'admin'); }
+    function isOwner()        { return isAuthed() && resource.data.uid == request.auth.uid; }
+    function creatingOwn()    { return isAuthed() && request.resource.data.uid == request.auth.uid; }
     function hasVisibility(d) { return d != null && (d.visibility == 'public' || d.visibility == 'private'); }
-    function creatingOwn() { return isAuthed() && request.resource.data.uid == request.auth.uid; }
-    function isOwner()     { return isAuthed() && resource.data.uid == request.auth.uid; }
 
-    /* boards helpers usable on resource (for collectionGroup board docs) */
-    function boardDocIsPublicRead() {
-      return resource.data.visibility == 'public' || resource.data.public == true;
-    }
-    function boardDocIsOwnerRead() {
-      return isAuthed() && resource.data.uid == request.auth.uid;
-    }
-    function boardDocIsOwnerWrite() {
-      return isAuthed() && request.resource.data.uid == request.auth.uid;
-    }
+    // --------- Shared Helpers ---------
+    function boardDocIsPublicRead()  { return resource.data.visibility == 'public' || resource.data.public == true; }
+    function boardDocIsOwnerRead()   { return isAuthed() && resource.data.uid == request.auth.uid; }
+    function boardDocIsOwnerWrite()  { return isAuthed() && request.resource.data.uid == request.auth.uid; }
 
-    /* ===== Extra helpers for Creator Spaces ===== */
     function validStatus(s) {
       return s == 'active' || s == 'archived' || s == null;
     }
+
     function pinUidToPath(uid)     { return request.resource.data.uid == uid; }
     function pinSpaceIdToPath(id)  { return request.resource.data.spaceId == id; }
     function pinCatIdToPath(id) {
-      return (id == null && (request.resource.data.catId == null || request.resource.data.catId == ''))
-             || (id != null && request.resource.data.catId == id);
+      return (id == null && (request.resource.data.catId == null || request.resource.data.catId == '')) ||
+             (id != null && request.resource.data.catId == id);
     }
     function pinFolderIdToPath(id) {
-      return (id == null && (request.resource.data.folderId == null || request.resource.data.folderId == ''))
-             || (id != null && request.resource.data.folderId == id);
+      return (id == null && (request.resource.data.folderId == null || request.resource.data.folderId == '')) ||
+             (id != null && request.resource.data.folderId == id);
     }
 
-    /* ------------------------------------------------------------------
-       User profile + private contact (PII)
-       ------------------------------------------------------------------ */
+    // --------- USERS COLLECTION ---------
     match /users/{uid} {
-      // Owner OR admin can manage user doc
-      allow read, create, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
+      allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
 
       match /private/{docId} {
-        allow read, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-        allow create: if (isAuthed() && request.auth.uid == uid) || isAdmin();
+        allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
 
         match /contact {
-          allow create: if ((isAuthed() && request.auth.uid == uid) || isAdmin())
-            && request.resource.data.keys().hasAll(['phone','address'])
-            && request.resource.data.phone is string
-            && request.resource.data.address is map
-            && request.resource.data.address.keys().hasAll(['line1','city','region','postal','country'])
-            && request.resource.data.address.line1 is string
-            && request.resource.data.address.city  is string
-            && request.resource.data.address.region is string
-            && request.resource.data.address.postal is string
-            && request.resource.data.address.country is string;
+          allow create: if (isAuthed() && request.auth.uid == uid || isAdmin()) &&
+                        request.resource.data.keys().hasAll(['phone', 'address']) &&
+                        request.resource.data.phone is string &&
+                        request.resource.data.address is map &&
+                        request.resource.data.address.keys().hasAll(['line1', 'city', 'region', 'postal', 'country']);
 
-          allow read, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
+          allow read, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
         }
       }
 
-      // Settings (allow owner OR admin so admin tools can reset caps)
       match /settings/{docId} {
-        allow read, create, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
+        allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
       }
 
-      /* ---------- NEW: per-user notifications ---------- */
       match /notifications/{nid} {
-        // Owner can read and manage their own notifications
         allow read, update, delete: if isAuthed() && request.auth.uid == uid;
-
-        // Server/admin can create notifications for this user
-        // (and must pin the uid field to the path)
         allow create: if isAdmin() && request.resource.data.uid == uid;
       }
-      /* ---------- END notifications ---------- */
+
+      match /closet/{docId} {
+        allow read: if (hasVisibility(resource.data) && resource.data.visibility == 'public') ||
+                        (isAuthed() && request.auth.uid == uid) || isAdmin();
+
+        allow create, update: if hasVisibility(request.resource.data) &&
+                                  request.resource.data.uid == uid &&
+                                  ((isAuthed() && request.auth.uid == uid) || isAdmin());
+
+        allow delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+      }
+
+      match /categories/{catId} {
+        allow read, create, update, delete: if isAuthed() && request.auth.uid == uid;
+      }
+
+      match /planner/events/{eventId} {
+        allow read, create, update, delete: if isAuthed() && request.auth.uid == uid;
+      }
+
+      match /boards/{boardId} {
+        allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+
+        match /items/{itemId} {
+          allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+        }
+      }
+
+      match /metrics/{coll}/{docId=**} {
+        allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+      }
+
+      match /spaces/{spaceId} {
+        allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+
+        match /items/{itemId} {
+          allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+        }
+
+        match /categories/{catId} {
+          allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+
+          match /items/{itemId} {
+            allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+          }
+
+          match /folders/{folderId} {
+            allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+
+            match /items/{itemId} {
+              allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+            }
+          }
+        }
+      }
+
+      match /files/{categoryId} {
+        allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+
+        match /folders/{folderId} {
+          allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+
+          match /items/{itemId} {
+            allow read, create, update, delete: if isAuthed() && request.auth.uid == uid || isAdmin();
+          }
+        }
+      }
+
+      match /panels/{panelId} {
+        allow read, create, update, delete: if isAuthed() && request.auth.uid == uid;
+      }
     }
 
-    /* ------------ panel registry (admin-managed) ------------ */
-    match /panel_defs/{id} {
+    // --------- Public Resources & Admin Routes ---------
+    match /panel_defs/{id}                  { allow read: if true; allow write: if isAdmin(); }
+    match /categories/{panel}/items/{docId} { allow read: if true; allow write: if isAuthed(); }
+    match /public/{docId}/items/{id}        { allow read: if true; allow write: if isAdmin(); }
+    match /features_topics/{id}             { allow read: if true; allow write: if isAdmin(); }
+    match /site_settings/{docId}            { allow read: if true; allow write: if isAdmin(); }
+    match /site_messages/{id}               { allow write: if isAdmin(); }
+
+    // ---- NEW: theme icons + login carousel cache ----
+    match /themeIcons/{id} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow write, delete: if isAdmin();
     }
 
-    /* ------------ shared categories tree ------------ */
-    match /categories/{panel}/items/{docId} {
+    // Theme docs (editable by admins only). Audit subcollection is read-only to clients.
+    match /themes/{themeId} {
       allow read: if true;
-      allow create, update, delete: if isAuthed();
+      allow write, update, delete: if isAdmin();
+
+      match /audit/{aId} {
+        allow read: if isAdmin();
+        allow write, update, delete: if false; // audit entries are server-only
+      }
     }
 
-    /* ------------ legacy flat content ------------ */
+    // (Legacy) public mirror if you keep it
+    match /public/themes/{themeId} { allow read: if true; allow write: if isAdmin(); }
+
+    // Public login carousel cache
+    match /public/login_themes { allow read: if true; allow write: if isAdmin(); }
+
+    // --------- Analytics ---------
+    match /analytics/events/{eventId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /analytics/themeVotes/events/{voteId} {
+      allow create: if true;
+      allow read: if isAdmin();
+    }
+
+    match /admin/metrics/{metricType}/{group}/{date} {
+      allow read: if isAdmin();
+    }
+    match /admin/metrics/{docId=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // --------- Threads (Bestie Chat) ---------
+    match /threads/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /threads/{id}/replies/{rid} {
+      allow read: if true;
+      allow create: if isAuthed() && get(/databases/$(database)/documents/threads/$(id)).data.locked != true;
+      allow update, delete: if isAdmin() || (isAuthed() && request.auth.uid == resource.data.uid);
+    }
+
+    match /threads/{id}/reactions/{uidType} {
+      allow read: if true;
+      allow create, delete: if isAuthed()
+        && request.auth.uid == uidType.split('_')[0]
+        && get(/databases/$(database)/documents/threads/$(id)).data.locked != true;
+      allow update: if false;
+    }
+
+    // --------- Boards (Group Reads) ---------
+    match /{anyPath=**}/boards/{boardId} {
+      allow read: if boardDocIsPublicRead() || boardDocIsOwnerRead() || isAdmin();
+      allow write: if boardDocIsOwnerWrite() || isAdmin();
+    }
+
+    match /{path=**}/items/{anyItem} {
+      allow read: if isOwner() || isAdmin();
+    }
+
+    // --------- Global Content (Legacy) ---------
     match /closet/{docId} {
       allow read: if (hasVisibility(resource.data) && resource.data.visibility == 'public') || isOwner() || isAdmin();
       allow create: if (creatingOwn() || isAdmin()) && hasVisibility(request.resource.data);
       allow update: if (isOwner() || isAdmin()) && hasVisibility(request.resource.data);
       allow delete: if isOwner() || isAdmin();
     }
+
     match /voice/{docId} {
       allow read: if true;
       allow create: if isCreator() && creatingOwn() && hasVisibility(request.resource.data);
       allow update, delete: if (isCreator() && isOwner()) || isAdmin();
     }
+
     match /episodes/{docId} {
       allow read: if true;
       allow create: if isCreator() && creatingOwn() && hasVisibility(request.resource.data);
       allow update, delete: if (isCreator() && isOwner()) || isAdmin();
     }
 
-    /* ------------ per-user closet ------------ */
-    match /users/{uid}/closet/{docId} {
-      allow read: if (hasVisibility(resource.data) && resource.data.visibility == 'public')
-                  || (isAuthed() && request.auth.uid == uid)
-                  || isAdmin();
-
-      allow create: if hasVisibility(request.resource.data)
-                    && request.resource.data.uid == uid
-                    && ((isAuthed() && request.auth.uid == uid) || isAdmin());
-
-      allow update: if hasVisibility(request.resource.data)
-                    && request.resource.data.uid == uid
-                    && ((isAuthed() && request.auth.uid == uid) || isAdmin());
-
-      allow delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-    }
-
-    /* ------------ per-user categories for Toolbox ------------ */
-    match /users/{uid}/categories/{catId} {
-      allow read, create, update, delete: if isAuthed() && request.auth.uid == uid;
-    }
-
-    /* ------------ planner events ------------ */
-    match /users/{uid}/planner/events/{eventId} {
-      allow read, create, update, delete: if isAuthed() && request.auth.uid == uid;
-    }
-
-    /* ------------ public home content (admin writes) ------------ */
-    match /public/{docId}/items/{id} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    /* === NEW: Features topics (public read; admin write) === */
-    match /features_topics/{id} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    /* === NEW: Site settings (e.g., creatorRibbon) === */
-    match /site_settings/{docId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    /* === NEW: Site messages/presets (admin-only) === */
-    match /site_messages/{id} {
-      allow read, create, update, delete: if isAdmin();
-    }
-
-    /* === NEW: Lightweight analytics intake === */
-    match /analytics/events/{eventId} {
-      allow create: if true;                    // clients can log views/clicks
-      allow read, update, delete: if isAdmin(); // only admins can read/manage
-    }
-
-    /* ------------ theme library (public read; admin write) ------------ */
-    match /themes/{themeId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
-    match /public/themes/{themeId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    /* ------------ Bestie Chat ------------ */
-    match /threads/{id} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
-    match /threads/{id}/replies/{rid} {
-      allow read: if true;
-      allow create: if isAuthed() && get(/databases/$(database)/documents/threads/$(id)).data.locked != true;
-      allow update, delete: if isAdmin() || (isAuthed() && request.auth.uid == resource.data.uid);
-    }
-    match /threads/{id}/reactions/{uidType} {
-      allow read: if true;
-      allow create, delete: if isAuthed()
-                            && request.auth.uid == uidType.split('_')[0]
-                            && get(/databases/$(database)/documents/threads/$(id)).data.locked != true;
-      allow update: if false;
-    }
-
-    /* =========================================================
-       Boards
-       ========================================================= */
-    function boardIsPublic(uid, boardId) {
-      return get(/databases/$(database)/documents/users/$(uid)/boards/$(boardId)).data.visibility == 'public'
-             || get(/databases/$(database)/documents/users/$(uid)/boards/$(boardId)).data.public == true;
-    }
-
-    match /users/{uid}/boards/{boardId} {
-      allow read: if (isAuthed() && request.auth.uid == uid) || boardIsPublic(uid, boardId) || isAdmin();
-      allow create, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-
-      match /items/{itemId} {
-        allow read: if (isAuthed() && request.auth.uid == uid) || boardIsPublic(uid, boardId) || isAdmin();
-        allow create, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-      }
-    }
-
-    match /{anyPath=**}/boards/{boardId} {
-      allow read: if boardDocIsPublicRead() || boardDocIsOwnerRead() || isAdmin();
-      allow create, update, delete: if boardDocIsOwnerWrite() || isAdmin();
-    }
-
-    /* ------------ per-creator metrics ------------ */
-    match /users/{uid}/metrics/{coll}/{docId=**} {
-      allow read, create, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-    }
-
-    /* ------------ admin metrics ------------ */
-    match /admin/metrics/{docId=**} {
-      allow read, write: if isAdmin();
-    }
-
-    /* =========================================================
-       Creator Spaces (Panels) + Files schema
-       ========================================================= */
-    match /users/{uid}/spaces/{spaceId} {
-      allow read: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-
-      allow create: if (isAuthed() && request.auth.uid == uid && pinUidToPath(uid)) || isAdmin();
-      allow update: if ((isAuthed() && request.auth.uid == uid && pinUidToPath(uid)) || isAdmin());
-      allow delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-
-      match /items/{itemId} {
-        allow read: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-        allow create: if (isAuthed() && request.auth.uid == uid)
-                      && pinUidToPath(uid) && pinSpaceIdToPath(spaceId)
-                      && pinCatIdToPath(null) && pinFolderIdToPath(null)
-                      && validStatus(request.resource.data.status);
-        allow update: if (isAuthed() && request.auth.uid == uid)
-                      && request.resource.data.uid == uid
-                      && request.resource.data.spaceId == spaceId
-                      && validStatus(request.resource.data.status)
-                      || isAdmin();
-        allow delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-      }
-
-      match /categories/{catId} {
-        allow read, create, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-
-        match /items/{itemId} {
-          allow read: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-          allow create: if (isAuthed() && request.auth.uid == uid)
-                        && pinUidToPath(uid) && pinSpaceIdToPath(spaceId)
-                        && pinCatIdToPath(catId) && pinFolderIdToPath(null)
-                        && validStatus(request.resource.data.status);
-          allow update: if (isAuthed() && request.auth.uid == uid)
-                        && request.resource.data.uid == uid
-                        && request.resource.data.spaceId == spaceId
-                        && request.resource.data.catId == catId
-                        && validStatus(request.resource.data.status)
-                        || isAdmin();
-          allow delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-        }
-
-        match /folders/{folderId} {
-          allow read, create, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-
-          match /items/{itemId} {
-            allow read: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-            allow create: if (isAuthed() && request.auth.uid == uid)
-                          && pinUidToPath(uid) && pinSpaceIdToPath(spaceId)
-                          && pinCatIdToPath(catId) && pinFolderIdToPath(folderId)
-                          && validStatus(request.resource.data.status);
-            allow update: if (isAuthed() && request.auth.uid == uid)
-                          && request.resource.data.uid == uid
-                          && request.resource.data.spaceId == spaceId
-                          && request.resource.data.catId == catId
-                          && request.resource.data.folderId == folderId
-                          && validStatus(request.resource.data.status)
-                          || isAdmin();
-            allow delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-          }
-        }
-      }
-    }
-
-    // collectionGroup reads of .../items across Space paths — owner or admin only
-    match /{path=**}/items/{anyItem} {
-      allow read: if (isAuthed() && resource.data.uid == request.auth.uid) || isAdmin();
-    }
-
-    // Creator Files (legacy)
-    match /users/{uid}/files/{categoryId} {
-      allow read, create, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-      match /folders/{folderId} {
-        allow read, create, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-        match /items/{itemId} {
-          allow read, create, update, delete: if (isAuthed() && request.auth.uid == uid) || isAdmin();
-        }
-      }
-    }
-
-    // Admin Content Files (global)
+    // --------- Global Admin Content ---------
     match /contentFiles/{categoryId} {
-      allow read, create, update, delete: if isAdmin();
+      allow write: if isAdmin();
+      allow read: if isAdmin();
+
       match /folders/{folderId} {
-        allow read, create, update, delete: if isAdmin();
+        allow read, write: if isAdmin();
         match /items/{itemId} {
-          allow read, create, update, delete: if isAdmin();
+          allow read, write: if isAdmin();
         }
       }
     }
 
-    // Saved creator panels (metadata/layouts)
-    match /users/{uid}/panels/{panelId} {
-      allow read, create, update, delete: if isAuthed() && request.auth.uid == uid;
-    }
-
-    /* ------------ fallback: admin-only ------------ */
+    // --------- Final Catch-All (admin-only) ---------
     match /{document=**} {
       allow read, write: if isAdmin();
     }

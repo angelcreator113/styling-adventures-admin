@@ -1,31 +1,26 @@
 // src/hooks/guards.jsx
+// 🚨 Legacy shim kept only so old imports don't break.
+// Prefer: import RequireRole from "@/components/RequireRole";
 import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useUserRole } from "@/hooks/RoleGates";
+import RequireRole from "@/components/RequireRole.jsx";
 
-export function RequireAnyRole({ allow = [], children }) {
-  const { loading, effectiveRole } = useUserRole();
-  const loc = useLocation();
-
-  if (loading) return null; // or spinner
-
-  if (!allow.includes(effectiveRole)) {
-    // Choose ONE of these patterns:
-
-    // Pattern A: render an inline notice (prevents loop churn)
-    return (
-      <section className="container" style={{ padding: 16 }}>
-        <div className="dashboard-card">
-          <h2 style={{ marginTop: 0 }}>Unauthorized</h2>
-          <p>You don’t have access to this page.</p>
-        </div>
-      </section>
-    );
-
-    // Pattern B: or do a single redirect
-    // return <Navigate to="/unauthorized" replace state={{ from: loc.pathname }} />;
-  }
-
-  return children;
+export function RequireAnyRoleLegacy({ allow = [], children }) {
+  // Map the "any-of" to the canonical component by checking at render time
+  // NOTE: If you still rely on this, migrate to <RequireRole/> soon.
+  return (
+    <RequireRole
+      role={(roles => {
+        // admin always allowed; the component handles that logic
+        if (!roles || roles.length === 0) return "fan";
+        // if you used to pass allow=["creator","fan"], just pick one –
+        // the role component will admit admin anyway.
+        return allow[0] || "fan";
+      })()}
+      allowAdmin
+    >
+      {children}
+    </RequireRole>
+  );
 }
 
+export default RequireAnyRoleLegacy;

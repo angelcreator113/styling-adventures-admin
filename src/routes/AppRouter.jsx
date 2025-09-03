@@ -1,17 +1,26 @@
+// src/routes/AppRouter.jsx
 import React, { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
+import { Toaster } from "sonner";
 
-// ✅ Use the guards we just defined in routes/guards.jsx
-import { RequireAuth, RequireAnyRole } from "@/routes/guards.jsx";
+import { PublicRoutes } from "@/routes/publicRoutes";
+import { AdminRoutes } from "@/routes/adminRoutes";
+import { CreatorRoutes } from "@/routes/creatorRoutes";
+import { FanRoutes } from "@/routes/fanRoutes";
 
-// Route groups re-exported from src/routes/index.jsx
-import { PublicRoutes, FanRoutes, CreatorRoutes, AdminRoutes } from "@/routes";
+import RequireAuth from "@/components/RequireAuth";
+import RequireRole from "@/components/RequireRole";
 
-import AppToaster from "@/components/ui/AppToaster.jsx";
+import AdminShell from "@/admin/AdminShell.jsx";
+import CreatorShell from "@/components/CreatorShell.jsx";
+import FanShell from "@/components/FanShell.jsx";
+
+const AuthDebug = React.lazy(() => import("@/pages/AuthDebug.jsx"));
+const RoleHomeRedirect = React.lazy(() => import("@/routes/RoleHomeRedirect.jsx"));
 
 const Fallback = () => (
   <section className="container" style={{ padding: 16 }}>
-    <div className="dashboard-card" role="status" aria-live="polite" style={{ display: "flex", gap: 12, alignItems: "center" }}>
+    <div className="dashboard-card" role="status" aria-live="polite" style={{ display: "flex", gap: 12 }}>
       <div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid #ccc", borderTopColor: "#7c3aed", animation: "spin .9s linear infinite" }} />
       <span>Loading…</span>
     </div>
@@ -38,32 +47,45 @@ const Unauthorized = () => (
 );
 
 export default function AppRouter() {
-  if (import.meta.env.DEV) console.debug("[AppRouter] mounted");
   return (
     <>
-      <AppToaster />
+      <Toaster position="top-right" richColors />
       <Suspense fallback={<Fallback />}>
         <Routes>
-          {PublicRoutes()}
+          {/* Public */}
+          {PublicRoutes && PublicRoutes()}
+          <Route path="/__auth" element={<AuthDebug />} />
 
-          {/* Authenticated umbrella */}
+          {/* Authenticated area */}
           <Route element={<RequireAuth />}>
-            {/* Fan routes available to all roles (including admin) */}
-            <Route element={<RequireAnyRole allow={["fan", "creator", "admin"]} />}>
-              {FanRoutes()}
+
+            {/* Single root redirect decides the area once, then shells own their paths */}
+            <Route index element={<RoleHomeRedirect />} />
+
+            {/* Admin namespace */}
+            <Route element={<RequireRole role="admin" />}>
+              <Route path="/admin/*" element={<AdminShell />}>
+                {AdminRoutes && AdminRoutes()}
+              </Route>
             </Route>
 
-            {/* Creator (and admin) */}
-            <Route element={<RequireAnyRole allow={["creator", "admin"]} />}>
-              {CreatorRoutes()}
+            {/* Creator namespace */}
+            <Route element={<RequireRole role="creator" />}>
+              <Route path="/creator/*" element={<CreatorShell />}>
+                {CreatorRoutes && CreatorRoutes()}
+              </Route>
             </Route>
 
-            {/* Admin only */}
-            <Route element={<RequireAnyRole allow={["admin"]} />}>
-              {AdminRoutes()}
+            {/* Fan catch-all LAST. Admins are blocked here by default. */}
+            <Route element={<RequireRole role="fan" allowAdmin={false} />}>
+              {/* Note: parent has no path; the children below are absolute like "home" */}
+              <Route path="/*" element={<FanShell />}>
+                {FanRoutes && FanRoutes()}
+              </Route>
             </Route>
           </Route>
 
+          {/* Fallbacks */}
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
