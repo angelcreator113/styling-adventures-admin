@@ -1,0 +1,12 @@
+﻿node_modules/
+dist/
+build/
+.vite/
+.env
+.env.*
+.firebase/
+functions/node_modules/
+functions/.runtimeconfig.json
+.vscode/
+.DS_Store
+Thumbs.db
