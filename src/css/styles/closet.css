@@ -151,3 +151,42 @@ progress[data-mode="ready"] {
 progress[data-mode="ready"]::-webkit-progress-value {
   background-color: #22c55e;
 }
+/* Keep topbar height stable to prevent layout shift */
+.app-topbar {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+}
+
+/* The shell uses a fixed sidebar column */
+.app-shell__body {
+  display: grid;
+  grid-template-columns: 260px 1fr; /* narrowed by .is-collapsed */
+  min-height: calc(100vh - 56px);
+}
+
+.app-sidebar {
+  border-right: 1px solid #eee;
+  background: #fff;
+}
+.app-sidebar.is-collapsed {
+  width: 64px;              /* visual width */
+  overflow: hidden;
+}
+.app-main {
+  min-width: 0;             /* allow content to shrink without pushing layout */
+  background: #fafafa;
+}
+
+/* Toggle button keeps a stable footprint */
+.sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+.sidebar-toggle:hover { background: #f9fafb; }

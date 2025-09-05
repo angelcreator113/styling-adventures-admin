@@ -1,11 +1,9 @@
-// src/components/topbar/QuickActionsMenu.jsx
 import React, { useRef, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function QuickActionsMenu({ primary }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const onDoc = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
@@ -13,16 +11,10 @@ export default function QuickActionsMenu({ primary }) {
     return () => document.removeEventListener("pointerdown", onDoc);
   }, []);
 
-  const runPrimary = () => {
-    if (typeof primary?.onClick === "function") primary.onClick();
-    else navigate("/closet/upload");
-    setOpen(false);
-  };
-
   return (
     <div className="menu-anchor" ref={ref}>
       <button
-        className="tb-btn primary"
+        className="tb-btn primary hide-sm-on-very-small"
         type="button"
         onClick={() => setOpen(v => !v)}
         aria-expanded={open}
@@ -31,11 +23,14 @@ export default function QuickActionsMenu({ primary }) {
       >
         + New
       </button>
-
       {open && (
-        <div className="menu topbar-panel qa-menu" data-topbar-panel role="menu" style={{ minWidth: 260 }}>
-          <button type="button" className="menu-item cta" role="menuitem" onClick={runPrimary}>
-            {primary?.label ?? "Start Closet Upload"}
+        <div className="menu" role="menu" style={{ minWidth: 200 }}>
+          <Link to="/closet"   role="menuitem" className="menu-item">Upload Closet Item</Link>
+          <Link to="/episodes" role="menuitem" className="menu-item">New Episode</Link>
+          <Link to="/voice"    role="menuitem" className="menu-item">New Voice Clip</Link>
+          <div className="menu-sep" role="separator" />
+          <button type="button" className="menu-item" role="menuitem" onClick={primary.onClick}>
+            {primary.label}
           </button>
         </div>
       )}

@@ -1,4 +1,3 @@
-// src/pages/creator/CreatorHome.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -70,4 +69,3 @@ export default function CreatorHome() {
     </div>
   );
 }
-

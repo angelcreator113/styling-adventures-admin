@@ -1,16 +1,20 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore'; // Correct import for Firestore
+// src/firebase/firebase-config.js
+const get = (k) => (import.meta.env[k] ?? "").trim();
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDpOFCB3QzPbgzfroeoi8oxgj7rF5hmyHw",
-  authDomain: "styling-admin.firebaseapp.com",
-  projectId: "styling-admin",
-  storageBucket: "styling-admin.firebasestorage.app",
-  messagingSenderId: "390526657916",
-  appId: "1:390526657916:web:2756988e13f45b946070f9"
+export const firebaseConfig = {
+  apiKey: get("VITE_FIREBASE_API_KEY"),
+  authDomain: get("VITE_FIREBASE_AUTH_DOMAIN"),
+  projectId: get("VITE_FIREBASE_PROJECT_ID"),
+  storageBucket: get("VITE_FIREBASE_STORAGE_BUCKET"),
+  messagingSenderId: get("VITE_FIREBASE_MESSAGING_SENDER_ID"),
+  appId: get("VITE_FIREBASE_APP_ID"),
+  measurementId: get("VITE_FIREBASE_MEASUREMENT_ID"), // optional
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app); // Export Firestore instance
-
-export { db }; // Ensure db is exported
+// Safety: helpful error if something is missing
+for (const [k, v] of Object.entries(firebaseConfig)) {
+  if ((k !== "measurementId") && !v) {
+    // eslint-disable-next-line no-console
+    console.error(`[Firebase] Missing env for ${k}. Check .env.local`);
+  }
+}

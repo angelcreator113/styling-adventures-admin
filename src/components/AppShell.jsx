@@ -1,91 +1,118 @@
 // src/components/AppShell.jsx
-import React, { useEffect, useMemo, useState } from "react";
-import Topbar from "@/components/topbar/Topbar.jsx";
-import Icon from "@/components/Icon.jsx";
+import React, { useEffect } from "react";
+import { Outlet } from "react-router-dom";
+
+import Topbar from "./topbar/Topbar.jsx";
+import ErrorBoundary from "@/components/ErrorBoundary.jsx";
+
+import { auth, db } from "@/utils/init-firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 /**
- * Generic application shell used by Fan/Creator/Admin shells.
- *
- * Props:
- * - Sidebar: React component for the left nav
- * - sidebarProps: props forwarded to Sidebar
- * - shell: "fan" | "creator" | "admin" (affects storage key + data attribute)
- * - children: routed content (Outlet)
+ * Small helpers to read form values by element id.
+ * Safe if an element is missing (returns empty string / false).
  */
-export default function AppShell({
-  Sidebar,
-  sidebarProps = {},
-  shell = "fan",
-  children,
-}) {
-  const storageKey = useMemo(() => `${shell}SidebarCollapsed`, [shell]);
+const v = (id) => document.getElementById(id)?.value?.trim() || "";
+const b = (id) => !!document.getElementById(id)?.checked;
 
-  const [collapsed, setCollapsed] = useState(
-    () => sessionStorage.getItem(storageKey) === "1"
-  );
-
+export default function AppShell() {
+  // Persist upload meta events from various upload panels across the app.
   useEffect(() => {
-    sessionStorage.setItem(storageKey, collapsed ? "1" : "0");
-  }, [collapsed, storageKey]);
+    const onComplete = async (e) => {
+      const d = e.detail || {};
+      const prefix = d.uiPrefix;
+      if (!prefix || d._metaPersisted) return; // ignore duplicates
 
-  // allow any button to dispatch "app:sidebar-toggle"
-  useEffect(() => {
-    const onToggle = () => setCollapsed((v) => !v);
-    window.addEventListener("app:sidebar-toggle", onToggle);
-    return () => window.removeEventListener("app:sidebar-toggle", onToggle);
+      const user = auth.currentUser;
+      if (!user) return;
+
+      // Map a known uiPrefix -> Firestore subcollection and field reader
+      const map = {
+        "closet-": {
+          path: `users/${user.uid}/closet`,
+          fields: () => ({
+            title: v("closet-title"),
+            notes: v("closet-notes"),
+            category: v("closet-category"),
+            subcategory: v("closet-subcategory"),
+            subsubcategory: v("closet-subsubcategory"),
+            visibility: b("closet-is-public") ? "public" : "private",
+          }),
+        },
+        "voice-": {
+          path: `users/${user.uid}/voice`,
+          fields: () => ({
+            title: v("voice-title"),
+            notes: v("voice-notes"),
+            category: v("voice-category"),
+            subcategory: v("voice-subcategory"),
+            subsubcategory: v("voice-subsubcategory"),
+            visibility: b("voice-is-public") ? "public" : "private",
+          }),
+        },
+        // Accept either episode- or episodes- for robustness
+        "episode-": {
+          path: `users/${user.uid}/episodes`,
+          fields: () => ({
+            title: v("episode-title") || v("episodes-title"),
+            notes: v("episode-notes") || v("episodes-notes"),
+            category: v("episode-category") || v("episodes-category"),
+            subcategory: v("episode-subcategory") || v("episodes-subcategory"),
+            subsubcategory: v("episode-subsubcategory") || v("episodes-subsubcategory"),
+            visibility: b("episode-is-public") ? "public" : "private",
+          }),
+        },
+        "episodes-": {
+          path: `users/${user.uid}/episodes`,
+          fields: () => ({
+            title: v("episodes-title") || v("episode-title"),
+            notes: v("episodes-notes") || v("episode-notes"),
+            category: v("episodes-category") || v("episode-category"),
+            subcategory: v("episodes-subcategory") || v("episode-subcategory"),
+            subsubcategory: v("episodes-subsubcategory") || v("episode-subsubcategory"),
+            visibility: b("episode-is-public") ? "public" : "private",
+          }),
+        },
+      };
+
+      // Normalize unknown prefixes that start with "episode"
+      const entry =
+        map[prefix] ||
+        (prefix.startsWith("episode") ? map["episode-"] : null);
+
+      if (!entry) return;
+
+      try {
+        const payload = {
+          uid: user.uid,
+          ...entry.fields(),
+          fileName: d.fileName || "",
+          url: d.url || "",
+          storagePath: d.path || "",
+          uploadedAt: serverTimestamp(),
+        };
+        await addDoc(collection(db, entry.path), payload);
+        d._metaPersisted = true; // flag so repeating events are ignored
+      } catch (err) {
+        console.error("[AppShell] failed to save upload metadata:", err);
+      }
+    };
+
+    document.addEventListener("upload:complete", onComplete);
+    return () => document.removeEventListener("upload:complete", onComplete);
   }, []);
 
-  const topbarToggleBtn = (
-    <button
-      type="button"
-      className="icon-btn"
-      aria-label="Toggle sidebar"
-      title="Toggle sidebar"
-      onClick={() => window.dispatchEvent(new Event("app:sidebar-toggle"))}
-    >
-      <Icon name="menu" />
-    </button>
-  );
-
   return (
-    <div className="app-shell" data-shell={shell} style={{ pointerEvents: "auto" }}>
-      {/* Make any decorative pseudo-elements click-through.
-         Move this to your global CSS when convenient. */}
-      <style>{`
-        .app-shell::before,
-        .app-shell::after,
-        .app-main::before,
-        .app-main::after {
-          pointer-events: none !important;
-        }
-      `}</style>
+    <div className="app-shell">
+      {/* Global topbar kept for shared actions (profile, notifications, etc.) */}
+      <Topbar />
 
-      <Topbar
-        className="app-topbar"
-        rightAccessory={topbarToggleBtn}
-        showRoleSwitcher
-      />
-
-      <div className="app-shell__body">
-        <aside
-          className={`app-sidebar ${collapsed ? "is-collapsed" : ""}`}
-          aria-label={`${shell} navigation`}
-        >
-          {Sidebar ? <Sidebar collapsed={collapsed} {...sidebarProps} /> : null}
-        </aside>
-
-        <main
-          id="main-content"
-          className="app-main"
-          role="main"
-          tabIndex={-1}
-          aria-live="polite"
-          /* Isolate stacking so nothing floats above content by accident */
-          style={{ position: "relative", zIndex: 0, isolation: "isolate", pointerEvents: "auto" }}
-        >
-          {children}
-        </main>
-      </div>
+      {/* No global Sidebar here — sidebars now live in FanShell / CreatorShell / AdminShell */}
+      <main id="main-content" className="app-main" role="main" aria-live="polite">
+        <ErrorBoundary>
+          <Outlet />
+        </ErrorBoundary>
+      </main>
     </div>
   );
 }

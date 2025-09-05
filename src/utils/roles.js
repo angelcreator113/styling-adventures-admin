@@ -16,7 +16,7 @@ let _backoffUntil = 0;           // backoff window end
 const STALE_MS = 5 * 60 * 1000;  // 5 minutes
 const BACKOFF_MS = 60 * 1000;    // 60s after quota errors
 
-function deriveRolesFromClaims(claims) {
+export function deriveRolesFromClaims(claims) {
   // Normalize to your app's role model
   if (!claims) return ["fan"];
   if (claims.role === "admin" || claims.admin) return ["admin", "creator"];
@@ -29,6 +29,10 @@ export function primaryRole(roles = []) {
   if (roles.includes("admin")) return "admin";
   if (roles.includes("creator")) return "creator";
   return "fan";
+}
+
+export function roleLabel(role) {
+  return role === "admin" ? "Admin" : role === "creator" ? "Creator" : "Fan";
 }
 
 export function getCachedRoles() {
@@ -99,3 +103,14 @@ export async function getRoles({ force = false } = {}) {
 
   return _inflight;
 }
+
+/**
+ * Convenience: returns { claims, roles, primary } in one call.
+ * Pass { force:true } right after login if you just changed claims.
+ */
+export async function getRoleInfo(opts) {
+  const roles = await getRoles(opts);
+  const claims = _claimsCache;
+  return { claims, roles, primary: primaryRole(roles) };
+}
+

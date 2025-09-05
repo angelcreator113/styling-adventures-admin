@@ -1,43 +1,78 @@
-// src/pages/home/AdminHome.jsx
-import React, { Suspense, lazy } from "react";
-import { useNavigate } from "react-router-dom";
-// import ThemeManager from "@/components/ThemeManager.jsx"; // ⛔️ avoid eager import
+import React from "react";
+import { Link } from "react-router-dom";
 
-const ThemeManager = lazy(() => import("@/components/ThemeManager.jsx")); // ✅
+const card = {
+  background: "var(--card-bg, #fff)",
+  border: "1px solid rgba(0,0,0,.06)",
+  borderRadius: 12,
+  padding: 16,
+};
+
+const grid = {
+  display: "grid",
+  gap: 16,
+  gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))",
+};
 
 export default function AdminHome() {
-  const navigate = useNavigate();
-
-  // ... your cards array ...
-
   return (
-    <div className="container" style={{ padding: 16 }}>
-      <h1 style={{ fontSize: 28, marginBottom: 24 }}>Back Office</h1>
+    <div style={{ display: "grid", gap: 16 }}>
+      <h1 style={{ margin: "8px 0 0" }}>Back Office</h1>
 
-      {/* cards grid ... */}
-
-      {/* Theme Manager as its own card/section */}
-      <div style={{ marginTop: 24 }}>
-        <div className="dashboard-card">
-          <div className="card__body">
-            <h3 className="card__title">Theme Manager</h3>
-            <p className="muted" style={{ marginBottom: 12 }}>
-              Create, edit, and link themes to icons. Includes voting settings.
-            </p>
-
-            {/* Local Suspense so AdminHome renders instantly */}
-            <Suspense
-              fallback={
-                <div className="muted" style={{ fontSize: 14 }}>
-                  Loading Theme Manager…
-                </div>
-              }
-            >
-              <ThemeManager />
-            </Suspense>
-          </div>
+      {/* Content Files hub */}
+      <section style={grid} aria-label="Content Files">
+        <div style={card}>
+          <h3 style={{ marginTop: 0 }}>Closet Upload</h3>
+          <p>Upload wardrobe items (all categories supported).</p>
+          <Link to="/admin/content/closet" className="btn">Open Closet Upload</Link>
         </div>
-      </div>
+
+        <div style={card}>
+          <h3 style={{ marginTop: 0 }}>Full Episodes</h3>
+          <p>Season/episode folders for finished shows.</p>
+          <Link to="/admin/content/episodes" className="btn">Manage Episodes</Link>
+        </div>
+
+        <div style={card}>
+          <h3 style={{ marginTop: 0 }}>Unfinished Clips</h3>
+          <p>Lala / Guest / Just A Woman → Seasons → Episodes.</p>
+          <Link to="/admin/content/clips" className="btn">Manage Clips</Link>
+        </div>
+      </section>
+
+      {/* Platform ops */}
+      <section style={grid} aria-label="Platform">
+        <div style={card}>
+          <h3 style={{ marginTop: 0 }}>Panels / Meta</h3>
+          <p>Configure homepage panels and global site metadata.</p>
+          <Link to="/meta" className="btn">Open Panels</Link>
+        </div>
+
+        <div style={card}>
+          <h3 style={{ marginTop: 0 }}>Theme Library</h3>
+          <p>Admin-managed templates for upload previews & branding.</p>
+          <Link to="/admin/themes" className="btn">Open Theme Library</Link>
+        </div>
+
+        <div style={card}>
+          <h3 style={{ marginTop: 0 }}>Boards Analytics</h3>
+          <p>Creator board engagement and sharing insights.</p>
+          <Link to="/admin/boards" className="btn">Open Analytics</Link>
+        </div>
+
+        <div style={card}>
+          <h3 style={{ marginTop: 0 }}>Bestie Chat (manage)</h3>
+          <p>Moderate threads, replies and reactions.</p>
+          <Link to="/admin/chat" className="btn">Open Chat Admin</Link>
+        </div>
+
+        <div style={card}>
+          <h3 style={{ marginTop: 0 }}>Storage Smoke</h3>
+          <p>Quick bucket health check & permissions sanity.</p>
+          <Link to="/storage-smoke" className="btn">Run /smoke</Link>
+        </div>
+      </section>
     </div>
   );
 }
+

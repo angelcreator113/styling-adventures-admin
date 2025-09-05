@@ -1,30 +1,33 @@
-// src/components/topbar/TopbarSearch.jsx
 import React from "react";
+import Icon from "@/components/Icon";
 
-export default function TopbarSearch({
-  q,
-  onChange,
-  onSubmit,
-  inputRef,
-  pending
-}) {
-  const id = "topbar-search-input";
-
+export default function TopbarSearch({ q, pending, inputRef, onChange, onSubmit }) {
   return (
-    <form className="search-form" role="search" onSubmit={onSubmit} aria-label="Site">
-      {/* Keep label for a11y, hide it visually */}
-      <label htmlFor={id} className="sr-only">Search</label>
+    <form
+      className={`searchbar ${pending ? "is-pending" : ""}`}
+      onSubmit={onSubmit}
+      role="search"
+      aria-label="Site search"
+    >
+      <span className="search-ico"><Icon name="search" /></span>
       <input
-        id={id}
         ref={inputRef}
+        type="search"
+        placeholder="Search closet, voice, episodes…"
         value={q}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Bestie, lets style you.."
-        autoComplete="off"
-        aria-label="Search"
-        className="search-input"
       />
+      {!!q && (
+        <button
+          type="button"
+          className="clear-btn"
+          aria-label="Clear search"
+          onClick={() => { onChange(""); inputRef.current?.focus(); }}
+        >
+          ×
+        </button>
+      )}
+      {pending && <span className="spinner" aria-hidden="true" />}
     </form>
   );
 }
-

@@ -13,7 +13,7 @@ export function useTopbarShortcuts({ searchInputRef, primary }) {
         searchInputRef.current?.focus();
       }
 
-      // Focus search with Cmd/Ctrl + K
+      // NEW: Focus search with Cmd/Ctrl + K
       if (!typing && e.key?.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         searchInputRef.current?.focus();
@@ -27,7 +27,7 @@ export function useTopbarShortcuts({ searchInputRef, primary }) {
       // Trigger primary action with "n"
       if (!typing && e.key?.toLowerCase() === "n" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
-        primary?.onClick?.();
+        primary.onClick();
       }
     };
 

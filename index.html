@@ -28,37 +28,15 @@
 
     <link rel="icon" href="/assets/lala-avatar.png" type="image/png" />
 
-    <!-- Glow-Up Mode™ font -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet" />
-
-    <!-- Confetti animation script -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
     <!-- Boot-time only styles; keep minimal -->
     <style>
-      html, body {
-        background: #fbf7ff;
-        margin: 0;
-        font-family: 'Outfit', sans-serif;
-        color: #3a2a4d;
-      }
-
-      .confetti-zone {
-        position: fixed;
-        pointer-events: none;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 9999;
-      }
+      html, body { background: #fbf7ff; }
+      body { margin: 0; }
     </style>
   </head>
 
   <body class="app-body">
     <div id="root"></div>
-    <div class="confetti-zone" id="confetti-zone"></div>
-
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <script type="module" src="/src/main.jsx"></script>
 
@@ -98,4 +76,3 @@
     </script>
   </body>
 </html>
-
