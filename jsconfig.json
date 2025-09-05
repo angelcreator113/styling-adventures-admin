@@ -17,7 +17,7 @@
   },
   "include": [
     "src/**/*",
-    "server.cjs",
+    "server.js",
     "vite.config.js"
 , "public/seed/spotlights", "public/seed/threads"  ],
   "exclude": [

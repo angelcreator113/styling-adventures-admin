@@ -1,26 +1,34 @@
 // src/context/AuthContext.jsx
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/utils/init-firebase";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { auth, onAuthReady } from '@/utils/init-firebase'; // onAuthReady resolves when Firebase knows user
+import { onAuthStateChanged } from 'firebase/auth';
+import { getRoles, primaryRole } from '@/utils/roles';
 
-const AuthCtx = createContext({ user: null, loading: true });
+const Ctx = createContext({ user: null, roles: ['guest'], role: 'guest', loading: true, refresh: async () => {} });
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser]   = useState(null);
+  const [roles, setRoles] = useState(['guest']);
   const [loading, setLoading] = useState(true);
 
+  const refresh = async (u = auth.currentUser) => {
+    const r = u ? await getRoles() : ['guest'];
+    setRoles(r);
+  };
+
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (fbUser) => {
-      setUser(fbUser || null);
-      setLoading(false);               // ✅ never forget this!
+    let unsub = onAuthStateChanged(auth, async (u) => {
+      setUser(u);
+      await refresh(u);
+      setLoading(false);
     });
-    return () => unsub();
+    // also wait for initial readiness (handles reloads cleanly)
+    onAuthReady().finally(() => setLoading(false));
+    return () => unsub && unsub();
   }, []);
 
-  const value = { user, loading };
-  return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
+  const value = { user, roles, role: primaryRole(roles), loading, refresh };
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
-export function useAuth() {
-  return useContext(AuthCtx);
-}
+export const useAuth = () => useContext(Ctx);

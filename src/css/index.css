@@ -1,25 +1,21 @@
-/* src/css/index.css */
-@layer reset, base, components, layout, utilities;
+/* Order: tokens → base → layout → components → pages → utils → responsive → dark */
+@import "./tokens/theme.css";
 
-/* tokens first */
-@import "./tokens/tokens.css" layer(base);
+@import "./base/reset.css";
+@import "./base/base.css";
 
-/* base */
-@import "./base/reset.css" layer(reset);   /* keep your existing reset */
-@import "./base/base.css"  layer(base);
-@import "./a11y.css" layer(base);
+@import "./layout/app-shell.css";
+@import "./layout/grid.css";
 
-/* layout */
-@import "./layout/app-shell.css" layer(layout);
+@import "./components/topbar.css";
+@import "./components/sidebar.css";
 
-/* components */
-@import "./components/topbar.css"    layer(components);
-@import "./components/sidebar.css"   layer(components);
-@import "./components/ui.css"        layer(components);
+@import "./components/ui.css";
 
-/* pages (optional if you want page-specific tweaks) */
-/* @import "./pages/home.css" layer(components); */
+@import "./pages/home.css";
+/* @import "./pages/dashboard.css";  // later if needed */
 
-/* utilities */
-@import "./utilities.css" layer(utilities);
-@import "./patches.css" layer(utilities);
+@import "./utilities.css";
+@import "./responsive.css";
+@import "./dark.css"; /* optional */
+

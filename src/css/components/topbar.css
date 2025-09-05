@@ -1,1356 +1,370 @@
-/* === Topbar — styled to match sidebar ===
-   - White background, soft borders/hover like sidebar.css
-   - Uniform controls (h=36, r=10)
-   - Structured dropdowns with titles & lists
-   - No data-URI (PostCSS-safe)
-*/
+/* =========================================================================
+   Topbar (scoped)
+   ========================================================================= */
 
-:root{
-  --tb-h:56px;
-  --ctrl-h:36px;
-  --radius:10px;
-
-  /* mirror sidebar tokens */
-  --sb-bg:#fff;
-  --sb-border:#f0f0f0;
-  --sb-hover:#f8fafc;
-  --sb-hover-border:#eef2f7;
-  --sb-active-bg:#eef2ff;
-  --sb-active-border:#c7d2fe;
-  --sb-active-ink:#1e40af;
+:root {
+  --topbar-h: 64px;
+  --tb-gap: 12px;
+  --tb-ico: 20px;
 }
 
 /* Bar */
-#topbar.topbar{
-  position:sticky; top:0; z-index:250;
-  min-height:var(--tb-h);
-  background:var(--sb-bg);
-  color:#111827;
-  border-bottom:1px solid var(--sb-border);
-  backdrop-filter:saturate(1.05) blur(6px);
-  overflow:visible;
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  height: var(--topbar-h);
+  background: var(--panel);
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--panel) 100%, transparent) 0%,
+    color-mix(in oklab, var(--panel) 92%, transparent) 100%
+  );
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-1, 0 1px 2px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.06));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  isolation: isolate;
 }
 
-/* Container & layout */
-#topbar .container{max-width:1200px;margin:0 auto;padding:0 16px;}
-#topbar .topbar__inner{
-  display:grid;
-  grid-template-columns:auto 1fr auto; /* brand | search | actions */
-  align-items:center;
-  gap:12px;
-  min-height:var(--tb-h);
-  padding-block:8px;
-}
-
-/* Columns */
-#topbar .topbar__left,
-#topbar .topbar__right{display:inline-flex;align-items:center;gap:10px;}
-#topbar .topbar__center{display:flex;align-items:center;}
-
-/* Brand (logo-only, crisp) */
-#topbar .topbar__brand{display:inline-flex;align-items:center;text-decoration:none;color:inherit;}
-#topbar .topbar__brand .brand-img{
-  height:36px;width:auto;display:block;border-radius:8px;
-  box-shadow:0 0 0 1px rgba(0,0,0,.08);
-}
-#topbar.is-compact .topbar__brand .brand-img{height:32px;}
-
-/* Controls — match sidebar feel */
-#topbar input[type="search"],
-#topbar .search-input,
-#topbar .btn,
-#topbar .icon-btn,
-#topbar select{
-  height:var(--ctrl-h);
-  line-height:var(--ctrl-h);
-  border-radius:var(--radius);
-  display:inline-flex;align-items:center;
-  box-sizing:border-box;
-  border:1px solid transparent;
-  background:#fff;color:#111827;
-  box-shadow:0 1px 0 rgba(0,0,0,.02);
-}
-#topbar .btn,
-#topbar select,
-#topbar .search-input,
-#topbar input[type="search"]{padding:0 12px;}
-#topbar .icon-btn{width:var(--ctrl-h);padding:0;justify-content:center;}
-
-#topbar .btn:hover,
-#topbar .icon-btn:hover,
-#topbar select:hover,
-#topbar .search-input:hover,
-#topbar input[type="search"]:hover{
-  background:var(--sb-hover);
-  border-color:var(--sb-hover-border);
-}
-
-/* Search lane */
-#topbar .topbar__center form,
-#topbar .topbar__center .search-form{width:100%;}
-#topbar .topbar__center input[type="search"],
-#topbar .topbar__center .search-input{width:100%;}
-#topbar .topbar__center input::placeholder{color:#6b7280;}
-
-/* Hide visible search labels (keep accessible) */
-#topbar .topbar__center label,
-#topbar .search-form > label{
-  position:absolute !important;width:1px !important;height:1px !important;
-  padding:0 !important;margin:-1px !important;overflow:hidden !important;
-  clip:rect(0 0 0 0) !important;clip-path:inset(50%) !important;border:0 !important;
-}
-
-/* === Dropdown anchors & panels === */
-#topbar .menu-anchor,
-#topbar .features-anchor,
-#topbar .popover-anchor{
-  position:relative;display:inline-flex;align-items:center;height:var(--ctrl-h);
-  overflow:visible;z-index:2;
-}
-/* Panels drop below and do not affect layout */
-#topbar .menu-anchor > .popover,
-#topbar .menu-anchor > [role="menu"],
-#topbar .features-anchor > .popover,
-#topbar .features-anchor > [role="menu"],
-#topbar .popover-anchor > .popover,
-#topbar .popover-anchor > [role="menu"]{
-  position:absolute;top:calc(100% + 8px);right:0;
-  min-width:240px;max-width:360px;
-  background:#fff;color:#111827;
-  border:1px solid var(--sb-border);
-  border-radius:12px;
-  box-shadow:0 10px 30px rgba(0,0,0,.08);
-  padding:10px;z-index:3000;
-}
-
-/* Generic content structure inside panels */
-#topbar .popover h4{
-  margin:6px 10px 6px;
-  font-size:12px;letter-spacing:.02em;text-transform:uppercase;color:#9aa1a9;
-}
-#topbar .popover .menu-list{list-style:none;margin:0;padding:0;display:grid;gap:4px;}
-#topbar .popover .menu-item,
-#topbar .popover a,
-#topbar .popover button{
-  display:flex;align-items:center;gap:10px;
-  padding:8px 10px;border-radius:10px;border:1px solid transparent;
-  text-decoration:none;background:transparent;color:inherit;
-}
-#topbar .popover a:hover,
-#topbar .popover button:hover,
-#topbar .popover .menu-item:hover{
-  background:var(--sb-hover);border-color:var(--sb-hover-border);
-}
-#topbar .popover .menu-item.is-active{
-  background:var(--sb-active-bg);border-color:var(--sb-active-border);color:var(--sb-active-ink);font-weight:600;
-}
-#topbar .popover .menu-sep{height:1px;background:var(--sb-border);margin:6px 0;}
-
-/* Make the Features popover a tidy two-column grid on wide enough panels */
-@media (min-width: 540px){
-  #topbar .features-anchor > .popover{
-    display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;
-  }
-  #topbar .features-anchor > .popover > *{min-width:0;} /* prevent overflow */
-  #topbar .features-anchor > .popover h4{grid-column:span 2;} /* if you use a shared title */
-}
-
-/* Role switcher (native select normalize) */
-#topbar .select-anchor{position:relative;}
-#topbar .select-anchor select{-webkit-appearance:none;-moz-appearance:none;appearance:none;padding-right:36px;}
-/* Caret WITHOUT data-URI (PostCSS-safe) */
-#topbar .select-anchor::after{
-  content:"";
-  position:absolute;right:16px;top:50%;
-  width:0;height:0;transform:translateY(-35%);pointer-events:none;
-  border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid #777;
-}
-
-/* Hide legacy sidebar toggle */
-#topbar .hide-toggle, #topbar .sidebar-toggle{display:none !important;}
-/* ===== Dropdown structure + alignment (fallback for panels without .popover) ===== */
-
-/* Treat the 2nd child as the floating panel */
-#topbar .menu-anchor > *:not(:first-child),
-#topbar .features-anchor > *:not(:first-child),
-#topbar .popover-anchor > *:not(:first-child) {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 240px;
-  max-width: 360px;
-  background: #fff;
-  color: #111827;
-  border: 1px solid var(--sb-border, #f0f0f0);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.08);
-  padding: 10px;
-  z-index: 3000;
-}
-
-/* Headings inside any panel */
-#topbar .menu-anchor > *:not(:first-child) h4,
-#topbar .features-anchor > *:not(:first-child) h4,
-#topbar .popover-anchor > *:not(:first-child) h4 {
-  margin: 6px 10px 6px;
-  font-size: 12px;
-  letter-spacing: .02em;
-  text-transform: uppercase;
-  color: #9aa1a9;
-}
-
-/* Menu rows (links & buttons) */
-#topbar .menu-anchor > *:not(:first-child) a,
-#topbar .menu-anchor > *:not(:first-child) button,
-#topbar .features-anchor > *:not(:first-child) a,
-#topbar .features-anchor > *:not(:first-child) button,
-#topbar .popover-anchor > *:not(:first-child) a,
-#topbar .popover-anchor > *:not(:first-child) button {
+/* Scoped container so global .container doesn't inflate the bar */
+.topbar .container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--gap-lg, 20px);
+  height: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
+}
+
+/* Row: [search/status] | [actions] */
+.topbar__inner {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto; /* anti-overflow */
+  align-items: center;
+  gap: var(--tb-gap);
   width: 100%;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  text-decoration: none;
-  background: transparent;
-  color: inherit;                 /* ← no more blue links */
-  cursor: pointer;
 }
 
-#topbar .menu-anchor > *:not(:first-child) a:hover,
-#topbar .menu-anchor > *:not(:first-child) button:hover,
-#topbar .features-anchor > *:not(:first-child) a:hover,
-#topbar .features-anchor > *:not(:first-child) button:hover,
-#topbar .popover-anchor > *:not(:first-child) a:hover,
-#topbar .popover-anchor > *:not(:first-child) button:hover {
-  background: var(--sb-hover, #f8fafc);
-  border-color: var(--sb-hover-border, #eef2f7);
-}
+/* Clusters */
+.topbar__search { display: flex; align-items: center; min-width: 0; }
+.topbar__actions { display: flex; align-items: center; gap: 12px; flex-wrap: nowrap; min-width: 0; }
+.topbar__actions > * { flex: 0 0 auto; }
 
-/* Optional separators inside panels */
-#topbar .menu-anchor > *:not(:first-child) .menu-sep,
-#topbar .features-anchor > *:not(:first-child) .menu-sep,
-#topbar .popover-anchor > *:not(:first-child) .menu-sep {
-  height: 1px;
-  background: var(--sb-border, #f0f0f0);
-  margin: 6px 0;
+/* Groups with subtle dividers */
+.topbar__group {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding-left: 10px; position: relative;
 }
-
-/* Features popover: 2 columns on wide screens */
-@media (min-width: 540px) {
-  #topbar .features-anchor > *:not(:first-child) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  #topbar .features-anchor > *:not(:first-child) h4 { grid-column: span 2; }
-}
-/* ===== Dropdowns: structure + alignment (final polish) ===== */
-
-#topbar .menu-anchor,
-#topbar .features-anchor,
-#topbar .popover-anchor { position: relative; overflow: visible; }
-
-/* Select the panel: either .popover or “second child” fallback */
-#topbar .menu-anchor > .popover,
-#topbar .features-anchor > .popover,
-#topbar .popover-anchor > .popover,
-#topbar .menu-anchor > *:not(:first-child),
-#topbar .features-anchor > *:not(:first-child),
-#topbar .popover-anchor > *:not(:first-child) {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  min-width: 260px;
-  max-width: 380px;
-  background: #fff;
-  color: #111827;
-  border: 1px solid var(--sb-border, #f0f0f0);
-  border-radius: 12px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.10);
-  padding: 10px;
-  z-index: 3000;
-  box-sizing: border-box;
-}
-
-/* little “tip” arrow */
-#topbar .menu-anchor > .popover::before,
-#topbar .features-anchor > .popover::before,
-#topbar .popover-anchor > .popover::before,
-#topbar .menu-anchor > *:not(:first-child)::before,
-#topbar .features-anchor > *:not(:first-child)::before,
-#topbar .popover-anchor > *:not(:first-child)::before {
-  content: "";
-  position: absolute;
-  top: -6px;
-  right: 18px;             /* approximate center of trigger */
-  width: 0; height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-bottom: 7px solid #fff;
-  filter: drop-shadow(0 -1px 0 var(--sb-border, #f0f0f0));
-}
-
-/* Section titles + separators */
-#topbar .popover h4,
-#topbar .menu-anchor > *:not(:first-child) h4,
-#topbar .features-anchor > *:not(:first-child) h4,
-#topbar .popover-anchor > *:not(:first-child) h4 {
-  margin: 6px 8px 8px;
-  font-size: 12px;
-  letter-spacing: .02em;
-  text-transform: uppercase;
-  color: #9aa1a9;
-}
-#topbar .popover .menu-sep,
-#topbar .menu-anchor > *:not(:first-child) .menu-sep,
-#topbar .features-anchor > *:not(:first-child) .menu-sep,
-#topbar .popover-anchor > *:not(:first-child) .menu-sep {
-  height: 1px;
-  background: var(--sb-border, #f0f0f0);
-  margin: 8px 0;
+.topbar__group + .topbar__group { margin-left: 6px; }
+.topbar__group + .topbar__group::before {
+  content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 1px; height: 22px; background: color-mix(in oklab, var(--border) 84%, transparent);
   border-radius: 1px;
 }
 
-/* Menu rows: icon • label • meta */
-#topbar .popover a,
-#topbar .popover button,
-#topbar .menu-anchor > *:not(:first-child) a,
-#topbar .menu-anchor > *:not(:first-child) button,
-#topbar .features-anchor > *:not(:first-child) a,
-#topbar .features-anchor > *:not(:first-child) button,
-#topbar .popover-anchor > *:not(:first-child) a,
-#topbar .popover-anchor > *:not(:first-child) button {
-  display: grid;
-  grid-template-columns: 20px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: transparent;
-  text-decoration: none;
-  color: inherit;                 /* no blue links */
-  cursor: pointer;
-  box-sizing: border-box;
+/* Skip link */
+.skip-link {
+  position: absolute; left: 12px; top: -100px;
+  background: var(--panel); border: 1px solid var(--border);
+  padding: 6px 10px; border-radius: 8px; box-shadow: var(--shadow-1);
 }
-#topbar .popover a:hover,
-#topbar .popover button:hover,
-#topbar .menu-anchor > *:not(:first-child) a:hover,
-#topbar .menu-anchor > *:not(:first-child) button:hover,
-#topbar .features-anchor > *:not(:first-child) a:hover,
-#topbar .features-anchor > *:not(:first-child) button:hover,
-#topbar .popover-anchor > *:not(:first-child) a:hover,
-#topbar .popover-anchor > *:not(:first-child) button:hover {
-  background: var(--sb-hover, #f8fafc);
-  border-color: var(--sb-hover-border, #eef2f7);
+.skip-link:focus { top: 8px; z-index: 100; }
+
+/* Compact state */
+.topbar.is-compact { height: calc(var(--topbar-h) - 6px); transition: height .18s ease; }
+.topbar.is-compact .icon-btn,
+.topbar.is-compact .tb-btn { height: 36px; min-width: 36px; }
+.topbar.is-compact .avatar-btn { width: 36px; height: 36px; }
+
+/* Search */
+.searchbar {
+  position: relative; display: flex; align-items: center;
+  height: 40px; max-width: min(640px, 100%);
+  width: clamp(280px, 48vw, 720px);
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--bg-soft);
+  padding-left: 36px; padding-right: 10px;
+  transition: box-shadow .2s ease, border-color .2s ease, background .2s ease, width .2s ease;
 }
-#topbar .popover .meta,
-#topbar .menu-anchor > *:not(:first-child) .meta,
-#topbar .features-anchor > *:not(:first-child) .meta,
-#topbar .popover-anchor > *:not(:first-child) .meta {
-  font-size: 12px;
-  color: #6b7280;
+.searchbar .search-ico {
+  position: absolute; left: 12px; display: inline-flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+}
+.searchbar input[type="search"] {
+  flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); padding: 0; height: 100%;
+}
+.searchbar input::placeholder { color: var(--text-dim); letter-spacing: .2px; }
+.searchbar .clear-btn { background: transparent; border: 0; color: var(--text-dim); font-size: 18px; line-height: 1; cursor: pointer; }
+.searchbar.is-pending { opacity: .7; }
+.searchbar .spinner {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--border); border-top-color: var(--brand);
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (min-width: 1200px){ .searchbar { max-width: 720px; } }
+
+/* Status pill */
+.status-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 36px; padding: 0 10px;
+  background: var(--bg-soft); border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.status-track { position: relative; width: 120px; height: 6px; border-radius: 999px; background: var(--border); }
+.status-bar { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--accent); }
+
+/* Buttons */
+.icon-btn, .tb-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 40px; min-width: 40px; padding: 0 12px; gap: 8px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--bg);
+  transition: background .15s ease, box-shadow .15s ease, transform .05s ease;
+}
+.icon-btn:hover, .tb-btn:hover { background: var(--bg-soft); }
+.icon-btn:active, .tb-btn:active { transform: translateY(1px) scale(.99); }
+.icon-btn:focus-visible, .tb-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.icon-btn svg { width: 18px; height: 18px; }
+
+.tb-btn.primary {
+  background: var(--brand); color: #fff; border-color: color-mix(in oklab, var(--brand) 90%, #000);
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--brand) 20%, transparent);
+}
+.tb-btn.primary:is(:hover, :focus-visible) { box-shadow: 0 6px 22px color-mix(in oklab, var(--brand) 26%, transparent); }
+.tb-btn.primary:active { box-shadow: 0 2px 8px color-mix(in oklab, var(--brand) 16%, transparent); }
+
+.avatar-btn {
+  width: 40px; height: 40px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-soft); border: 1px solid var(--border);
+  font-weight: 700; color: var(--text);
+}
+.avatar-btn svg { width: 18px; height: 18px; }
+
+/* Menus */
+.menu-anchor { position: relative; }
+.menu-anchor > .menu {
+  position: absolute; right: 0; top: calc(100% + 6px);
+  min-width: 220px; padding: 8px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: var(--shadow-2);
 }
 
-/* Features popover: tidy two columns when there’s room */
-@media (min-width: 560px) {
-  #topbar .features-anchor > .popover,
-  #topbar .features-anchor > *:not(:first-child) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  #topbar .features-anchor > .popover h4,
-  #topbar .features-anchor > *:not(:first-child) h4 {
-    grid-column: span 2;
-    margin-top: 2px;
-  }
+/* Breadcrumbs */
+.crumbs {
+  max-width: clamp(160px, 28vw, 420px);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: var(--text-dim); font-weight: 600;
 }
-/* ===== Topbar dropdowns: final structure + alignment for
-   Quick Actions, Features, Bell, Avatar (works with or without .popover) ===== */
+.crumb a { color: inherit; text-decoration: none; }
+.crumb a:hover { text-decoration: underline; }
+.crumb-sep { opacity: .6; }
+@media (max-width: 900px){ .crumbs { display: none; } }
 
-/* 1) Grab the panel: either `.popover` or simply the second child */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  min-width: 260px;
-  max-width: 380px;
-  background: #fff;
-  color: #111827;
-  border: 1px solid var(--sb-border, #f0f0f0);
-  border-radius: 12px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.10);
-  padding: 10px;
-  z-index: 3000;
-  box-sizing: border-box;
-}
-
-/* 2) A little “tip” arrow pointing to the trigger */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child))::before {
-  content: "";
-  position: absolute;
-  top: -6px;
-  right: 18px;
-  width: 0; height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-bottom: 7px solid #fff;
-  filter: drop-shadow(0 -1px 0 var(--sb-border, #f0f0f0));
-}
-
-/* 3) Section headings + separators (use <h4> and .menu-sep in your menus) */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) h4 {
-  margin: 6px 8px 8px;
-  font-size: 12px;
-  letter-spacing: .02em;
-  text-transform: uppercase;
-  color: #9aa1a9;
-}
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) .menu-sep {
-  height: 1px;
-  background: var(--sb-border, #f0f0f0);
-  margin: 8px 0;
-  border-radius: 1px;
-}
-
-/* 4) Menu rows: icon • label • meta (works for <a> or <button>) */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) :is(a,button) {
-  display: grid;
-  grid-template-columns: 20px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: transparent;
-  text-decoration: none !important;
-  color: inherit !important;       /* no default blue links */
-  cursor: pointer;
-  box-sizing: border-box;
-}
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) :is(a,button):hover {
-  background: var(--sb-hover, #f8fafc);
-  border-color: var(--sb-hover-border, #eef2f7);
-}
-
-/* meta text on the right */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) .meta {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-/* 5) Features menu: automatically two columns when there’s room */
-@media (min-width: 560px) {
-  #topbar .features-anchor > :is(.popover,:not(:first-child)) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  #topbar .features-anchor > :is(.popover,:not(:first-child)) h4 {
-    grid-column: span 2;
-  }
-}
-
-/* 6) Nudge panels a touch closer on compact bar (optional) */
-#topbar.is-compact :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) {
-  top: calc(100% + 8px);
-}
-/* ===== FINAL POLISH: aligned controls + structured menus ===== */
-
-/* A) Right-side controls: perfectly even spacing & vertical centering */
-#topbar .topbar__right {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;                 /* keep compact but consistent */
-}
-#topbar .topbar__left { gap: 8px; }
-
-/* B) Normalize font/row sizing so menus match sidebar text rhythm */
-#topbar,
-#topbar .popover,
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-        > :is(.popover,:not(:first-child)) {
-  font-size: 14px;
-  line-height: 1.25;
-}
-
-/* C) One width + arrow + elevation for ALL four menus */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) {
-  width: 300px;                    /* unified width */
-  min-width: 300px;
-  max-width: 360px;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid var(--sb-border, #f0f0f0);
-  background: #fff;
-  box-shadow: 0 10px 30px rgba(0,0,0,.10);
-}
-
-/* tip arrow */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child))::before {
-  content:"";
-  position:absolute;
-  top:-6px; right:18px;
-  width:0;height:0;
-  border-left:7px solid transparent;
-  border-right:7px solid transparent;
-  border-bottom:7px solid #fff;
-  filter: drop-shadow(0 -1px 0 var(--sb-border, #f0f0f0));
-}
-
-/* D) Section titles + separators (use <h4> and .menu-sep in your markup) */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) h4 {
-  margin: 6px 8px 8px;
-  font-size: 12px;
-  letter-spacing: .02em;
-  text-transform: uppercase;
-  color: #9aa1a9;
-}
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) .menu-sep {
-  height: 1px;
-  background: var(--sb-border, #f0f0f0);
-  margin: 8px 0;
-}
-
-/* E) Row layout: icon • label • meta (works for <a> and <button>) */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) :is(a,button) {
-  display: grid;
-  grid-template-columns: 20px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: transparent;
-  text-decoration: none !important;
-  color: inherit !important;           /* no default blue links */
-  cursor: pointer;
-  box-sizing: border-box;
-}
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) :is(a,button):hover {
-  background: var(--sb-hover, #f8fafc);
-  border-color: var(--sb-hover-border, #eef2f7);
-}
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) :is(a,button):focus-visible {
-  outline: 2px solid #6aa7ff;
-  outline-offset: 2px;
-}
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) .meta {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-/* F) Features menu: neat two-column grid when wide enough */
-@media (min-width: 560px) {
-  #topbar .features-anchor > :is(.popover,:not(:first-child)) {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  #topbar .features-anchor > :is(.popover,:not(:first-child)) h4 {
-    grid-column: span 2;
-  }
-}
-
-/* G) Select caret alignment (keeps “View as” crisp) */
-#topbar .select-anchor::after {
-  right: 14px;           /* tiny nudge to align with card edges */
-  border-top-color: #6b7280;
-}
-/* ===== TOPBAR PANEL KIT (structure + alignment everywhere) ===== */
-
-/* pick up panels rendered as the anchor's 2nd child or with .popover */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)),
-/* Floating UI portal (many popover libs) */
-body > [data-floating-ui-portal] [data-topbar-panel],
-/* Radix UI portal wrapper */
-body > [data-radix-popper-content-wrapper] [data-topbar-panel],
-/* HeadlessUI menus commonly render role=menu at body level */
-body > [role="menu"][data-topbar-panel],
-/* MUI popover/paper target */
-body > .MuiPopover-root .MuiPaper-root.topbar-panel {
-  position: absolute;              /* if the lib positions it, this is ignored */
-  top: calc(100% + 10px);
-  right: 0;
-  width: 300px;
-  min-width: 300px;
-  max-width: 380px;
-  background: #fff;
-  color: #111827;
-  border: 1px solid var(--sb-border, #f0f0f0);
-  border-radius: 12px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.10);
-  padding: 10px;
-  z-index: 3000;
-  box-sizing: border-box;
-  font-size: 14px;
-  line-height: 1.25;
-}
-
-/* little tip arrow (ignored by portals that clip pseudo-elements) */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child))::before {
-  content: "";
-  position: absolute;
-  top: -6px; right: 18px;
-  width: 0; height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-bottom: 7px solid #fff;
-  filter: drop-shadow(0 -1px 0 var(--sb-border, #f0f0f0));
-}
-
-/* section titles + separators (use <h4> and .menu-sep in markup) */
-#topbar [data-topbar-panel] h4,
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) h4 {
-  margin: 6px 8px 8px;
-  font-size: 12px;
-  letter-spacing: .02em;
-  text-transform: uppercase;
-  color: #9aa1a9;
-}
-#topbar [data-topbar-panel] .menu-sep,
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) .menu-sep {
-  height: 1px;
-  background: var(--sb-border, #f0f0f0);
-  margin: 8px 0;
-  border-radius: 1px;
-}
-
-/* row layout: icon • label • meta (works for <a> and <button>) */
-#topbar [data-topbar-panel] :is(a,button),
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) :is(a,button) {
-  display: grid;
-  grid-template-columns: 20px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: transparent;
-  text-decoration: none !important;
-  color: inherit !important;
-  cursor: pointer;
-  box-sizing: border-box;
-}
-#topbar [data-topbar-panel] :is(a,button):hover,
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) :is(a,button):hover {
-  background: var(--sb-hover, #f8fafc);
-  border-color: var(--sb-hover-border, #eef2f7);
-}
-#topbar [data-topbar-panel] .meta,
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) .meta {
-  font-size: 12px; color: #6b7280;
-}
-
-/* features: 2 neat columns when there’s room */
-@media (min-width: 560px) {
-  #topbar .features-anchor > :is(.popover,:not(:first-child)),
-  body > [data-floating-ui-portal] [data-topbar-panel].features-panel {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  #topbar .features-anchor > :is(.popover,:not(:first-child)) h4,
-  body > [data-floating-ui-portal] [data-topbar-panel].features-panel h4 {
-    grid-column: span 2;
-  }
-}
-
-/* keep triggers tight & aligned */
-#topbar .topbar__right { gap: 8px; align-items: center; }
-#topbar .topbar__left  { gap: 8px; }
-
-/* select caret tiny nudge to align with panel edges */
-#topbar .select-anchor::after { right: 14px; border-top-color: #6b7280; }
-/* === FIX PACK: readable logo + clean dropdown rows === */
-
-/* 1) Make the logo readable and a bit bigger */
-#topbar .topbar__brand .brand-img {
-  height: 42px;
-  width: auto;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(0,0,0,.06);
-}
-
-/* 2) Stronger text contrast inside the topbar */
-#topbar { color: #111827; }
-#topbar .topbar__center input::placeholder { color: #6b7280; }
-
-/* 3) Dropdown rows: FLEX (so plain text items don’t break into vertical stacks) */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) :is(a,button),
-body [data-topbar-panel] :is(a,button) {
-  display: flex !important;               /* override prior grid */
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  white-space: nowrap;
-  padding: 10px 12px;
-  border-radius: 10px;
-  text-decoration: none !important;
-  color: #111827 !important;              /* no default blue/grey */
-  background: transparent;
-  border: 1px solid transparent;
-  box-sizing: border-box;
-}
-
-/* (optional) icon sizing if you add icons later */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) :is(a,button) :is(svg,img) {
-  width: 18px; height: 18px; flex: 0 0 18px;
-}
-
-/* Hover/focus states to match sidebar feel */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) :is(a,button):hover,
-body [data-topbar-panel] :is(a,button):hover {
-  background: #f8fafc;
-  border-color: #eef2f7;
-}
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)) :is(a,button):focus-visible,
-body [data-topbar-panel] :is(a,button):focus-visible {
-  outline: 2px solid #6aa7ff;
-  outline-offset: 2px;
-}
-
-/* Right-side meta slot if you add one later */
-#topbar .meta { margin-left: auto; font-size: 12px; color: #6b7280; }
-
-/* Panels should be solid white (not translucent/grey) */
-#topbar :is(.menu-anchor,.features-anchor,.popover-anchor)
-  > :is(.popover,:not(:first-child)),
-body [data-topbar-panel] {
-  background: #fff !important;
-}
-/* ===== Quick Actions / any .menu under the topbar: readable, aligned ===== */
-
-#topbar .menu-anchor > .menu,
-#topbar .features-anchor > .menu,
-#topbar .popover-anchor > .menu,
-body [data-topbar-panel].topbar-panel {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  background: #fff !important;
-  color: #111827 !important;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  min-width: 260px;
-  width: 300px;
-  max-width: 380px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.10);
-  padding: 10px;
-  z-index: 3000;
-  box-sizing: border-box;
-}
-
-/* little tip arrow for in-place menus */
-#topbar .menu-anchor > .menu::before,
-#topbar .features-anchor > .menu::before,
-#topbar .popover-anchor > .menu::before {
-  content: "";
-  position: absolute;
-  top: -6px; right: 18px;
-  width: 0; height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-bottom: 7px solid #fff;
-  filter: drop-shadow(0 -1px 0 #e5e7eb);
-}
-
-/* rows */
-#topbar .menu .menu-item,
-body [data-topbar-panel].topbar-panel .menu-item {
-  display: flex !important;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  white-space: nowrap;
-  padding: 10px 12px;
-  border-radius: 10px;
-  text-decoration: none !important;
-  color: #111827 !important;
-  background: transparent !important;
-  border: 1px solid transparent;
-  box-sizing: border-box;
-}
-
-#topbar .menu .menu-item:hover,
-body [data-topbar-panel].topbar-panel .menu-item:hover {
-  background: #f8fafc !important;
-  border-color: #eef2f7 !important;
-}
-
-#topbar .menu .menu-sep,
-body [data-topbar-panel].topbar-panel .menu-sep {
-  height: 1px;
-  background: #f0f2f5;
-  margin: 8px 0;
-  border-radius: 1px;
-}
-
-/* logo readability + topbar palette lock */
-#topbar {
-  --surface: #ffffff;
-  --surface-ghost: #ffffff;
-  --ink: #111827;
-  --border: #e5e7eb;
-  color: #111827;
-  background: #ffffff;
-}
-#topbar .topbar__brand .brand-img {
-  height: 42px;
-  width: auto;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(0,0,0,.06);
-}
-/* ===== TOPBAR FINAL FIXES (QA menu, Features menu, buttons, logo) ===== */
-
-/* Lock a readable palette just for the topbar */
-#topbar{
-  --surface: #ffffff;
-  --surface-ghost: #ffffff;
-  --ink: #111827;
-  --border: #e5e7eb;
-  color: #111827;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-/* Buttons in the bar: crisp, not grey */
-#topbar .tb-btn,
-#topbar .icon-btn {
-  height: 40px;
-  border-radius: 12px;
-  padding: 0 12px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #111827;
-  box-shadow: 0 1px 2px rgba(0,0,0,.03);
-}
-#topbar .tb-btn:hover,
-#topbar .icon-btn:hover { background:#f8fafc; border-color:#eef2f7; }
-
-/* Logo readable and sized */
-#topbar .topbar__brand .brand-img{
-  height: 42px;
-  width: auto;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(0,0,0,.06);
-  image-rendering: -webkit-optimize-contrast;
-}
-#topbar.is-compact .topbar__brand .brand-img{ height: 38px; }
-
-/* --- Quick Actions / any .menu under the topbar --- */
-#topbar .menu-anchor > .menu,
-#topbar .features-anchor > .menu,
-#topbar .popover-anchor > .menu,
-body [data-topbar-panel].topbar-panel {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  background: #fff !important;
-  color: #111827 !important;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  min-width: 260px;
-  width: 300px;
-  max-width: 380px;
-  box-shadow: 0 12px 30px rgba(0,0,0,.10);
-  padding: 10px;
-  z-index: 3000;
-  box-sizing: border-box;
-  font-size: 14px;
-  line-height: 1.25;
-}
-
-/* little arrow when the panel is not portalized */
-#topbar .menu-anchor > .menu::before,
-#topbar .features-anchor > .menu::before,
-#topbar .popover-anchor > .menu::before {
-  content: "";
-  position: absolute;
-  top: -6px; right: 18px;
-  width: 0; height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-bottom: 7px solid #fff;
-  filter: drop-shadow(0 -1px 0 #e5e7eb);
-}
-
-/* readable rows for plain links/buttons */
-#topbar .menu .menu-item,
-body [data-topbar-panel].topbar-panel .menu-item {
-  display: flex !important;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  white-space: nowrap;
-  padding: 10px 12px;      /* tighten vertical rhythm */
-  border-radius: 10px;
-  text-decoration: none !important;
-  color: #111827 !important;
-  background: transparent !important;
-  border: 1px solid transparent;
-  box-sizing: border-box;
-}
-#topbar .menu .menu-item:hover,
-body [data-topbar-panel].topbar-panel .menu-item:hover {
-  background:#f8fafc !important; border-color:#eef2f7 !important;
-}
-#topbar .menu .menu-sep,
-body [data-topbar-panel].topbar-panel .menu-sep {
-  height: 1px; background:#f0f2f5; margin: 8px 0; border-radius: 1px;
-}
-
-/* --- Features dropdown: structured & aligned (2 cols on wide screens) --- */
-#topbar .features-anchor > .menu {
-  width: 360px;            /* Features tends to have more items */
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 12px;
-}
-#topbar .features-anchor > .menu h4 {
-  grid-column: 1 / -1;
-  margin: 4px 6px 6px;
-  font-size: 12px;
-  letter-spacing: .02em;
-  text-transform: uppercase;
-  color: #9aa1a9;
-}
-#topbar .features-anchor > .menu .menu-item {
-  grid-column: span 1;
-}
-@media (max-width: 640px){
-  #topbar .features-anchor > .menu { display:block; width:300px; }
-}
-/* ==== TOPBAR HARD OVERRIDES (palette, logo, buttons, menus) ==== */
-
-/* Lock the bar to a clean light palette */
-#topbar{
-  background:#ffffff !important;
-  color:#111827 !important;
-  border-bottom:1px solid #e5e7eb !important;
-  --surface:#ffffff; --surface-ghost:#ffffff; --ink:#111827; --border:#e5e7eb;
-}
-
-/* Make buttons look like your sidebar pills (not grey) */
-#topbar .tb-btn, #topbar .btn, #topbar .icon-btn, #topbar select{
-  height:40px; line-height:40px;
-  background:#fff !important;
-  color:#111827 !important;
-  border:1px solid #e5e7eb !important;
-  border-radius:12px;
-  box-shadow:0 1px 2px rgba(0,0,0,.03);
-}
-#topbar .tb-btn:hover, #topbar .btn:hover, #topbar .icon-btn:hover, #topbar select:hover{
-  background:#f8fafc !important; border-color:#eef2f7 !important;
-}
-
-/* Make the logo readable and bigger */
-#topbar .topbar__brand .brand-img{
-  height:44px !important;               /* bump size */
-  width:auto !important;
-  border-radius:10px !important;
-  background:#fff !important;
-  box-shadow:0 0 0 2px rgba(0,0,0,.06) !important; /* subtle ring */
-}
-#topbar.is-compact .topbar__brand .brand-img{ height:40px !important; }
-
-/* Unified dropdown panel look (works for QA, Features, Avatar, etc.) */
-#topbar .menu-anchor > .menu,
-#topbar .features-anchor > .menu,
-#topbar .popover-anchor > .menu,
-body [data-topbar-panel].topbar-panel{
-  position:absolute; top:calc(100% + 10px); right:0;
-  background:#fff !important; color:#111827 !important;
-  border:1px solid #e5e7eb !important; border-radius:12px;
-  min-width:260px; width:300px; max-width:380px;
-  box-shadow:0 12px 30px rgba(0,0,0,.10);
-  padding:10px; z-index:3000; box-sizing:border-box;
-  font-size:14px; line-height:1.25;
-}
-
-/* Rows inside any topbar menu */
-#topbar .menu .menu-item,
-body [data-topbar-panel].topbar-panel .menu-item{
-  display:flex !important; align-items:center; justify-content:flex-start;
-  gap:10px; width:100%; white-space:nowrap;
-  padding:10px 12px; border-radius:10px;
-  text-decoration:none !important; color:#111827 !important;
-  background:transparent !important; border:1px solid transparent;
-}
-#topbar .menu .menu-item:hover,
-body [data-topbar-panel].topbar-panel .menu-item:hover{
-  background:#f8fafc !important; border-color:#eef2f7 !important;
-}
-
-/* Make the Quick-Actions CTA feel primary */
-#topbar .qa-menu .menu-item.cta{
-  justify-content:center;
-  font-weight:600;
-  background:#f5f3ff !important;
-  border-color:#e9d5ff !important;
-  color:#5b21b6 !important;
-}
-#topbar .qa-menu .menu-item.cta:hover{
-  background:#ede9fe !important; border-color:#ddd6fe !important;
-}
-/* ==== TOPBAR HARD OVERRIDES (palette, logo, buttons, menus) ==== */
-
-/* Lock the bar to a clean, readable palette */
-#topbar{
-  background:#ffffff !important;
-  color:#111827 !important;
-  border-bottom:1px solid #e5e7eb !important;
-  --surface:#ffffff; --surface-ghost:#ffffff; --ink:#111827; --border:#e5e7eb;
-}
-
-/* Buttons in the bar (no more grey) */
-#topbar .tb-btn, #topbar .btn, #topbar .icon-btn, #topbar select,
-#topbar .features-wrap .features-trigger {
-  height:40px; line-height:40px;
-  background:#fff !important;
-  color:#111827 !important;
-  border:1px solid #e5e7eb !important;
-  border-radius:12px;
-  padding:0 12px;
-  box-shadow:0 1px 2px rgba(0,0,0,.03);
-}
-#topbar .tb-btn:hover, #topbar .btn:hover, #topbar .icon-btn:hover, #topbar select:hover,
-#topbar .features-wrap .features-trigger:hover{
-  background:#f8fafc !important; border-color:#eef2f7 !important;
-}
-
-/* Make the logo bigger & readable */
-#topbar .topbar__brand .brand-img{
-  height:44px !important;
-  width:auto !important;
-  border-radius:10px !important;
-  background:#fff !important;
-  box-shadow:0 0 0 2px rgba(0,0,0,.06) !important;
-}
-#topbar.is-compact .topbar__brand .brand-img{ height:40px !important; }
-
-/* Unified dropdown panel look (QA, Avatar, etc.) */
-#topbar .menu-anchor > .menu,
-#topbar .popover-anchor > .menu,
-body [data-topbar-panel].topbar-panel{
-  position:absolute; top:calc(100% + 10px); right:0;
-  background:#fff !important; color:#111827 !important;
-  border:1px solid #e5e7eb !important; border-radius:12px;
-  min-width:260px; width:300px; max-width:380px;
-  box-shadow:0 12px 30px rgba(0,0,0,.10);
-  padding:10px; z-index:3000; box-sizing:border-box;
-  font-size:14px; line-height:1.25;
-}
-
-/* Rows inside any topbar menu */
-#topbar .menu .menu-item,
-body [data-topbar-panel].topbar-panel .menu-item{
-  display:flex !important; align-items:center; justify-content:flex-start;
-  gap:10px; width:100%; white-space:nowrap;
-  padding:10px 12px; border-radius:10px;
-  text-decoration:none !important; color:#111827 !important;
-  background:transparent !important; border:1px solid transparent;
-}
-#topbar .menu .menu-item:hover,
-body [data-topbar-panel].topbar-panel .menu-item:hover{
-  background:#f8fafc !important; border-color:#eef2f7 !important;
-}
-
-/* Make the Quick-Actions CTA feel primary */
-#topbar .qa-menu .menu-item.cta{
-  justify-content:center;
-  font-weight:600;
-  background:#f5f3ff !important;
-  border-color:#e9d5ff !important;
-  color:#5b21b6 !important;
-}
-#topbar .qa-menu .menu-item.cta:hover{
-  background:#ede9fe !important; border-color:#ddd6fe !important;
-}
-
-
-/* ===== SPECIFIC: FeaturesPopover (your custom classes) ===== */
-#topbar .features-wrap{ position:relative; }
-
-/* Trigger = same look as other pills (covered above), just ensure inline-flex */
-#topbar .features-wrap .features-trigger{
+/* Brand chip (optional) */
+.brand-chip {
   display:inline-flex; align-items:center; gap:8px;
+  height: 36px; padding: 0 10px;
+  border:1px solid var(--border); border-radius: 8px; background: var(--bg);
+}
+.brand-chip img { width:20px; height:20px; border-radius:6px; }
+.brand-name { font-weight:700; color: var(--text); }
+@media (max-width: 900px){ .brand-name{ display:none; } }
+
+/* Mobile helpers */
+.show-on-mobile { display: none; }
+@media (max-width: 768px){
+  .show-on-mobile { display: inline-flex; }
+  /* hide full search on very small widths; mobile sheet will show instead */
+  .topbar__search { display: none; }
 }
 
-/* Panel */
-#topbar .features-wrap .features-popover{
-  position:absolute; right:0; top:calc(100% + 10px);
-  background:#fff !important; color:#111827 !important;
-  border:1px solid #e5e7eb !important; border-radius:12px;
-  box-shadow:0 12px 30px rgba(0,0,0,.10);
-  padding:12px; z-index:3000; box-sizing:border-box;
-  width:380px; display:grid; grid-template-columns:1fr 1fr; gap:8px 12px;
+/* Mobile search sheet animation */
+.mobile-search {
+  display: block;
+  padding: 8px var(--gap-lg, 20px);
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  transform-origin: top center;
+  animation: tb-slide-down .18s ease-out;
 }
 
-/* Column blocks */
-#topbar .features-wrap .features-col{ display:flex; flex-direction:column; gap:6px; }
-#topbar .features-wrap .features-col__title{
-  grid-column:1 / -1;
-  font-size:12px; letter-spacing:.02em; text-transform:uppercase;
-  color:#9aa1a9; margin:2px 4px 6px;
+/* Keep anchor targets from hiding under the bar */
+.app-main { scroll-margin-top: calc(var(--topbar-h) + 8px); }
+
+/* Scrim + body lock for mobile drawer */
+.app-shell[data-sidebar="open"]::after {
+  content: ""; position: fixed; inset: var(--topbar-h,56px) 0 0 0;
+  background: rgba(0,0,0,.35); z-index: 59;
+}
+.body-lock { overflow: hidden; }
+/* 3-col: brand | center search | actions */
+.topbar__inner.topbar--3col {
+  grid-template-columns: auto minmax(420px, 1fr) auto;
+}
+.topbar__search { justify-self: center; }
+.topbar__brand  { justify-self: start; }
+/* --- 3-column variant used by Topbar.jsx -------------------------------- */
+.topbar--3col {
+  grid-template-columns: auto 1fr auto; /* [brand] | [center] | [actions] */
+}
+.topbar__brand { min-width: 0; }
+.topbar__center {
+  display: flex;
+  align-items: center;
+  justify-content: center;   /* center the search/status */
+}
+.topbar__center .searchbar { width: 100%; max-width: 720px; }
+
+/* On smaller screens hide the brand and left-align the search */
+@media (max-width: 900px) {
+  .topbar--3col { grid-template-columns: 1fr auto; }
+  .topbar__brand { display: none; }
+  .topbar__center { justify-content: flex-start; }
+}
+/* in src/css/components/topbar.css */
+.topbar--balanced { grid-template-columns: auto 1fr auto; }
+.topbar__left { display:flex; align-items:center; gap:12px; min-width:0; }
+.topbar__center { display:flex; align-items:center; justify-content:center; min-width:0; }
+.topbar__actions { display:flex; align-items:center; gap:12px; }
+.topbar__center .searchbar { width: clamp(280px, 52vw, 720px); }
+/* === 2-col layout (center | actions) =============================== */
+.topbar--2col { grid-template-columns: 1fr auto; }
+.topbar__center { display:flex; align-items:center; justify-content:center; min-width:0; }
+
+/* Center search width */
+.topbar__center .searchbar { width: clamp(280px, 52vw, 720px); }
+
+/* Compact: tighten height a bit more */
+.topbar.is-compact {
+  /* was var(--topbar-h) - 6px; tighten more */
+  height: calc(var(--topbar-h, 56px) - 10px);
+  transition: height .18s ease;
 }
 
-/* Links */
-#topbar .features-wrap .features-link{
-  display:flex; align-items:center; gap:10px;
-  padding:10px 12px; border-radius:10px;
-  text-decoration:none !important; color:#111827 !important;
-  border:1px solid transparent;
-}
-#topbar .features-wrap .features-link:hover{ background:#f8fafc; border-color:#eef2f7; }
-#topbar .features-wrap .features-link.muted{ color:#9aa1a9 !important; cursor:default; }
+/* Compact button sizing */
+.topbar.is-compact .icon-btn,
+.topbar.is-compact .tb-btn { height: 34px; min-width: 34px; }
+.topbar.is-compact .avatar-btn { width: 34px; height: 34px; }
 
-/* Mobile: single column */
-@media (max-width: 640px){
-  #topbar .features-wrap .features-popover{
-    width:300px; display:block;
-  }
-}
-/* Avatar trigger pill (inherits .icon-btn look already) */
-#topbar .avatar-wrap .avatar-btn{
-  width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center;
-}
+/* Search pill sizing (default + compact) */
+.topbar .searchbar { height: 40px; border-radius: 9999px; }
+.topbar.is-compact .searchbar { height: 36px; }
 
-/* Danger row in the account menu */
-#topbar .menu .menu-item.danger{
-  color:#b91c1c !important;
+/* Keep the subtle focus glow */
+.topbar .searchbar:focus-within {
+  background: var(--bg);
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--focus) 22%, transparent);
 }
-#topbar .menu .menu-item.danger:hover{
-  background:#fef2f2 !important; border-color:#fee2e2 !important;
+/* --- Balanced 3-area grid (left | center | right) ----------------------- */
+.topbar--3areas {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(360px, 720px) minmax(220px, 1fr);
+  align-items: center;
+  gap: var(--tb-gap, 12px);
 }
-/* ===== Final polish: topbar matches sidebar look ===== */
+.topbar__left  { display: flex; align-items: center; gap: 10px; }
+.topbar__center{ justify-self: center; width: 100%; }
+.topbar__actions{ display: inline-flex; align-items: center; gap: 12px; justify-self: end; }
 
-/* Subtle hairline under the bar */
-#topbar { box-shadow: 0 1px 0 rgba(17,24,39,.04); }
+/* Compact topbar: tighten a bit more and scale controls slightly */
+.topbar.is-compact { height: calc(var(--topbar-h, 56px) - 10px); }
+.topbar.is-compact .icon-btn,
+.topbar.is-compact .tb-btn { height: 34px; min-width: 34px; }
+.topbar.is-compact .avatar-btn { width: 34px; height: 34px; }
+.topbar.is-compact .searchbar { height: 36px; }
 
-/* Consistent spacing */
-#topbar .topbar__inner { gap: 10px; }
-#topbar .topbar__left  { gap: 12px; }
+/* Keep the pill + glow on focus (already present) – width centered nicely */
+.topbar__center .searchbar { margin-inline: auto; }
 
-/* Bigger, readable logo chip */
-#topbar .topbar__brand { display:inline-flex; align-items:center; padding:2px; border-radius:12px; }
-#topbar .topbar__brand .brand-img{
-  height:48px !important; width:auto !important;
-  border-radius:12px !important;
-  background:#fff !important;
-  box-shadow:0 0 0 2px rgba(255,255,255,.9), 0 1px 3px rgba(0,0,0,.08) !important;
-}
-#topbar.is-compact .topbar__brand .brand-img{ height:44px !important; }
-
-/* Search pill (remove blue outline, match sidebar) */
-#topbar .topbar__center .search-form,
-#topbar .topbar__center form { width:100%; }
-#topbar .topbar__center input[type="search"]{
-  height:40px; line-height:40px;
-  background:#fff !important; color:#111827 !important;
-  border:1px solid #e5e7eb !important; border-radius:12px;
-}
-#topbar .topbar__center input[type="search"]::placeholder{ color:#6b7280; opacity:.95; }
-#topbar .topbar__center input[type="search"]:focus{
-  outline:none !important;
-  border-color:#c7d2fe !important;
-  box-shadow:0 0 0 3px rgba(99,102,241,.15) !important;
-}
-
-/* Buttons and icons (keep everything 40px high) */
-#topbar .tb-btn, #topbar .btn, #topbar .icon-btn, #topbar select,
-#topbar .features-wrap .features-trigger{
-  height:40px; line-height:40px;
-  background:#fff !important; color:#111827 !important;
-  border:1px solid #e5e7eb !important;
-  border-radius:12px; padding:0 12px;
-  box-shadow:0 1px 2px rgba(0,0,0,.03);
-}
-#topbar .icon-btn{ width:40px; padding:0; }
-#topbar .tb-btn:hover, #topbar .btn:hover, #topbar .icon-btn:hover, #topbar select:hover,
-#topbar .features-wrap .features-trigger:hover{
-  background:#f8fafc !important; border-color:#eef2f7 !important;
-}
-
-/* Select (“View as: …”) pill with caret (no data-URI; PostCSS-safe) */
-#topbar .popover-anchor.select-anchor{ position:relative; }
-#topbar select{
-  appearance:none; -webkit-appearance:none; -moz-appearance:none;
-  padding-right:28px !important;
-}
-#topbar .popover-anchor.select-anchor::after{
-  content:"▾"; position:absolute; right:12px; top:50%;
-  transform:translateY(-50%); font-size:12px; color:#6b7280; pointer-events:none;
-}
-
-/* Quick Actions CTA already unified; keep the primary feel */
-#topbar .qa-menu .menu-item.cta{
-  justify-content:center; font-weight:600;
-  background:#f5f3ff !important; border-color:#e9d5ff !important; color:#5b21b6 !important;
-}
-#topbar .qa-menu .menu-item.cta:hover{
-  background:#ede9fe !important; border-color:#ddd6fe !important;
-}
-
-/* Features popover (your custom classes) — ensure clean 2-col panel */
-#topbar .features-wrap{ position:relative; }
-#topbar .features-wrap .features-popover{
-  position:absolute; right:0; top:calc(100% + 10px);
-  background:#fff !important; color:#111827 !important;
-  border:1px solid #e5e7eb !important; border-radius:12px;
-  box-shadow:0 12px 30px rgba(0,0,0,.10);
-  padding:12px; z-index:3000; box-sizing:border-box;
-  width:420px; display:grid; grid-template-columns:1fr 1fr; gap:8px 12px;
-}
-#topbar .features-wrap .features-col{ display:flex; flex-direction:column; gap:6px; }
-#topbar .features-wrap .features-col__title{
-  grid-column:1 / -1; margin:2px 4px 6px;
-  font-size:12px; letter-spacing:.02em; text-transform:uppercase; color:#9aa1a9;
-}
-#topbar .features-wrap .features-link{
-  display:flex; align-items:center; gap:10px;
-  padding:10px 12px; border-radius:10px; border:1px solid transparent;
-  text-decoration:none !important; color:#111827 !important;
-}
-#topbar .features-wrap .features-link:hover{ background:#f8fafc; border-color:#eef2f7; }
-#topbar .features-wrap .features-link.muted{ color:#9aa1a9 !important; cursor:default; }
-@media (max-width: 640px){
-  #topbar .features-wrap .features-popover{ width:300px; display:block; }
-}
-
-/* Avatar menu danger row (logout) */
-#topbar .menu .menu-item.danger{ color:#b91c1c !important; }
-#topbar .menu .menu-item.danger:hover{ background:#fef2f2 !important; border-color:#fee2e2 !important; }
-/* + New popover looks like the others */
-#topbar .qa-menu .topbar-popover {
-  background:#fff !important;
-  color:#111827 !important;
-  border:1px solid #e5e7eb !important;
-  border-radius:12px;
-  box-shadow:0 12px 30px rgba(0,0,0,.10);
-  padding:8px;
-  z-index:3000;
-}
-#topbar .qa-menu .menu-item {
-  display:flex; align-items:center; gap:10px;
-  width:100%;
-  padding:10px 12px;
-  border-radius:10px;
-  border:1px solid transparent;
-  background:#fff;
-  text-align:left;
-}
-#topbar .qa-menu .menu-item:hover {
-  background:#f8fafc; border-color:#eef2f7;
-}
-#topbar .qa-menu .menu-item.cta {
-  justify-content:center;
-  font-weight:600;
-  background:#f5f3ff !important;
-  border-color:#e9d5ff !important;
-  color:#5b21b6 !important;
-}
-#topbar .qa-menu .menu-item.cta:hover {
-  background:#ede9fe !important;
-  border-color:#ddd6fe !important;
-}
-
-/* Logo a bit bigger & crisper (without affecting layout) */
-#topbar .topbar__brand .brand-img {
-  height:56px !important;
-  border-radius:12px !important;
-  background:#fff !important;
-  box-shadow:0 0 0 2px rgba(255,255,255,.9), 0 1px 3px rgba(0,0,0,.08) !important;
-}
-#topbar.is-compact .topbar__brand .brand-img { height:52px !important; }
-/* === Topbar logo size control (drop at end of file) === */
-:root {
-  --tb-logo: 64px;          /* 👈 pick your logo size (try 56–72px) */
-  --tb-logo-compact: 56px;  /* size when the bar is compact on scroll */
-}
-
-/* make sure the bar is tall enough for the larger logo */
-#topbar .topbar__inner {
-  min-height: calc(var(--tb-logo) + 12px);
-}
-
-/* scale the logo cleanly */
-#topbar .topbar__brand .brand-img {
-  height: var(--tb-logo) !important;
-  width: auto;
+/* Ensure menus are anchored (and support old .dropdown markup too) */
+.menu-anchor { position: relative; }
+.menu-anchor > .menu,
+.menu-anchor > .dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 220px;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 1px 3px rgba(0,0,0,.08);
+  box-shadow: var(--shadow-2);
+  z-index: 1100;
+}
+.menu-anchor .menu-item,
+.menu-anchor .dropdown-item {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+}
+.menu-anchor .menu-item:hover,
+.menu-anchor .dropdown-item:hover {
+  background: var(--bg-soft);
 }
 
-#topbar.is-compact .topbar__brand .brand-img {
-  height: var(--tb-logo-compact) !important;
-}
-/* ===== HARD OVERRIDE: logo size & bar height ===== */
+/* ========================================================================
+   APPENDED: 3-col balanced header + compact sizing + polished menus
+   (Overrides take precedence because they appear later)
+   ======================================================================== */
 
-/* Raise the bar height so a larger logo fits */
-:root {
-  --tb-h: 76px !important;        /* default bar height */
+/* 3-col balanced header */
+.topbar--3col {
+  display: grid;
+  grid-template-columns: 1fr minmax(420px, 760px) 1fr;
+  align-items: center;
+  gap: var(--tb-gap, 12px);
+}
+.topbar__left  { justify-self: start; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.topbar__center{ justify-self: center; min-width: 0; }
+.topbar__right { justify-self: end; display: inline-flex; align-items: center; gap: 12px; }
+
+/* Compact: shrink controls a touch more on scroll */
+.topbar.is-compact { height: calc(var(--topbar-h, 64px) - 8px); }
+.topbar.is-compact .icon-btn,
+.topbar.is-compact .tb-btn { height: 34px; min-width: 34px; }
+.topbar.is-compact .avatar-btn { width: 34px; height: 34px; }
+.topbar.is-compact .icon-btn svg,
+.topbar.is-compact .avatar-btn svg { width: 16px; height: 16px; }
+.topbar.is-compact .searchbar { height: 36px; }
+
+/* Polished dropdown menus (z-index + animation + spacing) */
+.menu-anchor { position: relative; }
+.menu-anchor > .menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 240px;
+  padding: 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-2, 0 8px 24px rgba(0,0,0,.12));
+  z-index: 1200; /* sit above hero */
+  animation: tb-pop .14s ease-out;
+}
+.menu-item {
+  display: flex; align-items: center;
+  gap: 10px; padding: 10px 12px;
+  border-radius: 10px; color: var(--text);
+  text-decoration: none; cursor: pointer;
+}
+.menu-item:hover { background: var(--bg-soft); }
+.menu-sep { height: 1px; margin: 6px 4px; background: var(--border); border-radius: 1px; }
+.menu-item.danger { color: var(--danger, #b42318); }
+
+@keyframes tb-pop {
+  from { opacity: 0; transform: translateY(-4px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Ensure the inner bar respects the new height */
-#topbar .topbar__inner {
-  min-height: var(--tb-h) !important;
-}
-
-/* Force the logo size (beats old rules) */
-#topbar .topbar__brand > img,
-#topbar .topbar__brand .brand-img {
-  height: 64px !important;        /* << pick your size */
-  width: auto !important;
-  max-height: none !important;
-  display: block !important;
-  border-radius: 12px !important;
-  background: #fff !important;
-  box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 1px 3px rgba(0,0,0,.08) !important;
-  image-rendering: auto;
-}
-
-/* Slightly smaller when compact */
-#topbar.is-compact .topbar__brand > img,
-#topbar.is-compact .topbar__brand .brand-img {
-  height: 56px !important;
+/* Breadcrumb tone + truncation stays consistent on the left area */
+.topbar__left .crumbs {
+  max-width: clamp(200px, 32vw, 480px);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: var(--text-dim); font-weight: 600;
 }

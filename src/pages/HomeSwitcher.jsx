@@ -5,29 +5,47 @@ import { useUserRole } from "@/hooks/RoleGates.jsx";
 import FanHome from "@/pages/home/FanHome.jsx";
 
 export default function HomeSwitcher() {
+  const { loading, effectiveRole } = useUserRole();
   const loc = useLocation();
-  const { effectiveRole, loading } = useUserRole();
 
-  // --- safety valve: if loading > 3s, fall back to FanHome so the UI never gets stuck
-  const [timedOut, setTimedOut] = useState(false);
-  useEffect(() => {
-    if (!loading) return;
-    const t = setTimeout(() => setTimedOut(true), 3000);
-    return () => clearTimeout(t);
-  }, [loading]);
+  // ✅ All hooks at top level
+  const targets = useMemo(
+    () => ({
+      admin: "/admin/home",
+      creator: "/creator/home",
+      fan: "/home",
+    }),
+    []
+  );
 
-  const areaOf = (pathname) => {
-    if (!pathname) return "root";
-    if (pathname.startsWith("/admin")) return "admin";
-    if (pathname.startsWith("/creator")) return "creator";
+  const lastNavRef = useRef({ path: "", ts: 0 });
+
+  const areaOf = (path) => {
+    if (path.startsWith("/admin")) return "admin";
+    if (path.startsWith("/creator")) return "creator";
     return "fan";
   };
 
-  if (loading && !timedOut) {
+  // ---- Tiny loading UI (safe now; no hooks below this line are introduced later) ----
+  if (loading) {
     return (
       <section className="container" style={{ padding: 16 }}>
-        <div className="dashboard-card" role="status" aria-live="polite" style={{display:"flex",gap:12,alignItems:"center"}}>
-          <div style={{width:16,height:16,borderRadius:"50%",border:"2px solid #ccc",borderTopColor:"#7c3aed",animation:"spin .9s linear infinite"}} />
+        <div
+          className="dashboard-card"
+          role="status"
+          aria-live="polite"
+          style={{ display: "flex", gap: 12, alignItems: "center", padding: 12 }}
+        >
+          <div
+            style={{
+              width: 16,
+              height: 16,
+              borderRadius: "50%",
+              border: "2px solid #ccc",
+              borderTopColor: "#7c3aed",
+              animation: "spin .9s linear infinite",
+            }}
+          />
           <span>Loading…</span>
         </div>
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
@@ -35,20 +53,33 @@ export default function HomeSwitcher() {
     );
   }
 
-  // If auth is still loading after 3s, show the fan home so the page is usable
-  if (loading && timedOut) {
-    console.warn("[home] auth/roles still loading after 3s — showing FanHome as a fallback.");
-    return <FanHome />;
+  // ---- Role routing ----
+  if (effectiveRole === "admin") {
+    const target = targets.admin;
+    if (areaOf(loc.pathname) !== "admin") {
+      const now = Date.now();
+      if (lastNavRef.current.path !== target || now - lastNavRef.current.ts > 300) {
+        lastNavRef.current = { path: target, ts: now };
+        return <Navigate to={target} replace />;
+      }
+    }
+    // Already in admin area; render nested routes instead of re-navigating
+    return <FanHome />; // or return null; or an <Outlet/> depending on your router layout
   }
 
-  // normal role redirects
-  if (effectiveRole === "admin" && areaOf(loc.pathname) !== "admin") {
-    return <Navigate to="/admin/home" replace />;
-  }
-  if (effectiveRole === "creator" && areaOf(loc.pathname) !== "creator") {
-    return <Navigate to="/creator/home" replace />;
+  if (effectiveRole === "creator") {
+    const target = targets.creator;
+    if (areaOf(loc.pathname) !== "creator") {
+      const now = Date.now();
+      if (lastNavRef.current.path !== target || now - lastNavRef.current.ts > 300) {
+        lastNavRef.current = { path: target, ts: now };
+        return <Navigate to={target} replace />;
+      }
+    }
+    // Already in creator area; avoid looping navigate
+    return <FanHome />; // adjust to your layout (Outlet/null)
   }
 
-  // fan view
+  // Fans: render the actual Fan home
   return <FanHome />;
 }

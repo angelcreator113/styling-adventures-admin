@@ -2,22 +2,31 @@
 import React, { useEffect, useState } from "react";
 import { db, auth } from "@/utils/init-firebase";
 import {
-  collection, addDoc, onSnapshot, query, orderBy,
-  updateDoc, deleteDoc, doc, serverTimestamp, limit // ✅ ADDED limit here
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  limit,                    // ✅ import limit
 } from "firebase/firestore";
+
+const MAX_THREADS = 50;      // ✅ define a cap for the query
 
 export default function ChatManager() {
   const [rows, setRows] = useState([]);
   const [title, setTitle] = useState("");
   const [tag, setTag] = useState("style talk");
 
-  const maxThreads = 50; // ✅ DEFINED maxThreads
-
   useEffect(() => {
+    // ✅ Read from root "threads" collection (matches your security rules)
     const q = query(
       collection(db, "threads"),
       orderBy("lastActivityAt", "desc"),
-      limit(maxThreads)
+      limit(MAX_THREADS)
     );
     const off = onSnapshot(q, (snap) =>
       setRows(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
@@ -28,7 +37,9 @@ export default function ChatManager() {
   async function createThread(e) {
     e.preventDefault();
     if (!title.trim()) return;
-    await addDoc(collection(db, "forum/threads"), {
+
+    // ✅ Write to root "threads" (not "forum/threads")
+    await addDoc(collection(db, "threads"), {
       title: title.trim(),
       tag,
       excerpt: "New topic 👀",
@@ -36,28 +47,29 @@ export default function ChatManager() {
       lastActivityAt: serverTimestamp(),
       replyCount: 0,
       locked: false,
-      createdBy: auth.currentUser?.uid || null
+      featured: false,
+      createdBy: auth.currentUser?.uid || null,
     });
     setTitle("");
   }
 
   async function toggleLock(r) {
-    await updateDoc(doc(db, "forum/threads", r.id), {
+    await updateDoc(doc(db, "threads", r.id), {
       locked: !r.locked,
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     });
   }
 
   async function feature(r) {
-    await updateDoc(doc(db, "forum/threads", r.id), {
+    await updateDoc(doc(db, "threads", r.id), {
       featured: true,
-      featuredAt: serverTimestamp()
+      featuredAt: serverTimestamp(),
     });
   }
 
   async function remove(r) {
     if (!confirm("Delete this thread?")) return;
-    await deleteDoc(doc(db, "forum/threads", r.id));
+    await deleteDoc(doc(db, "threads", r.id));
   }
 
   return (
@@ -87,7 +99,10 @@ export default function ChatManager() {
             </button>
           </form>
 
-          <div className="dashboard-grid" style={{ gridTemplateColumns: "1fr" }}>
+          <div
+            className="dashboard-grid"
+            style={{ gridTemplateColumns: "1fr" }}
+          >
             {rows.map((r) => (
               <div
                 className="dashboard-card"
@@ -96,22 +111,21 @@ export default function ChatManager() {
                   display: "grid",
                   gridTemplateColumns: "1fr auto",
                   alignItems: "center",
-                  gap: 10
+                  gap: 10,
                 }}
               >
                 <div>
                   <div style={{ fontWeight: 700 }}>{r.title}</div>
                   <div className="muted sm">
                     {r.tag} • {r.replyCount || 0} replies {r.locked ? "• locked" : ""}
+                    {r.featured ? " • featured" : ""}
                   </div>
                 </div>
                 <div className="row" style={{ display: "inline-flex", gap: 6 }}>
                   <button className="tb-btn" onClick={() => toggleLock(r)}>
                     {r.locked ? "Unlock" : "Lock"}
                   </button>
-                  <button className="tb-btn" onClick={() => feature(r)}>
-                    Feature
-                  </button>
+                  <button className="tb-btn" onClick={() => feature(r)}>Feature</button>
                   <button className="tb-btn danger" onClick={() => remove(r)}>
                     Delete
                   </button>

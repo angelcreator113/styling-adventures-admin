@@ -1,6 +1,5 @@
 {
   "projects": {
-    "1": "styling-admin",
     "default": "styling-admin"
   },
   "targets": {},

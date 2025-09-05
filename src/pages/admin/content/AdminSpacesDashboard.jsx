@@ -1,4 +1,3 @@
-// src/pages/admin/content/AdminSpacesDashboard.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { db } from "@/utils/init-firebase";
 import {
@@ -17,15 +16,28 @@ import {
 } from "firebase/firestore";
 import { Search, Archive, ArchiveRestore, Trash2, Users } from "lucide-react";
 
+/**
+ * AdminSpacesDashboard
+ * - Admin-only. View/search every creator's spaces (collectionGroup).
+ * - Moderate items (Archive/Restore/Delete).
+ * - Adjust limits:
+ *     - Global: app_settings/spaces { maxSpacesGlobal }
+ *     - Per-user: users/{uid}/settings/limits { maxSpaces }
+ *
+ * NOTE: Make sure your Firestore rules allow admin reads of collectionGroup:
+ *   match /{path=**}/spaces/{spaceId} { allow read, write: if isAdmin(); }
+ */
+
 const PAGE_SIZE = 24;
 
 export default function AdminSpacesDashboard() {
   const [qText, setQText] = useState("");
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState("all"); // all | active | archived
   const [items, setItems] = useState([]);
   const [cursor, setCursor] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // limits
   const [globalMax, setGlobalMax] = useState("");
   const [uidForLimit, setUidForLimit] = useState("");
   const [userMax, setUserMax] = useState("");
@@ -42,6 +54,7 @@ export default function AdminSpacesDashboard() {
       const clauses = [orderBy("updatedAt", "desc")];
       if (statusFilter) clauses.unshift(statusFilter);
 
+      // collectionGroup query across all creators: users/*/spaces/*
       let base = query(collectionGroup(db, "spaces"), ...clauses, limit(PAGE_SIZE));
       if (next && cursor) {
         base = query(collectionGroup(db, "spaces"), ...clauses, startAfter(cursor), limit(PAGE_SIZE));
@@ -59,6 +72,7 @@ export default function AdminSpacesDashboard() {
 
   useEffect(() => {
     loadPage(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   const filtered = useMemo(() => {
@@ -85,6 +99,7 @@ export default function AdminSpacesDashboard() {
     alert("Per-user limit saved");
   }
 
+  // Moderation actions
   async function archive(space) {
     await updateDoc(doc(db, space.path), { status: "archived", updatedAt: serverTimestamp() });
     setItems((rows) => rows.map((r) => (r.path === space.path ? { ...r, status: "archived" } : r)));
@@ -100,9 +115,10 @@ export default function AdminSpacesDashboard() {
   }
 
   return (
-    <div style={{ padding: 16 }}>
+    <section className="container" style={{ padding: 16 }}>
       <h1 className="page-title" style={{ marginTop: 0 }}>Admin — Spaces</h1>
 
+      {/* Controls row */}
       <div className="dashboard-card" style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr auto auto" }}>
         <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Search size={16} />
@@ -124,6 +140,7 @@ export default function AdminSpacesDashboard() {
         </button>
       </div>
 
+      {/* Limits row */}
       <div className="dashboard-card" style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr auto 1fr 1fr auto" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Users size={16} />
@@ -137,8 +154,15 @@ export default function AdminSpacesDashboard() {
         <button className="btn" onClick={setUserLimit}>Save</button>
       </div>
 
+      {/* Grid */}
       <div className="dashboard-card" style={{ marginTop: 12 }}>
-        <div style={{ display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
+        <div
+          style={{
+            display: "grid",
+            gap: 12,
+            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+          }}
+        >
           {filtered.map((it) => (
             <article key={it.path} className="card" style={{ padding: 12, borderRadius: 12, border: "1px solid #eee" }}>
               <div style={{ fontWeight: 600, marginBottom: 4 }}>{it.name || it.spaceId || "Untitled space"}</div>
@@ -161,13 +185,13 @@ export default function AdminSpacesDashboard() {
             </article>
           ))}
         </div>
+
         <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
           <button className="btn" onClick={() => loadPage(true)} disabled={loading || !cursor}>
             {cursor ? "Load more" : "No more results"}
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
-

@@ -7,17 +7,16 @@ module.exports = {
   rules: {
     "require-jsdoc": "off",
     "max-len": "off",
-    "quote-props": "off",
+    "quote-props": "off",                  // <— stop complaining about mixed quoted/unquoted keys
     quotes: ["error", "double", { allowTemplateLiterals: true }],
     "object-curly-spacing": ["error", "always"],
     "no-multi-spaces": "off",
     "comma-dangle": ["error", "only-multiline"],
-    indent: ["warn", 2, { SwitchCase: 1 }],
-
-    // ✅ make lint happy on Windows + our ternary layout + empty catch
-    "linebreak-style": "off",
-    "operator-linebreak": "off",
-    "no-empty": ["error", { allowEmptyCatch: true }],
+    indent: ["warn", 2, { SwitchCase: 1 }]
   },
-  ignorePatterns: ["**/node_modules/**", "**/dist/**", "**/*.test.js"],
+  ignorePatterns: [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/*.test.js"
+  ]
 };

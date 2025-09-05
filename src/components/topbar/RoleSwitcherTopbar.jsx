@@ -1,88 +1,65 @@
+// src/components/topbar/RoleSwitcherTopbar.jsx
 import React, { useMemo, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useUserRole, setRoleOverride, clearRoleOverride } from "@/hooks/RoleGates";
 
 export default function RoleSwitcherTopbar() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const nav = useNavigate();
+  const loc = useLocation();
   const { role: realRole, effectiveRole, roleOptions } = useUserRole();
 
-  if (!roleOptions?.length) return null;
+  // nothing to switch? render nothing
+  if (!roleOptions.length) return null;
 
+  // Build select options. "" means "no override" → use real role
   const options = useMemo(() => {
-    const labels = {
-      admin: "Admin (full)",
-      creator: "View as: Creator",
-      fan: "View as: Fan",
-    };
-    // cosmetic: admin last
-    const sorted = [...roleOptions].sort((a, b) => (a === "admin") - (b === "admin"));
-    return sorted.map((role) => ({
-      value: role === realRole ? "" : role, // "" = no override
-      label: labels[role] || role,
-      role,
+    const labels = { admin: "Admin (full)", creator: "View as: Creator", fan: "View as: Fan" };
+    // Ensure admin appears last (cosmetic)
+    const sorted = [...roleOptions].sort((a,b) => (a==="admin") - (b==="admin"));
+    return sorted.map((r) => ({
+      value: r === realRole ? "" : r,
+      label: labels[r] || r,
+      role: r,
     }));
   }, [roleOptions, realRole]);
 
-  // current UI value: empty means "no override" (showing real role)
+  // Current value in the select
   const currentValue = effectiveRole === realRole ? "" : effectiveRole;
 
-  // Direct homes (don’t rely on intermediate redirects)
-  const roleHomes = useMemo(
-    () => ({
-      "": realRole === "admin" ? "/admin/home" : realRole === "creator" ? "/creator/home" : "/home",
-      admin: "/admin/home",
-      creator: "/creator/home",
-      fan: "/home",
-    }),
-    [realRole]
-  );
+  const homes = useMemo(() => ({
+    "": realRole === "admin" ? "/admin/home" : realRole === "creator" ? "/creator/home" : "/home",
+    admin: "/admin/home",
+    creator: "/creator/home",
+    fan: "/home"     // or "/closet" if you prefer
+  }), [realRole]);
 
-  const areaOf = (pathname) => {
-    if (pathname.startsWith("/admin")) return "admin";
-    if (pathname.startsWith("/creator")) return "creator";
-    return "fan";
-  };
+  const areaOf = (p) => (p.startsWith("/admin") ? "admin" : p.startsWith("/creator") ? "creator" : "fan");
 
-  const onChange = useCallback(
-    (e) => {
-      const selected = e.target.value; // "" | "admin" | "creator" | "fan"
-      if (selected === currentValue) return;
+  const onChange = useCallback((e) => {
+    const val = e.target.value;              // "" | "creator" | "fan" | "admin"
+    if (val === currentValue) return;
 
-      // 1) Apply override first
-      if (!selected) clearRoleOverride();
-      else setRoleOverride(selected);
+    if (!val) clearRoleOverride();
+    else setRoleOverride(val);
 
-      // 2) Compute where to go
-      const targetHome = roleHomes[selected || ""] || "/home";
-      const targetArea = selected || realRole; // admin|creator|fan
-      const currentArea = areaOf(location.pathname);
+    const target = homes[val || ""] || "/home";
+    const desiredArea = val || (realRole || "fan");
+    // If we’re already in the correct area, stay put.
+    if (areaOf(loc.pathname) === desiredArea) return;
 
-      // 3) Only navigate if the shell (area) changes
-      if (currentArea !== targetArea) {
-        // Let role state settle, then jump straight to the proper home
-        setTimeout(() => navigate(targetHome, { replace: true }), 0);
-      }
-      // If the area is already correct, no navigation needed.
-    },
-    [currentValue, roleHomes, location.pathname, navigate, realRole]
-  );
+    // navigate on the next macrotask to let guards settle
+    setTimeout(() => nav(target, { replace: true }), 0);
+  }, [currentValue, homes, loc.pathname, nav, realRole]);
 
   return (
-    <label className="role-switcher" title={`Current role: ${effectiveRole}`}>
+    <label className="role-switcher" title={`Role: ${effectiveRole}`}>
       <span className="sr-only">Switch role view</span>
-      <select
-        className="select"
-        value={currentValue}
-        onChange={onChange}
-        aria-label="Switch role view"
-      >
-        {options.map((opt) => (
-          <option key={`${opt.role}-${opt.value || "default"}`} value={opt.value}>
-            {opt.label}
-          </option>
+      <select className="select" value={currentValue} onChange={onChange} aria-label="Switch role view">
+        {options.map((o) => (
+          <option key={`${o.role}-${o.value || "default"}`} value={o.value}>{o.label}</option>
         ))}
       </select>
     </label>
   );
 }
+

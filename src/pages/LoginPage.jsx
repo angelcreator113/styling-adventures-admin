@@ -1,7 +1,6 @@
 // src/pages/LoginPage.jsx
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ThemeVoteCarousel from "@/components/ThemeVoteCarousel";
 import {
   GoogleAuthProvider,
   signInWithPopup,
@@ -12,9 +11,18 @@ import {
   onAuthStateChanged,
   setPersistence,
   browserLocalPersistence,
+  getIdTokenResult,
 } from "firebase/auth";
 import { auth } from "@/utils/init-firebase";
-import { upgradeAnonymousVotes } from "@/utils/upgradeAnonymousVotes";
+import { getRoleInfo, roleLabel } from "@/utils/roles";
+
+function announce(role) {
+  // swap for your toast system if you have one
+  console.log(`[auth] Signed in as ${roleLabel(role)}`);
+  try { /* optional UX */
+    // window.alert(`Signed in as ${roleLabel(role)}`);
+  } catch {}
+}
 
 export default function LoginPage() {
   const nav = useNavigate();
@@ -23,9 +31,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-
-  // Prevent double navigation/upgrade when both redirect handler and onAuth fire
-  const proceeded = useRef(false);
 
   useEffect(() => setErr(""), [email, password]);
 
@@ -41,11 +46,11 @@ export default function LoginPage() {
     (async () => {
       try {
         const res = await getRedirectResult(auth);
-        if (res?.user && !proceeded.current) {
-          proceeded.current = true;
-          upgradeAnonymousVotes(res.user.uid).catch((e) =>
-            console.warn("[votes] upgradeAnonymousVotes (redirect) failed:", e)
-          );
+        if (res?.user) {
+          // force refresh once so claims are fresh
+          await getIdTokenResult(res.user, true);
+          const { primary } = await getRoleInfo({ force: true });
+          announce(primary);
           nav("/home", { replace: true });
         }
       } catch (e) {
@@ -54,14 +59,11 @@ export default function LoginPage() {
     })();
   }, [nav]);
 
-  // If already authed, upgrade any anon votes and go home
+  // If already authed, go home
   useEffect(() => {
-    const off = onAuthStateChanged(auth, (u) => {
-      if (u && !proceeded.current) {
-        proceeded.current = true;
-        upgradeAnonymousVotes(u.uid).catch((e) =>
-          console.warn("[votes] upgradeAnonymousVotes (authState) failed:", e)
-        );
+    const off = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        // not forcing here; we probably already announced on the login call
         nav("/home", { replace: true });
       }
     });
@@ -72,7 +74,7 @@ export default function LoginPage() {
     setErr("");
     setBusy(true);
 
-    // Helper: treat popup/transient errors as a signal to redirect
+    // Helper: treat popup-ish errors as a signal to redirect
     const shouldFallbackToRedirect = (code = "") => {
       const c = String(code || "");
       return [
@@ -87,8 +89,12 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
-      await signInWithPopup(auth, provider);
-      // onAuthStateChanged / redirect handler will navigate
+      const res = await signInWithPopup(auth, provider);
+      // force refresh so we see *fresh* custom claims
+      await getIdTokenResult(res.user, true);
+      const { primary } = await getRoleInfo({ force: true });
+      announce(primary);
+      nav("/home", { replace: true });
     } catch (e) {
       console.warn("[auth] popup failed", e?.code, e?.message);
       if (shouldFallbackToRedirect(e?.code)) {
@@ -122,8 +128,12 @@ export default function LoginPage() {
     setErr("");
     setBusy(true);
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-      // onAuthStateChanged will navigate
+      const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
+      // force claims refresh once after login
+      await getIdTokenResult(cred.user, true);
+      const { primary } = await getRoleInfo({ force: true });
+      announce(primary);
+      nav("/home", { replace: true });
     } catch (e) {
       const msg =
         e?.code === "auth/invalid-credential" ? "Invalid email or password"
@@ -139,8 +149,11 @@ export default function LoginPage() {
     setErr("");
     setBusy(true);
     try {
-      await createUserWithEmailAndPassword(auth, email.trim(), password);
-      // onAuthStateChanged will navigate
+      const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      await getIdTokenResult(cred.user, true);
+      const { primary } = await getRoleInfo({ force: true });
+      announce(primary);
+      nav("/home", { replace: true });
     } catch (e) {
       const msg =
         e?.code === "auth/weak-password" ? "Please choose a stronger password."
@@ -198,11 +211,6 @@ export default function LoginPage() {
         </button>
 
         {!!err && <div style={styles.err} role="alert">{err}</div>}
-      </div>
-
-      {/* Theme voting carousel */}
-      <div style={{ marginTop: 24, width: 420 }}>
-        <ThemeVoteCarousel />
       </div>
     </div>
   );

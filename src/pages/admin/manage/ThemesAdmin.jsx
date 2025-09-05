@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { db } from "@/utils/init-firebase";
 import {
-  collection, onSnapshot, addDoc, setDoc, doc, deleteDoc, serverTimestamp, getDocs
+  collection, onSnapshot, setDoc, doc, deleteDoc, serverTimestamp, getDocs
 } from "firebase/firestore";
 import { BUILTIN_THEMES } from "@/utils/theme-service";
 
-// tiny canvas helpers to preview the paper + sample image
+// canvas helpers
 function makeCanvas(w, h){ const c=document.createElement("canvas"); c.width=w; c.height=h; return c; }
 function deg2rad(d){ return (d*Math.PI)/180; }
 function paintPaper(ctx, W, H, theme){
@@ -50,6 +50,7 @@ export default function ThemesAdmin(){
   const [sample, setSample] = useState(null);
   const canvasRef = useRef();
 
+  // ✅ use top-level 'themes' collection (matches your rules)
   useEffect(()=>{
     const off = onSnapshot(collection(db,"themes"), snap=>{
       setThemes(snap.docs.map(d=>({ id:d.id, ...d.data() })));
@@ -87,12 +88,10 @@ export default function ThemesAdmin(){
   }
 
   async function saveTheme(){
-    const payload = {
-      ...form,
-      updatedAt: serverTimestamp(),
-    };
     if (!form.label) { alert("Label is required"); return; }
     const id = form.label.replace(/\s+/g,"");
+    const payload = { ...form, updatedAt: serverTimestamp() };
+    // ✅ segmented path
     await setDoc(doc(db,"themes", id), payload, { merge:true });
     setEditing(id);
   }
@@ -105,6 +104,7 @@ export default function ThemesAdmin(){
   async function removeTheme(id){
     if (!id) return;
     if (!confirm("Delete this theme?")) return;
+    // ✅ segmented path
     await deleteDoc(doc(db,"themes", id));
     if (editing===id) setEditing(null);
   }
@@ -113,7 +113,9 @@ export default function ThemesAdmin(){
     const ids = new Set((await getDocs(collection(db,"themes"))).docs.map(d=>d.id));
     const entries = Object.entries(BUILTIN_THEMES);
     for (const [id, data] of entries){
-      if (!ids.has(id)) await setDoc(doc(db,"themes", id), { ...data, seeded: true, createdAt: serverTimestamp() });
+      if (!ids.has(id)) {
+        await setDoc(doc(db,"themes", id), { ...data, seeded: true, createdAt: serverTimestamp() });
+      }
     }
     alert("Seeded defaults (if missing).");
   }
@@ -171,14 +173,17 @@ export default function ThemesAdmin(){
         </aside>
 
         <main style={{display:"grid", gridTemplateColumns:"minmax(320px, 420px) 1fr", gap:20}}>
+          {/* Editor */}
           <div style={{border:"1px solid #eee", borderRadius:12, padding:12, background:"#fff", display:"grid", gap:10}}>
             <label>Label <input value={form.label} onChange={e=>setForm({...form, label:e.target.value})} /></label>
+
             <label>Type
               <select value={form.type} onChange={e=>setForm({...form, type:e.target.value})}>
                 <option value="gradient">gradient</option>
                 <option value="solid">solid</option>
               </select>
             </label>
+
             <div>
               <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
                 <strong>Colors</strong>
@@ -186,21 +191,25 @@ export default function ThemesAdmin(){
               </div>
               <div style={{display:"grid", gap:6, marginTop:6}}>{colorInputs}</div>
             </div>
+
             {form.type==="gradient" && (
               <label>Angle
                 <input type="number" value={form.angle} onChange={e=>setForm({...form, angle: Number(e.target.value)})}/>
               </label>
             )}
+
             <label>Corner radius <input type="number" value={form.radius} onChange={e=>setForm({...form, radius:Number(e.target.value)})}/></label>
             <label>Shadow blur <input type="number" value={form.shadow} onChange={e=>setForm({...form, shadow:Number(e.target.value)})}/></label>
             <label>Margin % <input type="number" step="0.01" value={form.marginPct} onChange={e=>setForm({...form, marginPct: Number(e.target.value)})}/></label>
             <label>Bias Y <input type="number" step="0.01" value={form.biasY} onChange={e=>setForm({...form, biasY: Number(e.target.value)})}/></label>
+
             <div style={{display:"flex", gap:8}}>
               <button onClick={saveTheme}>Save</button>
               {editing && <button className="danger" onClick={()=>removeTheme(editing)}>Delete</button>}
             </div>
           </div>
 
+          {/* Preview */}
           <div style={{border:"1px solid #eee", borderRadius:12, padding:12, background:"#fff"}}>
             <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
               <strong>Preview</strong>

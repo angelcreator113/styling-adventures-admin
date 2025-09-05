@@ -58,28 +58,9 @@ service firebase.storage {
       allow read:  if canReadPrivate(uid);
     }
 
-    /* =========================================================
-       Theme backgrounds & assets (admin-managed)
-       ========================================================= */
-    match /themes/{themeId}/{allPaths=**} {
-      // Public thumbnails/backgrounds are okay to read
-      allow read: if true;
-      // Only admins can upload/replace; validate content
-      allow write: if isAdmin() && okContent();
-    }
-
-    /* =========================================================
-       Theme icons (optional separate root)
-       ========================================================= */
-    match /theme-icons/{allPaths=**} {
-      allow read:  if true;
-      allow write: if isAdmin() && okContent();
-    }
-
     /* ------------ default deny ------------ */
     match /{path=**} {
       allow read, write: if false;
     }
   }
 }
-
