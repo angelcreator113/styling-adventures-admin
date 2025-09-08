@@ -1,3 +1,4 @@
+// src/js/uploads/closet/closet-upload-page.jsx
 import React, { useEffect } from "react";
 import AppShell from "@/components/AppShell.jsx";
 import styles from "@/css/UploadClosetPage.module.css";
@@ -11,7 +12,8 @@ export default function ClosetUploadPage() {
 
   return (
     <AppShell pageTitle="Closet">
-      <section className={styles.card} aria-labelledby="closet-upload-title" role="region">
+      {/* 👇 This class enables the dynamic theme background */}
+      <section className={`closet-upload ${styles.card}`} aria-labelledby="closet-upload-title" role="region">
         <header className={styles.header}>
           <h1 id="closet-upload-title" className={styles.title}>Upload / Closet</h1>
         </header>
@@ -21,3 +23,4 @@ export default function ClosetUploadPage() {
     </AppShell>
   );
 }
+

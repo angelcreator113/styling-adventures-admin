@@ -1,13 +1,8 @@
 /* =============== TOKENS (global theme) =============== */
-:root {
+:root{
   /* Brand */
-  --pink: #F97C94;          /* Pop Pink */
-  --gold: #FFC74A;          /* Pixel Gold */
-  --blue: #84D2F6;          /* Sky Blue */
-  --navy: #142136;          /* Deep Navy Shadow */
-  --lav:  #E9D8F2;          /* Lavender Softness */
-  --lav-2:#F6F1FA;          /* Lighter lavender */
-  --ivory:#FFF7E2;          /* Ivory Cream */
+  --pink:#F97C94; --gold:#FFC74A; --blue:#84D2F6; --navy:#142136;
+  --lav:#E9D8F2; --lav-2:#F6F1FA; --ivory:#FFF7E2;
 
   /* Neutrals */
   --white:#fff;
@@ -18,58 +13,110 @@
   --ink-20: color-mix(in srgb, var(--ink) 20%, transparent);
 
   /* Surfaces */
-  --bg: #ffffff;
-  --bg-soft: #fbfbfe;
-  --surface: #ffffff;
-  --surface-2: #FCFBFF;
+  --bg:#ffffff; --bg-soft:#fbfbfe; --surface:#ffffff; --surface-2:#FCFBFF;
 
   /* Borders / Shadows / Radii */
-  --border: #ECEAF7;
-  --border-2: #E8E5F3;
-  --radius-xs: 8px;
-  --radius-sm: 12px;
-  --radius: 14px;
-  --radius-lg: 16px;
-  --shadow-sm: 0 2px 8px rgba(20,33,54,.05);
-  --shadow: 0 10px 30px rgba(20,33,54,.06), 0 2px 8px rgba(20,33,54,.05);
+  --border:#ECEAF7; --border-2:#E8E5F3;
+  --radius-xs:8px; --radius-sm:12px; --radius:14px; --radius-lg:16px;
+  --shadow-sm:0 2px 8px rgba(20,33,54,.05);
+  --shadow:0 10px 30px rgba(20,33,54,.06), 0 2px 8px rgba(20,33,54,.05);
 
   /* Typography */
-  --font: ui-rounded, "Inter", "SF Pro Rounded", "Nunito", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-  --fs-xxs: .75rem;
-  --fs-xs:  .85rem;
-  --fs-sm:  .95rem;
-  --fs:     1rem;
-  --fs-lg:  1.125rem;
-  --fs-xl:  1.25rem;
+  --font: ui-rounded, Inter, "SF Pro Rounded", Nunito, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  --fs-xxs:.75rem; --fs-xs:.85rem; --fs-sm:.95rem; --fs:1rem; --fs-lg:1.125rem; --fs-xl:1.25rem;
 
-  /* Spacing scale */
-  --sp-1: .25rem;
-  --sp-2: .5rem;
-  --sp-3: .75rem;
-  --sp-4: 1rem;
-  --sp-5: 1.25rem;
-  --sp-6: 1.5rem;
+  /* Spacing */
+  --sp-1:.25rem; --sp-2:.5rem; --sp-3:.75rem; --sp-4:1rem; --sp-5:1.25rem; --sp-6:1.5rem;
 
   /* Focus */
-  --focus: 0 0 0 3px color-mix(in srgb, var(--blue) 50%, #ffffff);
+  --focus:0 0 0 3px color-mix(in srgb, var(--blue) 50%, #fff);
+
+  /* Dynamic theme background */
+  --theme-bg:none;
 }
 
-/* Optional: Dark mode base (kept gentle) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d1321;
-    --surface: #0f172a;
-    --surface-2: #111827;
-    --border: #23314A;
-    --border-2: #2a3855;
-    --ink: #f4f6fb;
-    --ink-80: #e6e9f3;
-    --ink-60: #c7cce0;
-    --ink-40: #9ca3b8;
-    --ink-20: #6b7280;
-    --shadow: 0 10px 30px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.25);
-    --bg-soft: #0e1628;
+/* Gentle dark mode base */
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0d1321; --surface:#0f172a; --surface-2:#111827;
+    --border:#23314A; --border-2:#2a3855;
+    --ink:#f4f6fb; --ink-80:#e6e9f3; --ink-60:#c7cce0; --ink-40:#9ca3b8; --ink-20:#6b7280;
+    --shadow:0 10px 30px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.25);
+    --bg-soft:#0e1628;
   }
 }
+
+/* Button color nudge that existed */
 .app-shell .btn.primary,
-.app-shell .tb-btn.primary { color:#0a223a; }
+.app-shell .tb-btn.primary{ color:#0a223a; }
+
+/* Dynamic background application */
+.app-shell, .closet-upload, .dashboard-bg{
+  background-image:var(--theme-bg);
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+
+/* Ambient effects */
+:root[data-ambient="shimmer"] .app-shell::after{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background:linear-gradient(120deg, transparent, rgba(255,255,255,.06), transparent);
+  animation:shimmer 3s infinite;
+}
+@keyframes shimmer{ 0%{transform:translateX(-100%);}100%{transform:translateX(100%);} }
+
+:root[data-ambient="petals"] .app-shell::after{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:radial-gradient(#ffc0cb66 2px, transparent 2px);
+  background-size:40px 40px; animation:floaty 10s linear infinite;
+}
+@keyframes floaty{ from{background-position:0 0;} to{background-position:0 40px;} }
+/* Theme Library tweaks */
+.btn.linklike { background: transparent; border: none; color: #2563eb; padding: 0; }
+.btn.linklike:hover { text-decoration: underline; }
+
+.btn-group .btn { padding: 4px 8px; font-size: 12px; }
+article.card .muted { color: rgba(0,0,0,.6); }
+
+@media (prefers-color-scheme: dark) {
+  article.card { border-color: rgba(255,255,255,.08); }
+  .btn.linklike { color: #93c5fd; }
+}
+/* --- Button sizing utilities --- */
+.btn { 
+  line-height: 1.2; 
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.btn.sm {            /* compact buttons for card actions */
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.btn.xs {            /* tiny badges */
+  padding: 2px 6px;
+  font-size: 11px;
+  border-radius: 999px;
+}
+
+.btn.danger {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+.btn.danger:hover { background: #fecaca; }
+
+/* Inline linky button */
+.btn.linklike { background: transparent; border: none; color: #2563eb; padding: 0; }
+.btn.linklike:hover { text-decoration: underline; }
+
+/* Card actions row */
+.theme-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}

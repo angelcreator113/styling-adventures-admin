@@ -1,72 +1,30 @@
-import React from "react";
+// src/components/nav/SidebarAdmin.jsx
+import React, { useMemo } from "react";
 import { NavLink } from "react-router-dom";
-import {
-  LayoutDashboard,
-  UserCog,
-  ShieldCheck,
-  BarChart3,
-  Palette,
-  MessageSquare,
-  Video,
-  Film,
-  Wrench,
-  Database,
-  Layers3,
-} from "lucide-react";
+import { ROUTE_MANIFEST } from "@/routes/manifest";
 
 export default function SidebarAdmin({ collapsed = false }) {
-  const groups = [
-    {
-      title: "Admin",
-      items: [
-        { to: "/admin/home", label: "Dashboard", icon: LayoutDashboard },
-        { to: "/admin/users", label: "Users (Roles)", icon: UserCog },
-        { to: "/admin/invites", label: "Invites", icon: UserCog },
-        { to: "/admin/role-defs", label: "Role Definitions", icon: ShieldCheck },
-        { to: "/admin/boards", label: "Boards", icon: BarChart3 },
-        { to: "/admin/themes", label: "Themes", icon: Palette },
-        { to: "/admin/chat", label: "Chat Manager", icon: MessageSquare },
-      ],
-    },
-    {
-      title: "Content",
-      items: [
-        { to: "/admin/spaces", label: "Spaces (All creators)", icon: Layers3 },
-        { to: "/admin/content/episodes", label: "Episodes", icon: Film },
-        { to: "/admin/content/clips", label: "Clips", icon: Video },
-      ],
-    },
-    {
-      title: "Tools",
-      items: [
-        { to: "/meta", label: "Meta & Tools", icon: Wrench },
-        { to: "/storage-smoke", label: "Storage Smoke", icon: Database },
-      ],
-    },
-  ];
+  // Build sections from the manifest (admin block only)
+  const sections = useMemo(() => {
+    const items = (ROUTE_MANIFEST.admin || []);
+    const byGroup = items.reduce((acc, i) => {
+      const g = i.group || "Admin";
+      (acc[g] ||= []).push(i);
+      return acc;
+    }, {});
+    return Object.entries(byGroup).map(([title, items]) => ({ title, items }));
+  }, []);
 
   return (
-    <nav
-      className={`sidebar-nav ${collapsed ? "is-collapsed" : ""}`}
-      aria-label="Admin navigation"
-    >
-      {groups.map((g) => (
-        <div key={g.title} className="sidebar-section">
-          {!collapsed && (
-            <div className="sidebar-section-title" aria-hidden>
-              {g.title}
-            </div>
-          )}
+    <nav className={`sidebar-nav ${collapsed ? "is-collapsed" : ""}`} aria-label="Admin navigation">
+      {sections.map((sec) => (
+        <div key={sec.title} className="sidebar-section">
+          {!collapsed && <div className="sidebar-section-title" aria-hidden>{sec.title}</div>}
           <ul className="sidebar-list" role="list">
-            {g.items.map(({ to, label, icon: Icon }) => (
-              <li key={to}>
-                <NavLink
-                  to={to}
-                  className={({ isActive }) =>
-                    `sidebar-link ${isActive ? "is-active" : ""}`
-                  }
-                >
-                  <Icon size={18} className="sidebar-link__icon" aria-hidden />
+            {sec.items.map(({ path, label }) => (
+              <li key={path}>
+                {/* ABSOLUTE links so they never stack /home */}
+                <NavLink to={path} end className={({ isActive }) => `sidebar-link ${isActive ? "is-active" : ""}`}>
                   <span className="sidebar-label">{label}</span>
                 </NavLink>
               </li>

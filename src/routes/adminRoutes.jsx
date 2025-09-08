@@ -1,84 +1,100 @@
 // src/routes/adminRoutes.jsx
 import React, { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
-import { ROUTES } from "@/routes/constants";
 
-// ✅ real pages that exist in your repo
-const AdminHome   = lazy(() => import("@/pages/home/AdminHome.jsx"));
-const ThemeStudio = lazy(() => import("@/pages/admin/manage/ThemeStudio.jsx"));
+/* -------- HOME -------- */
+const AdminHome = lazy(() => import("@/pages/home/AdminHome.jsx"));
 
-// Small, styled placeholder so routes render until the real page exists
-function Placeholder({ title, note = "Coming soon…" }) {
-  return (
-    <section className="container" style={{ padding: 16 }}>
-      <div className="dashboard-card">
-        <h1 style={{ marginTop: 0 }}>{title}</h1>
-        <p className="muted" style={{ marginTop: 6 }}>{note}</p>
-      </div>
-    </section>
-  );
-}
+/* -------- THEMES -------- */
+const ThemeLibrary    = lazy(() => import("@/pages/admin/themes/ThemeLibrary.jsx"));
+const ThemeStudio     = lazy(() => import("@/pages/admin/manage/ThemeStudio.jsx"));
+const ThemesAdmin     = lazy(() => import("@/pages/admin/manage/ThemesAdmin.jsx"));
+const ThemeAnalytics  = lazy(() => import("@/pages/admin/themes/analytics/ThemeAnalytics.jsx"));
+// Optional (present in repo)
+const VotingSettings  = lazy(() => import("@/pages/admin/themes/VotingSettings.jsx"));
+
+/* -------- CONTENT -------- */
+const AdminSpacesDashboard = lazy(() => import("@/pages/admin/content/AdminSpacesDashboard.jsx"));
+const AdminContentEpisodes = lazy(() => import("@/pages/admin/content/AdminContentEpisodes.jsx"));
+const AdminContentClips    = lazy(() => import("@/pages/admin/content/AdminContentClips.jsx"));
+const AdminContentCloset   = lazy(() => import("@/pages/admin/content/AdminContentCloset.jsx"));
+const ContentEditor        = lazy(() => import("@/pages/admin/manage/ContentEditor.jsx"));
+
+/* -------- META / TOOLS -------- */
+const AdminMetaTools    = lazy(() => import("@/pages/admin/content/AdminMetaTools.jsx"));
+const AdminStorageSmoke = lazy(() => import("@/pages/admin/content/AdminStorageSmoke.jsx"));
+
+/* -------- MANAGE -------- */
+const AdminBoardsAnalytics   = lazy(() => import("@/pages/admin/manage/AdminBoardsAnalytics.jsx"));
+const AdminInvites           = lazy(() => import("@/pages/admin/manage/AdminInvites.jsx"));
+const AdminManageChallenges  = lazy(() => import("@/pages/admin/manage/AdminManageChallenges.jsx"));
+const AdminManageConfessions = lazy(() => import("@/pages/admin/manage/AdminManageConfessions.jsx"));
+const AdminManageEvents      = lazy(() => import("@/pages/admin/manage/AdminManageEvents.jsx"));
+const AdminManageOutfits     = lazy(() => import("@/pages/admin/manage/AdminManageOutfits.jsx"));
+const AdminManageSpotlights  = lazy(() => import("@/pages/admin/manage/AdminManageSpotlights.jsx"));
+const AdminManageVip         = lazy(() => import("@/pages/admin/manage/AdminManageVip.jsx"));
+const AdminSystemUpdates     = lazy(() => import("@/pages/admin/manage/AdminSystemUpdates.jsx"));
+const AdminPins              = lazy(() => import("@/pages/admin/manage/AdminPins.jsx"));
+
+/* -------- USERS / ROLES / CHAT -------- */
+const AdminUsers    = lazy(() => import("@/pages/admin/AdminUsers.jsx"));
+const AdminRoleDefs = lazy(() => import("@/pages/admin/manage/AdminRoleDefs.jsx"));
+const ChatManager   = lazy(() => import("@/pages/admin/manage/ChatManager.jsx"));
+
+/* -------- OPTIONAL CREATOR TOOL EXPOSED IN ADMIN -------- */
+const CreatorPostLaterPage = lazy(() => import("@/pages/admin/manage/CreatorPostLaterPage.jsx"));
 
 /**
- * Admin routes live under /admin/* (nested inside AdminShell).
- * Keep paths RELATIVE here ("home", "themes/studio", etc).
+ * AdminRoutes
+ * Nest these under <Route path="/admin/*" ...> in App.jsx.
+ * This component returns only <Route> elements — no wrapper.
  */
 export function AdminRoutes() {
   return (
     <>
       {/* default -> /admin/home */}
-      <Route index element={<Navigate to={ROUTES.adminHome} replace />} />
+      <Route index element={<Navigate to="/admin/home" replace />} />
 
       {/* Home */}
       <Route path="home" element={<AdminHome />} />
 
-      {/* Content */}
-      <Route
-        path="spaces"
-        element={<Placeholder title="Spaces (All creators)" />}
-      />
+      {/* ---------- THEMES (group) ---------- */}
+      {/* /admin/themes -> Library by default */}
+      <Route path="themes" element={<Navigate to="/admin/themes/library" replace />} />
+      <Route path="themes/library"   element={<ThemeLibrary />} />
+      <Route path="themes/studio"    element={<ThemeStudio />} />
+      <Route path="themes/manage"    element={<ThemesAdmin />} />
+      <Route path="themes/analytics" element={<ThemeAnalytics />} />
+      <Route path="themes/voting"    element={<VotingSettings />} />
 
-      {/* Tools */}
-      <Route
-        path="meta"
-        element={<Placeholder title="Meta & Tools" />}
-      />
-      <Route
-        path="storage"
-        element={<Placeholder title="Storage Smoke" />}
-      />
+      {/* ---------- CONTENT (group) ---------- */}
+      <Route path="spaces"              element={<AdminSpacesDashboard />} />
+      <Route path="content/episodes"    element={<AdminContentEpisodes />} />
+      <Route path="content/clips"       element={<AdminContentClips />} />
+      <Route path="content/closet"      element={<AdminContentCloset />} />
+      <Route path="content/editor"      element={<ContentEditor />} />
+      <Route path="meta"                element={<AdminMetaTools />} />
+      <Route path="storage"             element={<AdminStorageSmoke />} />
 
-      {/* Episodes */}
-      <Route
-        path="episodes"
-        element={<Placeholder title="Upload Episodes" />}
-      />
-      <Route
-        path="episodes/clips"
-        element={<Placeholder title="Clips" />}
-      />
-      <Route
-        path="episodes/backgrounds"
-        element={<Placeholder title="Episode Backgrounds" />}
-      />
+      {/* ---------- MANAGE (group) ---------- */}
+      <Route path="boards"              element={<AdminBoardsAnalytics />} />
+      <Route path="invites"             element={<AdminInvites />} />
+      <Route path="manage/challenges"   element={<AdminManageChallenges />} />
+      <Route path="manage/confessions"  element={<AdminManageConfessions />} />
+      <Route path="manage/events"       element={<AdminManageEvents />} />
+      <Route path="manage/outfits"      element={<AdminManageOutfits />} />
+      <Route path="manage/spotlights"   element={<AdminManageSpotlights />} />
+      <Route path="manage/vip"          element={<AdminManageVip />} />
+      <Route path="system/updates"      element={<AdminSystemUpdates />} />
+      <Route path="security/pins"       element={<AdminPins />} />
 
-      {/* Themes */}
-      <Route
-        path="themes"
-        element={<Placeholder title="Theme Library" />}
-      />
-      <Route
-        path="themes/studio"
-        element={<ThemeStudio />}
-      />
-      <Route
-        path="themes/analytics"
-        element={<Placeholder title="Theme Analytics" />}
-      />
-      <Route
-        path="themes/voting"
-        element={<Placeholder title="Voting Settings" />}
-      />
+      {/* ---------- USERS / ROLES / CHAT ---------- */}
+      <Route path="users"               element={<AdminUsers />} />
+      <Route path="role-defs"           element={<AdminRoleDefs />} />
+      <Route path="chat"                element={<ChatManager />} />
+
+      {/* ---------- OPTIONAL TOOLS ---------- */}
+      <Route path="post-me-later"       element={<CreatorPostLaterPage />} />
     </>
   );
 }

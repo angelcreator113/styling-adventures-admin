@@ -1,3 +1,4 @@
+// src/pages/admin/manage/ThemeStudio.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { db } from "@/utils/init-firebase";
 import {
@@ -18,19 +19,19 @@ function toSlug(s = "") {
 
 const DEFAULTS = {
   label: "",
-  type: "gradient",          // 'solid' | 'gradient' | 'paper'
-  colors: ["#f5ecff", "#efe9ff"], // for gradient/solid
-  angle: 90,                 // degrees (for gradient)
-  radius: 16,                // px corner radius of stage
-  shadow: 1,                 // 0 off / 1 on (drop shadow under cutout)
-  marginPct: 10,             // % whitespace margin around cutout
-  biasY: 0,                  // -50..50 shift cutout vertically (% of stage height)
+  type: "gradient", // 'solid' | 'gradient' | 'paper'
+  colors: ["#f5ecff", "#efe9ff"],
+  angle: 90,
+  radius: 16,
+  shadow: 1,
+  marginPct: 10,
+  biasY: 0,
   note: "",
 };
 
 export default function ThemeStudio() {
   const [themes, setThemes] = useState([]);
-  const [editing, setEditing] = useState(null);     // doc object being edited
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(DEFAULTS);
   const canvasRef = useRef(null);
 
@@ -38,7 +39,7 @@ export default function ThemeStudio() {
   useEffect(() => {
     const qy = query(collection(db, "themes"), orderBy("updatedAt", "desc"));
     const off = onSnapshot(qy, (snap) => {
-      setThemes(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setThemes(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return () => off();
   }, []);
@@ -55,18 +56,88 @@ export default function ThemeStudio() {
       ? f.colors
       : String(f.colors || "")
           .split(",")
-          .map(s => s.trim())
+          .map((s) => s.trim())
           .filter(Boolean);
     if (f.type === "solid" && f.colors.length) f.colors = [f.colors[0]];
     return f;
   }, [form]);
+
+  // drawing helpers
+  function roundedRectPath(ctx, x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx.moveTo(x + rr, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rr);
+    ctx.arcTo(x + w, y + h, x, y + h, rr);
+    ctx.arcTo(x, y + h, x, y, rr);
+    ctx.arcTo(x, y, x + w, y, rr);
+    ctx.closePath();
+  }
+  function gradientByAngle(ctx, W, H, angleDeg) {
+    const a = ((angleDeg % 360) * Math.PI) / 180;
+    const cx = W / 2,
+      cy = H / 2;
+    const rx = Math.cos(a),
+      ry = Math.sin(a);
+    const half = Math.max(W, H);
+    return ctx.createLinearGradient(cx - rx * half, cy - ry * half, cx + rx * half, cy + ry * half);
+  }
+  function noise(ctx, W, H, strength = 0.05) {
+    const img = ctx.getImageData(0, 0, W, H);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const n = (Math.random() * 2 - 1) * 255 * strength;
+      d[i] = clamp(d[i] + n);
+      d[i + 1] = clamp(d[i + 1] + n);
+      d[i + 2] = clamp(d[i + 2] + n);
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  function vignette(ctx, W, H, strength = 0.08) {
+    const grd = ctx.createRadialGradient(
+      W / 2,
+      H / 2,
+      Math.min(W, H) / 3,
+      W / 2,
+      H / 2,
+      Math.max(W, H) / 1.0
+    );
+    grd.addColorStop(0, "rgba(0,0,0,0)");
+    grd.addColorStop(1, `rgba(0,0,0,${strength})`);
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, H);
+  }
+  function clamp(v) {
+    return Math.max(0, Math.min(255, v));
+  }
+  function drawSampleGarment(ctx, W, H, p) {
+    const inset = Math.round((p.marginPct / 100) * Math.min(W, H));
+    const x = inset;
+    const y = inset + (p.biasY / 100) * H;
+    const w = W - inset * 2;
+    const h = H - inset * 2;
+    ctx.save();
+    ctx.fillStyle = "#ffffff";
+    ctx.strokeStyle = "rgba(0,0,0,.06)";
+    ctx.lineWidth = 2;
+    // body
+    roundedRectPath(ctx, x, y + h * 0.12, w, h * 0.8, Math.min(24, w * 0.08));
+    ctx.fill();
+    ctx.stroke();
+    // handles
+    ctx.beginPath();
+    ctx.ellipse(x + w * 0.25, y + h * 0.14, w * 0.14, h * 0.1, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + w * 0.75, y + h * 0.14, w * 0.14, h * 0.1, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
 
   // draw preview
   useEffect(() => {
     const el = canvasRef.current;
     if (!el) return;
     const ctx = el.getContext("2d");
-    const W = 480; // 3:4 preview
+    const W = 480;
     const H = 640;
     el.width = W;
     el.height = H;
@@ -78,7 +149,7 @@ export default function ThemeStudio() {
     roundedRectPath(ctx, 0, 0, W, H, r);
     ctx.clip();
 
-    // background fill
+    // background
     if (parsed.type === "solid") {
       ctx.fillStyle = parsed.colors[0] || "#f6f6fb";
       ctx.fillRect(0, 0, W, H);
@@ -90,22 +161,17 @@ export default function ThemeStudio() {
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, H);
     } else if (parsed.type === "paper") {
-      // simple light paper look
       ctx.fillStyle = parsed.colors[0] || "#ffffff";
       ctx.fillRect(0, 0, W, H);
-      // noise overlay
       noise(ctx, W, H, 0.06);
-      // very subtle vignette
       vignette(ctx, W, H, 0.06);
     }
 
-    // "drop shadow" under the cutout
     if (parsed.shadow) {
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,.18)";
       ctx.shadowBlur = 24;
       ctx.shadowOffsetY = 8;
-      // invisible rect just to project shadow
       const inset = Math.round((parsed.marginPct / 100) * Math.min(W, H));
       const x = inset;
       const y = inset + (parsed.biasY / 100) * H;
@@ -116,14 +182,14 @@ export default function ThemeStudio() {
       ctx.restore();
     }
 
-    // sample cutout (just draw a centered silhouette so you can judge layout)
     drawSampleGarment(ctx, W, H, parsed);
 
     ctx.restore();
     // border
     ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 1;
-    roundedRectPath(ctx, 0.5, 0.5, W-1, H-1, parsed.radius);
+    ctx.beginPath();
+    roundedRectPath(ctx, 0.5, 0.5, W - 1, H - 1, parsed.radius);
     ctx.stroke();
   }, [parsed]);
 
@@ -132,7 +198,7 @@ export default function ThemeStudio() {
     setForm({
       label: t.label || "",
       type: t.type || DEFAULTS.type,
-      colors: Array.isArray(t.colors) ? t.colors : (t.colors ? [t.colors] : []),
+      colors: Array.isArray(t.colors) ? t.colors : t.colors ? [t.colors] : [],
       angle: t.angle ?? DEFAULTS.angle,
       radius: t.radius ?? DEFAULTS.radius,
       shadow: t.shadow ? 1 : 0,
@@ -146,17 +212,16 @@ export default function ThemeStudio() {
     const payload = {
       ...parsed,
       updatedAt: serverTimestamp(),
+      label: parsed.label,
     };
     if (editing?.id) {
-      await setDoc(doc(db, "themes", editing.id), { ...payload, label: parsed.label }, { merge: true });
+      await setDoc(doc(db, "themes", editing.id), payload, { merge: true });
     } else {
       await addDoc(collection(db, "themes"), {
         ...payload,
-        label: parsed.label,
         createdAt: serverTimestamp(),
       });
     }
-    // keep in edit mode but ensure we have latest
   }
 
   async function newTheme() {
@@ -183,21 +248,25 @@ export default function ThemeStudio() {
         <section className="card">
           <div className="card__body">
             <div className="toolbar">
-              <button className="btn" onClick={newTheme}>+ New Theme</button>
+              <button className="btn" onClick={newTheme}>
+                + New Theme
+              </button>
             </div>
             <ul className="theme-list">
-              {themes.map(t => (
+              {themes.map((t) => (
                 <li key={t.id} className={`theme-row ${editing?.id === t.id ? "is-active" : ""}`}>
                   <button className="row-main" onClick={() => selectTheme(t)}>
                     <span className="chip">{t.type}</span>
-                    <span className="label">{t.label || t.id}</span>
+                    <span className="label">{t.label || t.name || t.id}</span>
                     <span className="swatches">
-                      {(t.colors || []).slice(0, 4).map((c,i) => (
-                        <i key={i} style={{background:c}} />
+                      {(t.colors || []).slice(0, 4).map((c, i) => (
+                        <i key={i} style={{ background: c }} />
                       ))}
                     </span>
                   </button>
-                  <button className="row-del" onClick={() => removeTheme(t.id)} title="Delete">✕</button>
+                  <button className="row-del" onClick={() => removeTheme(t.id)} title="Delete">
+                    ✕
+                  </button>
                 </li>
               ))}
               {!themes.length && <li className="muted">No themes yet.</li>}
@@ -215,14 +284,17 @@ export default function ThemeStudio() {
                 <span>Label</span>
                 <input
                   value={form.label}
-                  onChange={e => setForm(f => ({...f, label:e.target.value}))}
+                  onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
                   placeholder="Lavender Glow"
                 />
               </label>
 
               <label>
                 <span>Type</span>
-                <select value={form.type} onChange={e => setForm(f => ({...f, type:e.target.value}))}>
+                <select
+                  value={form.type}
+                  onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+                >
                   <option value="solid">Solid</option>
                   <option value="gradient">Gradient</option>
                   <option value="paper">Paper</option>
@@ -232,8 +304,10 @@ export default function ThemeStudio() {
               <label>
                 <span>Colors (comma-separated)</span>
                 <input
-                  value={Array.isArray(form.colors) ? form.colors.join(", ") : (form.colors || "")}
-                  onChange={e => setForm(f => ({...f, colors:e.target.value}))}
+                  value={
+                    Array.isArray(form.colors) ? form.colors.join(", ") : form.colors || ""
+                  }
+                  onChange={(e) => setForm((f) => ({ ...f, colors: e.target.value }))}
                   placeholder="#f5ecff, #efe9ff"
                 />
               </label>
@@ -243,7 +317,7 @@ export default function ThemeStudio() {
                 <input
                   type="number"
                   value={form.angle}
-                  onChange={e => setForm(f => ({...f, angle:e.target.value}))}
+                  onChange={(e) => setForm((f) => ({ ...f, angle: e.target.value }))}
                 />
               </label>
 
@@ -252,7 +326,7 @@ export default function ThemeStudio() {
                 <input
                   type="number"
                   value={form.radius}
-                  onChange={e => setForm(f => ({...f, radius:e.target.value}))}
+                  onChange={(e) => setForm((f) => ({ ...f, radius: e.target.value }))}
                 />
               </label>
 
@@ -261,7 +335,7 @@ export default function ThemeStudio() {
                 <input
                   type="number"
                   value={form.marginPct}
-                  onChange={e => setForm(f => ({...f, marginPct:e.target.value}))}
+                  onChange={(e) => setForm((f) => ({ ...f, marginPct: e.target.value }))}
                 />
               </label>
 
@@ -270,7 +344,7 @@ export default function ThemeStudio() {
                 <input
                   type="number"
                   value={form.biasY}
-                  onChange={e => setForm(f => ({...f, biasY:e.target.value}))}
+                  onChange={(e) => setForm((f) => ({ ...f, biasY: e.target.value }))}
                 />
               </label>
 
@@ -278,7 +352,7 @@ export default function ThemeStudio() {
                 <input
                   type="checkbox"
                   checked={!!form.shadow}
-                  onChange={e => setForm(f => ({...f, shadow: e.target.checked ? 1 : 0}))}
+                  onChange={(e) => setForm((f) => ({ ...f, shadow: e.target.checked ? 1 : 0 }))}
                 />
                 <span>Drop shadow</span>
               </label>
@@ -287,7 +361,7 @@ export default function ThemeStudio() {
                 <span>Note</span>
                 <input
                   value={form.note || ""}
-                  onChange={e => setForm(f => ({...f, note: e.target.value}))}
+                  onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
                   placeholder="Optional description"
                 />
               </label>
@@ -334,74 +408,4 @@ export default function ThemeStudio() {
       `}</style>
     </div>
   );
-}
-
-/* -------------- drawing helpers -------------- */
-
-function roundedRectPath(ctx, x, y, w, h, r) {
-  const rr = Math.min(r, w/2, h/2);
-  ctx.moveTo(x+rr, y);
-  ctx.arcTo(x+w, y, x+w, y+h, rr);
-  ctx.arcTo(x+w, y+h, x, y+h, rr);
-  ctx.arcTo(x, y+h, x, y, rr);
-  ctx.arcTo(x, y, x+w, y, rr);
-  ctx.closePath();
-}
-
-function gradientByAngle(ctx, W, H, angleDeg) {
-  const a = (angleDeg % 360) * Math.PI / 180;
-  const cx = W/2, cy = H/2;
-  const rx = Math.cos(a), ry = Math.sin(a);
-  const half = Math.max(W, H);
-  return ctx.createLinearGradient(cx - rx*half, cy - ry*half, cx + rx*half, cy + ry*half);
-}
-
-function noise(ctx, W, H, strength = 0.05) {
-  const img = ctx.getImageData(0,0,W,H);
-  const d = img.data;
-  for (let i=0; i<d.length; i+=4) {
-    const n = (Math.random()*2-1) * 255 * strength;
-    d[i]   = clamp(d[i]   + n);
-    d[i+1] = clamp(d[i+1] + n);
-    d[i+2] = clamp(d[i+2] + n);
-  }
-  ctx.putImageData(img,0,0);
-}
-function vignette(ctx, W, H, strength=0.08) {
-  const grd = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)/3, W/2, H/2, Math.max(W,H)/1.0);
-  grd.addColorStop(0, "rgba(0,0,0,0)");
-  grd.addColorStop(1, `rgba(0,0,0,${strength})`);
-  ctx.fillStyle = grd;
-  ctx.fillRect(0,0,W,H);
-}
-function clamp(v){ return Math.max(0, Math.min(255, v)); }
-
-function drawSampleGarment(ctx, W, H, parsed) {
-  // draw a neutral “cutout” silhouette centered with margin/bias
-  const inset = Math.round((parsed.marginPct/100)*Math.min(W,H));
-  const x = inset;
-  const y = inset + (parsed.biasY/100)*H;
-  const w = W - inset*2;
-  const h = H - inset*2;
-
-  // simulate a bag/dress shape using a rounded rect + circle
-  ctx.save();
-  ctx.fillStyle = "#ffffff";
-  ctx.strokeStyle = "rgba(0,0,0,.06)";
-  ctx.lineWidth = 2;
-
-  // body
-  roundedRectPath(ctx, x, y + h*0.12, w, h*0.80, Math.min(24, w*0.08));
-  ctx.fill();
-  ctx.stroke();
-
-  // “handle”
-  ctx.beginPath();
-  ctx.ellipse(x + w*0.25, y + h*0.14, w*0.14, h*0.10, 0, 0, Math.PI*2);
-  ctx.ellipse(x + w*0.75, y + h*0.14, w*0.14, h*0.10, 0, 0, Math.PI*2);
-  ctx.fillStyle = "#ffffff";
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.restore();
 }

@@ -10,3 +10,7 @@ functions/.runtimeconfig.json
 .vscode/
 .DS_Store
 Thumbs.db
+
+firebase-debug.log
+firestore-debug.log
+functions/firebase-debug.log

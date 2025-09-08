@@ -42,37 +42,20 @@ const CalendarPage           = React.lazy(() => import("@/pages/Sidebar/Calendar
 const BoardsPage             = React.lazy(() => import("@/pages/BoardsPage.jsx"));
 const PublicBoardPage        = React.lazy(() => import("@/pages/PublicBoardPage.jsx"));
 
-// Admin manage
-const AdminBoardsAnalytics   = React.lazy(() => import("@/pages/admin/manage/AdminBoardsAnalytics.jsx"));
-const ChatManager            = React.lazy(() => import("@/pages/admin/manage/ChatManager.jsx"));
-const ContentEditor          = React.lazy(() => import("@/pages/admin/manage/ContentEditor.jsx"));
-const ThemesAdmin            = React.lazy(() => import("@/pages/admin/manage/ThemesAdmin.jsx"));
-const AdminUsers             = React.lazy(() => import("@/pages/admin/manage/AdminUsers.jsx"));
-const AdminInvites           = React.lazy(() => import("@/pages/admin/manage/AdminInvites.jsx"));
-const AdminRoleDefs          = React.lazy(() => import("@/pages/admin/manage/AdminRoleDefs.jsx"));
-
-// Admin content (legacy + new)
-const AdminContentCloset     = React.lazy(() => import("@/pages/admin/content/AdminContentCloset.jsx"));
-const AdminContentEpisodes   = React.lazy(() => import("@/pages/admin/content/AdminContentEpisodes.jsx"));
-const AdminContentClips      = React.lazy(() => import("@/pages/admin/content/AdminContentClips.jsx"));
-const AdminSpacesDashboard   = React.lazy(() => import("@/pages/admin/content/AdminSpacesDashboard.jsx"));
-
-// Home pages
-const AdminHome              = React.lazy(() => import("@/pages/home/AdminHome.jsx"));
+// Creator
 const CreatorHome            = React.lazy(() => import("@/pages/home/CreatorHome.jsx"));
-
-// Creator Studio
 const CreatorPinterestPage   = React.lazy(() => import("@/pages/creator/CreatorPinterestPage.jsx"));
 const CreatorInstagramPage   = React.lazy(() => import("@/pages/creator/CreatorInstagramPage.jsx"));
 const CreatorYoutubePage     = React.lazy(() => import("@/pages/creator/CreatorYoutubePage.jsx"));
 const CreatorBoardsAnalytics = React.lazy(() => import("@/pages/creator/CreatorBoardsAnalytics.jsx"));
 const CreatorCalendarPage    = React.lazy(() => import("@/pages/creator/CreatorCalendarPage.jsx"));
 const CreatorPostLaterPage   = React.lazy(() => import("@/pages/admin/manage/CreatorPostLaterPage.jsx"));
-
-// Creator Spaces
 const CreatorSpacesIndex     = React.lazy(() => import("@/pages/creator/spaces/CreatorSpacesIndex.jsx"));
 const CreatorSpaceDetail     = React.lazy(() => import("@/pages/creator/spaces/CreatorSpaceDetail.jsx"));
 const SpaceUpload            = React.lazy(() => import("@/pages/creator/spaces/SpaceUpload.jsx"));
+
+// Admin routes grouped in separate file
+import AdminRoutes from "@/routes/adminRoutes.jsx";
 
 const Fallback = () => (
   <section className="container" style={{ padding: 16 }}>
@@ -115,13 +98,9 @@ export default function App() {
           <Route path="/accept-invite" element={<PublicOnly><AcceptInvitePage /></PublicOnly>} />
           <Route path="/b/:uid/:boardId" element={<PublicBoardPage />} />
 
-          {/* ================= FAN SHELL ================= */}
+          {/* FAN */}
           <Route
-            element={
-              <RequireAuth>
-                <FanShell />
-              </RequireAuth>
-            }
+            element={<RequireAuth><FanShell /></RequireAuth>}
           >
             <Route path="/home" element={<Home />} />
             <Route path="/closet" element={<UploadClosetPage />} />
@@ -137,78 +116,40 @@ export default function App() {
             <Route path="/community/forum/:id" element={<ForumThreadPage />} />
           </Route>
 
-          {/* ============== CREATOR SHELL (creator + admin) ============== */}
+          {/* CREATOR */}
           <Route
-            element={
-              <RequireAuth>
-                <RequireAnyRole allow={["creator", "admin"]}>
-                  <CreatorShell />
-                </RequireAnyRole>
-              </RequireAuth>
-            }
+            element={<RequireAuth><RequireAnyRole allow={["creator", "admin"]}><CreatorShell /></RequireAnyRole></RequireAuth>}
           >
             <Route path="/creator/home" element={<CreatorHome />} />
             <Route path="/creator/calendar" element={<CreatorCalendarPage />} />
             <Route path="/creator/pinterest" element={<CreatorPinterestPage />} />
             <Route path="/creator/instagram" element={<CreatorInstagramPage />} />
             <Route path="/creator/youtube" element={<CreatorYoutubePage />} />
-            <Route path="/creator/money-chat" element={<ForumPage />} />
             <Route path="/creator/post-later" element={<CreatorPostLaterPage />} />
-
-            {/* Creator Spaces */}
             <Route path="/creator/spaces" element={<CreatorSpacesIndex />} />
             <Route path="/creator/spaces/:spaceId" element={<CreatorSpaceDetail />} />
             <Route path="/creator/spaces/:spaceId/upload" element={<SpaceUpload />} />
-
-            {/* Voice & Episodes */}
             <Route path="/voice" element={<UploadVoicePage />} />
             <Route path="/episodes" element={<UploadEpisodePage />} />
             <Route path="/creator/insights" element={<CreatorBoardsAnalytics />} />
           </Route>
 
-          {/* ================= ADMIN SHELL (admin only) ================= */}
+          {/* ADMIN */}
           <Route
-            element={
-              <RequireAuth>
-                <RequireAnyRole allow={["admin"]}>
-                  <AdminShell />
-                </RequireAnyRole>
-              </RequireAuth>
-            }
+            path="/admin/*"
+            element={<RequireAuth><RequireAnyRole allow={["admin"]}><AdminShell /></RequireAnyRole></RequireAuth>}
           >
-            <Route path="/admin/home" element={<AdminHome />} />
-
-            {/* NEW: Users / Roles management */}
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/invites" element={<AdminInvites />} />
-
-            {/* NEW: Role Definitions */}
-            <Route path="/admin/role-defs" element={<AdminRoleDefs />} />
-
-            {/* NEW: Spaces dashboard */}
-            <Route path="/admin/spaces" element={<AdminSpacesDashboard />} />
-
-            {/* Existing admin content routes */}
-            <Route path={ROUTES.adminSpaces} element={<AdminContentCloset />} />
-            <Route path="/admin/chat" element={<ChatManager />} />
-            <Route path="/admin/boards" element={<AdminBoardsAnalytics />} />
-            <Route path="/admin/themes" element={<ThemesAdmin />} />
-            <Route path="/admin/content/episodes" element={<AdminContentEpisodes />} />
-            <Route path="/admin/content/clips" element={<AdminContentClips />} />
-            <Route path="/meta" element={<MetaPage />} />
-            <Route path="/storage-smoke" element={<StorageSmoke />} />
+            {AdminRoutes()}
           </Route>
 
-          {/* Legacy redirects */}
-          <Route path="/admin/content/closet" element={<Navigate to={ROUTES.adminSpaces} replace />} />
+          {/* LEGACY REDIRECTS */}
           <Route path="/closet/upload" element={<Navigate to="/closet" replace />} />
           <Route path="/closet/dashboard" element={<Navigate to="/closet" replace />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
-
-          {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </>
   );
 }
+

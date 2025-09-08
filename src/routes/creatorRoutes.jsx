@@ -1,29 +1,32 @@
-// src/routes/creatorRoutes.jsx
-import React from "react";
+import React, { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
 
-// NOTE: home page is under /pages/home, not /pages/creator
-const CreatorHome            = React.lazy(() => import("@/pages/home/CreatorHome.jsx"));
-const CreatorFilesPage       = React.lazy(() => import("@/pages/creator/CreatorFilesPage.jsx"));
-const CreatorCalendarPage    = React.lazy(() => import("@/pages/creator/CreatorCalendarPage.jsx"));
-const CreatorBoardsAnalytics = React.lazy(() => import("@/pages/creator/CreatorBoardsAnalytics.jsx"));
-const CreatorPinterestPage   = React.lazy(() => import("@/pages/creator/CreatorPinterestPage.jsx"));
-const CreatorInstagramPage   = React.lazy(() => import("@/pages/creator/CreatorInstagramPage.jsx"));
-const CreatorYoutubePage     = React.lazy(() => import("@/pages/creator/CreatorYoutubePage.jsx"));
+/* -------- CREATOR PAGES -------- */
+const CalendarPage       = lazy(() => import("@/pages/Sidebar/CalendarPage.jsx"));
+const ChallengesPage     = lazy(() => import("@/pages/Sidebar/ChallengesPage.jsx"));
+const OutfitBuilderPage  = lazy(() => import("@/pages/Sidebar/OutfitBuilderPage.jsx"));
+const PlannerPage        = lazy(() => import("@/pages/Sidebar/PlannerPage.jsx"));
+const SpotlightsPage     = lazy(() => import("@/pages/Sidebar/SpotlightsPage.jsx"));
 
+/**
+ * CreatorRoutes
+ * Mounted by AppRouter under <Route path="/creator/*" element={<CreatorShell/>}>.
+ * Paths here are relative to /creator.
+ */
 export function CreatorRoutes() {
   return (
     <>
-      {/* /creator -> /creator/home */}
-      <Route index element={<Navigate to="home" replace />} />
+      {/* default -> /creator/planner (or whatever you prefer) */}
+      <Route index element={<Navigate to="/creator/planner" replace />} />
 
-      <Route path="home" element={<CreatorHome />} />
-      <Route path="files" element={<CreatorFilesPage />} />
-      <Route path="calendar" element={<CreatorCalendarPage />} />
-      <Route path="insights" element={<CreatorBoardsAnalytics />} />
-      <Route path="pinterest" element={<CreatorPinterestPage />} />
-      <Route path="instagram" element={<CreatorInstagramPage />} />
-      <Route path="youtube" element={<CreatorYoutubePage />} />
+      {/* Workflow mirrors */}
+      <Route path="calendar"           element={<CalendarPage />} />
+      <Route path="challenges"         element={<ChallengesPage />} />
+      <Route path="outfit-builder"     element={<OutfitBuilderPage />} />
+      <Route path="planner"            element={<PlannerPage />} />
+      <Route path="spotlights"         element={<SpotlightsPage />} />
     </>
   );
 }
+
+export default CreatorRoutes;

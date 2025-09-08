@@ -11,17 +11,43 @@ import { FanRoutes } from "@/routes/fanRoutes";
 import RequireAuth from "@/components/RequireAuth";
 import RequireRole from "@/components/RequireRole";
 
+// shells
 import AdminShell from "@/admin/AdminShell.jsx";
 import CreatorShell from "@/components/CreatorShell.jsx";
 import FanShell from "@/components/FanShell.jsx";
 
+// admin PIN gate
+import RequireAdminPin from "@/routes/RequireAdminPin";
+const AdminLockScreen = React.lazy(() => import("@/pages/admin/AdminLockScreen.jsx"));
+
+// lounge
+import BestieLounge from "@/pages/lounge/BestieLounge";
+
+// debug & landing
 const AuthDebug = React.lazy(() => import("@/pages/AuthDebug.jsx"));
 const RoleHomeRedirect = React.lazy(() => import("@/routes/RoleHomeRedirect.jsx"));
 
+// 👇 Use your pretty Unauthorized page
+import UnauthorizedPage from "@/pages/Unauthorized.jsx";
+
 const Fallback = () => (
   <section className="container" style={{ padding: 16 }}>
-    <div className="dashboard-card" role="status" aria-live="polite" style={{ display: "flex", gap: 12 }}>
-      <div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid #ccc", borderTopColor: "#7c3aed", animation: "spin .9s linear infinite" }} />
+    <div
+      className="dashboard-card"
+      role="status"
+      aria-live="polite"
+      style={{ display: "flex", gap: 12 }}
+    >
+      <div
+        style={{
+          width: 16,
+          height: 16,
+          borderRadius: "50%",
+          border: "2px solid #ccc",
+          borderTopColor: "#7c3aed",
+          animation: "spin .9s linear infinite",
+        }}
+      />
       <span>Loading…</span>
     </div>
     <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
@@ -32,16 +58,9 @@ const NotFound = () => (
   <section className="container" style={{ padding: 16 }}>
     <div className="dashboard-card">
       <h1 style={{ margin: 0 }}>404 — Page not found</h1>
-      <p style={{ marginTop: 8 }}><a href="/home">Go to Home</a></p>
-    </div>
-  </section>
-);
-
-const Unauthorized = () => (
-  <section className="container" style={{ padding: 16 }}>
-    <div className="dashboard-card">
-      <h1 style={{ margin: 0 }}>Unauthorized</h1>
-      <p style={{ marginTop: 8 }}>You don’t have access to that page.</p>
+      <p style={{ marginTop: 8 }}>
+        <a href="/home">Go to Home</a>
+      </p>
     </div>
   </section>
 );
@@ -58,27 +77,36 @@ export default function AppRouter() {
 
           {/* Authenticated area */}
           <Route element={<RequireAuth />}>
-
-            {/* Single root redirect decides the area once, then shells own their paths */}
             <Route index element={<RoleHomeRedirect />} />
 
-            {/* Admin namespace */}
+            {/* ---------- ADMIN ---------- */}
             <Route element={<RequireRole role="admin" />}>
-              <Route path="/admin/*" element={<AdminShell />}>
-                {AdminRoutes && AdminRoutes()}
+              {/* PIN lock screen (shown when sessionStorage pin not valid) */}
+              <Route path="/admin/locked" element={<AdminLockScreen />} />
+
+              {/* All admin pages behind the PIN gate */}
+              <Route element={<RequireAdminPin />}>
+                <Route path="/admin/*" element={<AdminShell />}>
+                  {AdminRoutes && AdminRoutes()}
+                </Route>
               </Route>
             </Route>
 
-            {/* Creator namespace */}
+            {/* ---------- CREATOR ---------- */}
             <Route element={<RequireRole role="creator" />}>
               <Route path="/creator/*" element={<CreatorShell />}>
                 {CreatorRoutes && CreatorRoutes()}
               </Route>
             </Route>
 
-            {/* Fan catch-all LAST. Admins are blocked here by default. */}
+            {/* ---------- FAN (block admins here) ---------- */}
             <Route element={<RequireRole role="fan" allowAdmin={false} />}>
-              {/* Note: parent has no path; the children below are absolute like "home" */}
+              {/* Lounge kept under FanShell to use fan chrome */}
+              <Route path="/the-bestie-lounge" element={<FanShell />}>
+                <Route index element={<BestieLounge campaignId="current" />} />
+              </Route>
+
+              {/* all other fan routes */}
               <Route path="/*" element={<FanShell />}>
                 {FanRoutes && FanRoutes()}
               </Route>
@@ -86,10 +114,11 @@ export default function AppRouter() {
           </Route>
 
           {/* Fallbacks */}
-          <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </>
   );
 }
+

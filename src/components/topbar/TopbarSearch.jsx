@@ -1,33 +1,35 @@
-import React from "react";
-import Icon from "@/components/Icon";
+// src/components/topbar/TopbarSearch.jsx
+import React, { forwardRef } from "react";
 
-export default function TopbarSearch({ q, pending, inputRef, onChange, onSubmit }) {
+const TopbarSearch = forwardRef(function TopbarSearch(
+  { value, onChange, onSubmit, pending = false },
+  ref
+) {
   return (
     <form
-      className={`searchbar ${pending ? "is-pending" : ""}`}
-      onSubmit={onSubmit}
+      className="topbar-search"
       role="search"
       aria-label="Site search"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (onSubmit) onSubmit(e);
+      }}
     >
-      <span className="search-ico"><Icon name="search" /></span>
       <input
-        ref={inputRef}
+        ref={ref}
         type="search"
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
         placeholder="Search closet, voice, episodes…"
-        value={q}
-        onChange={(e) => onChange(e.target.value)}
+        aria-label="Search site"
+        disabled={pending}
       />
-      {!!q && (
-        <button
-          type="button"
-          className="clear-btn"
-          aria-label="Clear search"
-          onClick={() => { onChange(""); inputRef.current?.focus(); }}
-        >
-          ×
-        </button>
-      )}
-      {pending && <span className="spinner" aria-hidden="true" />}
+      <button type="submit" disabled={pending}>
+        {pending ? "…" : "Search"}
+      </button>
     </form>
   );
-}
+});
+
+export default TopbarSearch;
+

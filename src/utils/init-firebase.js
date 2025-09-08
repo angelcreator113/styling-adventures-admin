@@ -23,13 +23,17 @@ export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 // Core SDKs
 export const auth = getAuth(app);
 
-// Flags
+// ---- Flags ---------------------------------------------------------------
+// Force Firestore long-polling (helps with some corporate/VPN networks)
 const forceLP =
   String(import.meta.env.VITE_FIRESTORE_LONG_POLLING || "")
     .toLowerCase() === "true";
+
+// ✅ Use emulators ONLY when explicitly set to "true"
 const useEmu =
   String(import.meta.env.VITE_USE_EMULATORS || "")
-    .toLowerCase() === "false";
+    .toLowerCase() === "true";
+// -------------------------------------------------------------------------
 
 // Firestore — try initialize once with desired options, else reuse existing
 let _db;
@@ -44,21 +48,31 @@ try {
 }
 export const db = _db;
 
-// Storage
-export const storage = getStorage(app);
+/**
+ * Storage — explicitly point to the real bucket.
+ * If the env var is missing, default to the known working bucket.
+ * Using the `getStorage(app, "gs://bucket")` override ensures the SDK
+ * does NOT fall back to a non-existent <project-id>.appspot.com bucket.
+ */
+const BUCKET =
+  import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
+  "styling-admin.firebasestorage.app";
 
-/* ---- Emulator wiring (dev only) ---------------------------------------- */
+export const storage = getStorage(app, `gs://${BUCKET}`);
+
+/* ---- Emulator wiring (dev only, opt-in) -------------------------------- */
 if (useEmu) {
   try {
-    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+    // Use localhost (not 127.0.0.1) for best compatibility
+    connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
   } catch {}
 
   try {
-    connectFirestoreEmulator(db, "127.0.0.1", 8080);
+    connectFirestoreEmulator(db, "localhost", 8080);
   } catch {}
 
   try {
-    connectStorageEmulator(storage, "127.0.0.1", 9199);
+    connectStorageEmulator(storage, "localhost", 9199);
   } catch {}
 
   // eslint-disable-next-line no-console
