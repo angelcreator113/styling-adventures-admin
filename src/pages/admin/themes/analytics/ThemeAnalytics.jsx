@@ -2,56 +2,75 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { collection, collectionGroup, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/utils/init-firebase";
-
-import { Line } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  LineElement,
-  PointElement,
-  TimeScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-  Filler,
-  CategoryScale,
-  Decimation,
-} from "chart.js";
 import "chartjs-adapter-date-fns";
 
 import Hint from "@/components/ui/Hint.jsx";
 
-// ✅ missing comma added before Decimation
-ChartJS.register(
-  LineElement,
-  PointElement,
-  TimeScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-  Filler,
-  CategoryScale,
-  Decimation
-);
+/* -------------------- dynamic chart loader -------------------- */
+function useChartModules() {
+  const [mods, setMods] = useState({ ready: false, Line: null, err: null });
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const chart = await import("chart.js");
+        const {
+          Chart: ChartJS,
+          LineElement,
+          PointElement,
+          TimeScale,
+          LinearScale,
+          Tooltip,
+          Legend,
+          Filler,
+          CategoryScale,
+          Decimation,
+        } = chart;
+
+        ChartJS.register(
+          LineElement,
+          PointElement,
+          TimeScale,
+          LinearScale,
+          Tooltip,
+          Legend,
+          Filler,
+          CategoryScale,
+          Decimation
+        );
+
+        const { Line } = await import("react-chartjs-2");
+        if (!cancelled) setMods({ ready: true, Line, err: null });
+      } catch (e) {
+        if (!cancelled) setMods({ ready: false, Line: null, err: e });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  return mods;
+}
+
+/* -------------------- utils -------------------- */
 const toMillis = (ts) =>
-  ts?.toMillis?.() ??
+  (ts?.toMillis?.() ? ts.toMillis() : null) ??
   (typeof ts?.seconds === "number" ? ts.seconds * 1000 : null) ??
   (typeof ts === "number" ? ts : null);
 
-// deterministic pastel; returns stroke + fill
 const colorsForKey = (key) => {
   let hash = 0;
   for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
   const h = hash % 360;
-  const stroke = `hsl(${h} 70% 55%)`;
-  const fill = `hsl(${h} 70% 55% / .14)`;
-  return { stroke, fill };
+  return { stroke: `hsl(${h} 70% 55%)`, fill: `hsl(${h} 70% 55% / .14)` };
 };
 
+/* -------------------- component -------------------- */
 export default function ThemeAnalytics() {
   const [rawVotesCG, setRawVotesCG] = useState([]);
   const [rawVotesTop, setRawVotesTop] = useState([]);
-  const [themesMap, setThemesMap] = useState({});
+  const [themesMap, setThemesMap] = useState({}); // id -> name
+  const { ready, Line, err } = useChartModules();
 
   // Live themes -> name map
   useEffect(() => {
@@ -68,13 +87,9 @@ export default function ThemeAnalytics() {
       const rows = snap.docs.map((d) => {
         const data = d.data() || {};
         const ms = toMillis(data.timestamp || data.createdAt || data.votedAt);
-        const parent = d.ref.parent?.parent; // e.g. themeIcons/{themeId}
-        const fallbackId = parent?.id || data.themeId || data.theme;
-        return {
-          themeId: data.themeId || fallbackId,
-          themeName: data.themeName || fallbackId,
-          ms,
-        };
+        const parentThemeId = d.ref.parent?.parent?.id; // themes/{id}/votes/{doc}
+        const fallbackId = data.themeId || data.theme || parentThemeId || "unknown";
+        return { themeId: fallbackId, themeName: data.themeName || null, ms };
       });
       setRawVotesCG(rows);
     });
@@ -89,8 +104,8 @@ export default function ThemeAnalytics() {
         const rows = snap.docs.map((d) => {
           const data = d.data() || {};
           return {
-            themeId: data.themeId || data.theme,
-            themeName: data.themeName || data.theme,
+            themeId: data.themeId || data.theme || "unknown",
+            themeName: data.themeName || null,
             ms: toMillis(data.timestamp || data.createdAt || data.votedAt),
           };
         });
@@ -101,7 +116,7 @@ export default function ThemeAnalytics() {
     return off;
   }, []);
 
-  // Aggregate daily counts
+  // Aggregate daily counts per theme
   const chartData = useMemo(() => {
     const rows = [...rawVotesCG, ...rawVotesTop].filter((r) => r.ms);
     if (!rows.length) return null;
@@ -111,15 +126,17 @@ export default function ThemeAnalytics() {
       themesMap[r.themeId] ||
       (r.themeId ? String(r.themeId) : "Unknown");
 
-    const byDate = new Map();
-    rows.sort((a, b) => a.ms - b.ms).forEach((r) => {
-      const d = new Date(r.ms);
-      const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
-      const label = labelFor(r);
-      if (!byDate.has(key)) byDate.set(key, new Map());
-      const inner = byDate.get(key);
-      inner.set(label, (inner.get(label) || 0) + 1);
-    });
+    const byDate = new Map(); // date -> Map(themeLabel -> count)
+    rows
+      .sort((a, b) => a.ms - b.ms)
+      .forEach((r) => {
+        const d = new Date(r.ms);
+        const dayKey = d.toISOString().slice(0, 10); // YYYY-MM-DD
+        const label = labelFor(r);
+        if (!byDate.has(dayKey)) byDate.set(dayKey, new Map());
+        const inner = byDate.get(dayKey);
+        inner.set(label, (inner.get(label) || 0) + 1);
+      });
 
     const dates = Array.from(byDate.keys()).sort();
     const allThemes = new Set();
@@ -147,19 +164,28 @@ export default function ThemeAnalytics() {
       <div className="dashboard-card">
         <h1 style={{ margin: 0 }}>📈 Theme Analytics</h1>
 
-        <Hint k="chartjs-time-tip" style={{ marginTop: 8 }}>
-          <strong>Tip:</strong> If the chart looks empty or bunched up, make sure you’ve installed
-          <code> chartjs-adapter-date-fns</code> and that your timestamps are in
-          <code> milliseconds</code> (use <code>ts.toMillis()</code> or <code>seconds * 1000</code>).
-          You can also set <code>spanGaps: true</code> and <code>ticks.precision: 0</code> for nicer scales.
-        </Hint>
+        {!ready && (
+          <Hint k="chartjs-loading" style={{ marginTop: 8 }}>
+            Loading chart libraries… If this is the first run, install:
+            <code style={{ marginLeft: 6 }}>npm i react-chartjs-2 chart.js chartjs-adapter-date-fns date-fns</code>
+            {err && <div style={{ color: "#c00", marginTop: 6 }}>Load error: {String(err.message || err)}</div>}
+          </Hint>
+        )}
 
-        <Hint k="chartjs-perf-tip" style={{ marginTop: 8 }}>
-          Big datasets? Register the <code>Decimation</code> plugin and set{" "}
-          <code>plugins.decimation: &#123; enabled: true, algorithm: 'lttb' &#125;</code> for faster rendering.
-        </Hint>
+        {ready && (
+          <>
+            <Hint k="chartjs-time-tip" style={{ marginTop: 8 }}>
+              <strong>Tip:</strong> Ensure timestamps are in <code>milliseconds</code> (<code>toMillis()</code> or
+              <code>seconds * 1000</code>). You can tweak <code>spanGaps</code> and <code>ticks.precision</code> for cleaner scales.
+            </Hint>
+            <Hint k="chartjs-perf-tip" style={{ marginTop: 8 }}>
+              Big datasets? The <code>Decimation</code> plugin is registered — set
+              <code> plugins.decimation = &#123; enabled: true, algorithm: 'lttb' &#125;</code>.
+            </Hint>
+          </>
+        )}
 
-        {chartData?.labels?.length ? (
+        {ready && chartData?.labels?.length ? (
           <div style={{ height: 380, marginTop: 12 }}>
             <Line
               data={chartData}
@@ -168,16 +194,8 @@ export default function ThemeAnalytics() {
                 maintainAspectRatio: false,
                 spanGaps: true,
                 scales: {
-                  x: {
-                    type: "time",
-                    time: { unit: "day" },
-                    title: { display: true, text: "Date" },
-                  },
-                  y: {
-                    beginAtZero: true,
-                    ticks: { precision: 0 },
-                    title: { display: true, text: "Votes" },
-                  },
+                  x: { type: "time", time: { unit: "day" }, title: { display: true, text: "Date" } },
+                  y: { beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: "Votes" } },
                 },
                 plugins: {
                   legend: { position: "top" },
@@ -190,11 +208,14 @@ export default function ThemeAnalytics() {
             />
           </div>
         ) : (
-          <p style={{ marginTop: 24 }}>No vote data yet.</p>
+          <p style={{ marginTop: 24 }}>
+            {ready ? "No vote data yet." : "Charts will render once the libraries finish loading…"}
+          </p>
         )}
       </div>
     </section>
   );
 }
+
 
 

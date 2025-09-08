@@ -5,6 +5,9 @@ import BoardsPanel from "@/components/BoardsPanel.jsx";
 import { auth, db } from "@/utils/init-firebase";
 import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query } from "firebase/firestore";
 
+// Fan theme picker lives in the toolbox
+import FanThemeSection from "@/features/themes/FanThemeSection";
+
 const TABS = [
   { id: "appearance", label: "Appearance" },
   { id: "naming", label: "Naming" },
@@ -13,19 +16,19 @@ const TABS = [
   { id: "advanced", label: "Advanced" },
 ];
 
-export default function BestieToolboxPanel({ uiPrefix = "" }) {
+export default function BestieToolboxPanel({ uiPrefix = "closet-" }) {
   const [tab, setTab] = useState("appearance");
   const [manualOpen, setManualOpen] = useState(false);
 
   // per-user categories (quick labels)
   const [cats, setCats] = useState([]);
   const [newCat, setNewCat] = useState("");
+
   useEffect(() => {
     const u = auth.currentUser;
     if (!u) return;
     const qy = query(collection(db, `users/${u.uid}/categories`), orderBy("label", "asc"));
-    const off = onSnapshot(qy, (snap) => setCats(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-    return off;
+    return onSnapshot(qy, (snap) => setCats(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
   }, []);
 
   async function addCategory() {
@@ -42,12 +45,14 @@ export default function BestieToolboxPanel({ uiPrefix = "" }) {
     <div className="toolbox">
       <header className="toolbox__hd">
         <h2 className="card__title" style={{ margin: 0 }}>Bestie Toolbox</h2>
-        <nav className="tabs">
-          {TABS.map(t => (
+        <nav className="tabs" aria-label="Toolbox tabs">
+          {TABS.map((t) => (
             <button
               key={t.id}
+              type="button"
               className={`tab ${tab === t.id ? "is-active" : ""}`}
               onClick={() => setTab(t.id)}
+              aria-pressed={tab === t.id}
             >
               {t.label}
             </button>
@@ -56,23 +61,19 @@ export default function BestieToolboxPanel({ uiPrefix = "" }) {
       </header>
 
       <div className="toolbox__body">
-        {/* Appearance tab (clear labels) */}
+        {/* Appearance */}
         {tab === "appearance" && (
           <div className="tool-block">
             <div className="tool-row">
-              <div className="tool-title">Brand look</div>
+              <div className="tool-title">Closet Vibes</div>
               <div className="tool-sub">We’ll make a cute preview + icons for your closet and boards.</div>
 
-              <label className="tool-check">
-                <span className="tool-title">Theme</span>
-                <select id={`${uiPrefix}appearance-theme`} defaultValue="lavender" className="input" style={{ marginLeft: 8 }}>
-                  <option value="lavender">Lavender</option>
-                  <option value="sky">Sky</option>
-                  <option value="cream">Ivory/Cream</option>
-                </select>
-              </label>
+              {/* Theme picker (applies the closet/background) */}
+              <div className="tool-full">
+                <FanThemeSection />
+              </div>
 
-              <hr style={{ gridColumn: "1 / -1", opacity:.2 }} />
+              <hr className="tool-sep" />
 
               <label className="tool-check">
                 <input id={`${uiPrefix}export-preview`} type="checkbox" defaultChecked />
@@ -89,7 +90,7 @@ export default function BestieToolboxPanel({ uiPrefix = "" }) {
                 <span className="tool-title">Also make a hover icon</span>
               </label>
 
-              <hr style={{ gridColumn: "1 / -1", opacity:.2 }} />
+              <hr className="tool-sep" />
 
               <label className="tool-check">
                 <input id={`${uiPrefix}feat-trim`} type="checkbox" defaultChecked />
@@ -101,7 +102,7 @@ export default function BestieToolboxPanel({ uiPrefix = "" }) {
                 <span className="tool-title">Use pro cutout (sharper edges)</span>
               </label>
 
-              <div style={{ gridColumn: "1 / -1" }}>
+              <div className="tool-full">
                 <button type="button" className="tb-btn" onClick={() => setManualOpen(true)}>
                   Manual Editor…
                 </button>
@@ -111,7 +112,7 @@ export default function BestieToolboxPanel({ uiPrefix = "" }) {
           </div>
         )}
 
-        {/* Naming tab */}
+        {/* Naming */}
         {tab === "naming" && (
           <div className="tool-block">
             <div className="tool-row">
@@ -124,27 +125,26 @@ export default function BestieToolboxPanel({ uiPrefix = "" }) {
           </div>
         )}
 
-        {/* Categories tab */}
+        {/* Categories */}
         {tab === "cats" && (
           <div className="tool-block">
             <div className="tool-row">
               <div className="tool-title">My category names</div>
               <div className="tool-sub">Rename or add your own. These show up in the upload form.</div>
 
-              <div style={{ gridColumn: "1 / -1", display: "flex", gap: 8 }}>
+              <div className="tool-full tool-fieldrow">
                 <input
                   value={newCat}
                   onChange={(e) => setNewCat(e.target.value)}
                   placeholder="e.g. My Sparkles"
                   className="input"
-                  style={{ flex: 1 }}
                 />
                 <button className="tb-btn" type="button" onClick={addCategory}>Add</button>
               </div>
 
-              <ul style={{ gridColumn: "1 / -1", margin: "8px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 8 }}>
-                {cats.map(c => (
-                  <li key={c.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 8px", border: "1px solid var(--border)", borderRadius: 10 }}>
+              <ul className="tool-full tool-list">
+                {cats.map((c) => (
+                  <li key={c.id} className="tool-list__item">
                     <span>{c.label}</span>
                     <button className="tb-btn danger" onClick={() => removeCategory(c.id)}>Delete</button>
                   </li>
@@ -155,10 +155,10 @@ export default function BestieToolboxPanel({ uiPrefix = "" }) {
           </div>
         )}
 
-        {/* Boards tab */}
+        {/* Boards */}
         {tab === "boards" && <BoardsPanel />}
 
-        {/* Advanced tab */}
+        {/* Advanced */}
         {tab === "advanced" && (
           <div className="tool-block">
             <div className="tool-row">

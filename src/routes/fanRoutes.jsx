@@ -1,17 +1,40 @@
-// src/routes/fanRoutes.jsx
-import React from "react";
+import React, { lazy } from "react";
 import { Route, Navigate } from "react-router-dom";
-import FanHome from "@/pages/home/FanHome.jsx";
 
+/* -------- FAN PAGES -------- */
+const BestieLounge       = lazy(() => import("@/pages/lounge/BestieLounge")); // .tsx default export
+const ForumThreadPage    = lazy(() => import("@/pages/ForumThreadPage.jsx"));
+const ConfessionsPage    = lazy(() => import("@/pages/Sidebar/ConfessionsPage.jsx"));
+const CalendarPage       = lazy(() => import("@/pages/Sidebar/CalendarPage.jsx"));
+const ChallengesPage     = lazy(() => import("@/pages/Sidebar/ChallengesPage.jsx"));
+const OutfitBuilderPage  = lazy(() => import("@/pages/Sidebar/OutfitBuilderPage.jsx"));
+const PlannerPage        = lazy(() => import("@/pages/Sidebar/PlannerPage.jsx"));
+const SpotlightsPage     = lazy(() => import("@/pages/Sidebar/SpotlightsPage.jsx"));
+
+/**
+ * FanRoutes
+ * Nest these under the FanShell in AppRouter (path="/*").
+ * This component returns only <Route> elements — no wrapper.
+ */
 export function FanRoutes() {
   return (
     <>
-      {/* Optional: when someone hits "/", send them to /home (only inside Fan shell) */}
-      <Route index element={<Navigate to="home" replace />} />
+      {/* Optional: default redirect for bare fan root */}
+      <Route index element={<Navigate to="/home" replace />} />
 
-      {/* Fan pages */}
-      <Route path="home" element={<FanHome />} />
-      {/* e.g. <Route path="closet" element={<Closet />} /> */}
+      {/* Discover */}
+      <Route path="the-bestie-lounge" element={<BestieLounge campaignId="current" />} />
+      <Route path="blog"               element={<ForumThreadPage />} />
+      <Route path="confessions"        element={<ConfessionsPage />} />
+
+      {/* Sidebar/* features */}
+      <Route path="calendar"           element={<CalendarPage />} />
+      <Route path="challenges"         element={<ChallengesPage />} />
+      <Route path="outfit-builder"     element={<OutfitBuilderPage />} />
+      <Route path="planner"            element={<PlannerPage />} />
+      <Route path="spotlights"         element={<SpotlightsPage />} />
     </>
   );
 }
+
+export default FanRoutes;

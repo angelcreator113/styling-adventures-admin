@@ -5,23 +5,25 @@ import {
   collection,
   deleteDoc,
   doc,
-  getDoc,          // added
   getDocs,
   onSnapshot,
-  runTransaction,  // added
+  runTransaction,
   serverTimestamp,
   setDoc,
   Timestamp,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import {
+  getDownloadURL,
+  ref,
+  uploadBytes,
+  uploadBytesResumable,
+} from "firebase/storage";
 
 /* ------------------------- constants ------------------------- */
-// YouTube aspect + common sizes.
-// We accept any 16:9 image >= 1280x720 (HD) with a small tolerance.
 const YT_RATIO = 16 / 9;
 const YT_MIN_W = 1280;
 const YT_MIN_H = 720;
-const RATIO_TOL = 0.03; // 3% tolerance
+const RATIO_TOL = 0.03;
 
 /* ------------------------- helpers ------------------------- */
 const toTs = (val) => (val ? Timestamp.fromDate(new Date(val)) : null);
@@ -40,23 +42,24 @@ const slug = (s = "") =>
 const nameFromFile = (file) =>
   file?.name ? slug(file.name.replace(/\.[^/.]+$/, "")).replace(/-/g, " ") : "Untitled";
 
-/** Read image dimensions without uploading. */
-async function readImageSize(file) {
-  const blobUrl = URL.createObjectURL(file);
+async function readImageSize(fileOrBlob) {
+  const url = URL.createObjectURL(fileOrBlob);
   try {
     const img = await new Promise((resolve, reject) => {
       const i = new Image();
       i.onload = () => resolve(i);
       i.onerror = reject;
-      i.src = blobUrl;
+      i.src = url;
     });
-    return { width: img.naturalWidth || img.width, height: img.naturalHeight || img.height };
+    return {
+      width: img.naturalWidth || img.width,
+      height: img.naturalHeight || img.height,
+    };
   } finally {
-    URL.revokeObjectURL(blobUrl);
+    URL.revokeObjectURL(url);
   }
 }
 
-/** Validate 16:9 and minimum size for YouTube-like backgrounds. */
 async function validateYoutubeBackground(file) {
   const { width, height } = await readImageSize(file);
   const ratio = width / height;
@@ -75,6 +78,8 @@ async function validateYoutubeBackground(file) {
       : `Image must be at least ${YT_MIN_W}×${YT_MIN_H}. Got ${width}×${height}.`,
   };
 }
+
+/* ======================================================================= */
 
 export default function useThemeLibrary() {
   const [themes, setThemes] = useState([]);
@@ -121,7 +126,7 @@ export default function useThemeLibrary() {
         ts: serverTimestamp(),
       });
     } catch {
-      // swallow — auditing must never break UX
+      /* ignore */
     }
   }, []);
 
@@ -175,41 +180,114 @@ export default function useThemeLibrary() {
     [addAudit]
   );
 
-  /* ----- upload / replace background (VALIDATED - clears asset link) ----- */
+  /* -----------------------------------------------------------------------
+     uploadThemeBg (single replace with progress + bgMeta + prevBgUrl)
+     - If the file was preprocessed to 1280×720 you can skip validation
+       but we still read dimensions to write bgMeta.
+     - opts.onProgress(percent) is called if provided.
+  -------------------------------------------------------------------------*/
   const uploadThemeBg = useCallback(
-    async (id, file) => {
-      // Validate 16:9 and size ≥ 1280×720
-      const urlObj = URL.createObjectURL(file);
+    async (id, file, opts = {}) => {
+      if (!id || !file) throw new Error("Missing theme id or file");
+
+      // (Optional) soft-validate for helpful error messages
       try {
-        const dims = await new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
-          img.onerror = reject;
-          img.src = urlObj;
-        });
-        const ratio = dims.w / dims.h;
-        const okRatio = Math.abs(ratio - 16 / 9) < 0.02; // ~2% tolerance
-        const okMin = dims.w >= 1280 && dims.h >= 720;
-        if (!okRatio || !okMin) {
-          throw new Error(
-            `Background must be 16:9 and at least 1280×720. Got ${dims.w}×${dims.h}.`
-          );
+        const check = await validateYoutubeBackground(file);
+        if (!check.ok) {
+          // Not fatal if you preprocess elsewhere, but surfacing this is useful
+          console.warn("[uploadThemeBg] non-16:9 or too small:", check);
         }
-      } finally {
-        URL.revokeObjectURL(urlObj);
+      } catch (e) {
+        // ignore read failures; continue
       }
 
+      // Read current theme to capture previous background fields
+      const themeRef = doc(db, "themes", id);
+
+      // Upload with progress
       const path = `themes/${id}/bg/${Date.now()}_${file.name}`;
-      const r = ref(storage, path);
-      await uploadBytes(r, file);
-      const url = await getDownloadURL(r);
-      await setDoc(
-        doc(db, "themes", id),
-        { bgUrl: url, bgAssetId: null, updatedAt: serverTimestamp() }, // clear asset link on custom upload
-        { merge: true }
-      );
-      await addAudit(id, "replaced background (upload)", { storagePath: path });
+      const storageRef = ref(storage, path);
+      const task = uploadBytesResumable(storageRef, file);
+
+      await new Promise((resolve, reject) => {
+        task.on(
+          "state_changed",
+          (snap) => {
+            if (typeof opts.onProgress === "function") {
+              const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+              opts.onProgress(pct);
+            }
+          },
+          reject,
+          resolve
+        );
+      });
+
+      const url = await getDownloadURL(storageRef);
+      const { width, height } = await readImageSize(file);
+      const ratio = width / height;
+
+      // Transaction to set new bg and preserve previous link for "Revert"
+      await runTransaction(db, async (t) => {
+        const snap = await t.get(themeRef);
+        const prev = snap.exists() ? snap.data() : {};
+
+        t.set(
+          themeRef,
+          {
+            prevBgUrl: prev.bgUrl || null,
+            prevBgAssetId: prev.bgAssetId || null,
+            bgUrl: url,
+            bgAssetId: null, // custom upload breaks asset link
+            bgMeta: { width, height, ratio },
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
+      });
+
+      await addAudit(id, "replaced background (upload)", {
+        storagePath: path,
+        width,
+        height,
+        ratio,
+      });
+
       return url;
+    },
+    [addAudit]
+  );
+
+  /* -----------------------------------------------------------------------
+     revertThemeBg
+     - Restores prevBgUrl/prevBgAssetId to bgUrl/bgAssetId if available
+  -------------------------------------------------------------------------*/
+  const revertThemeBg = useCallback(
+    async (id) => {
+      const themeRef = doc(db, "themes", id);
+      await runTransaction(db, async (t) => {
+        const snap = await t.get(themeRef);
+        if (!snap.exists()) throw new Error("Theme not found");
+        const d = snap.data() || {};
+        if (!d.prevBgUrl && !d.prevBgAssetId) {
+          throw new Error("No previous background to revert to");
+        }
+
+        t.set(
+          themeRef,
+          {
+            bgUrl: d.prevBgUrl || d.bgUrl || "",
+            bgAssetId: d.prevBgAssetId || null,
+            // clear the prev fields once used
+            prevBgUrl: null,
+            prevBgAssetId: null,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true }
+        );
+      });
+
+      await addAudit(id, "reverted background");
     },
     [addAudit]
   );
@@ -224,7 +302,6 @@ export default function useThemeLibrary() {
       const skipped = [];
 
       for (const f of files) {
-        // Validate first — skip invalid files but continue others.
         const check = await validateYoutubeBackground(f);
         if (!check.ok) {
           skipped.push({ file: f.name, reason: check.reason });
@@ -232,7 +309,6 @@ export default function useThemeLibrary() {
           continue;
         }
 
-        // 1) create draft doc
         const draft = {
           name: nameFromFile(f),
           description: "",
@@ -247,13 +323,11 @@ export default function useThemeLibrary() {
         };
         const docRef = await addDoc(collection(db, "themes"), draft);
 
-        // 2) upload bg (already validated)
         const path = `themes/${docRef.id}/bg/${Date.now()}_${f.name}`;
         const r = ref(storage, path);
         await uploadBytes(r, f);
         const url = await getDownloadURL(r);
 
-        // 3) patch bgUrl + meta on the theme
         await setDoc(
           doc(db, "themes", docRef.id),
           {
@@ -264,7 +338,6 @@ export default function useThemeLibrary() {
           { merge: true }
         );
 
-        // 4) audit
         await addAudit(docRef.id, "created draft from upload", {
           storagePath: path,
           filename: f.name,
@@ -276,7 +349,6 @@ export default function useThemeLibrary() {
         outIds.push(docRef.id);
       }
 
-      // If everything was skipped, throw a single helpful error.
       if (outIds.length === 0) {
         const msg =
           "No drafts created. All files were rejected.\n" +
@@ -284,7 +356,6 @@ export default function useThemeLibrary() {
         throw new Error(msg);
       }
 
-      // Optional: surface which files were skipped (caller can toast/log)
       if (skipped.length) {
         console.info("Some files were skipped:", skipped);
       }
@@ -295,11 +366,7 @@ export default function useThemeLibrary() {
   );
 
   /**
-   * ✅ Link a background asset to a theme (and maintain usedBy counts)
-   * asset = { id, url, type? }
-   * - Sets theme.bgUrl + theme.bgAssetId
-   * - Decrements old asset.usedBy if previously linked
-   * - Increments new asset.usedBy and stores map usedBy.themes[themeId] = true
+   * Link a background asset to a theme (and maintain usedBy counts)
    */
   const applyBackgroundAsset = useCallback(
     async (themeId, asset) => {
@@ -313,16 +380,17 @@ export default function useThemeLibrary() {
         const prev = themeSnap.data() || {};
         const prevAssetId = prev.bgAssetId || null;
 
-        // Ensure new asset exists
         const newAssetSnap = await t.get(newAssetRef);
         if (!newAssetSnap.exists()) throw new Error("Selected background asset not found");
         const newUsedBy = newAssetSnap.data()?.usedBy || {};
         const alreadyListed = !!(newUsedBy.themes && newUsedBy.themes[themeId]);
 
-        // 1) Set theme to use new asset
+        // remember current background for "Revert"
         t.set(
           themeRef,
           {
+            prevBgUrl: prev.bgUrl || null,
+            prevBgAssetId: prev.bgAssetId || null,
             bgUrl: asset.url,
             bgAssetId: asset.id,
             updatedAt: serverTimestamp(),
@@ -330,7 +398,6 @@ export default function useThemeLibrary() {
           { merge: true }
         );
 
-        // 2) Increment new asset usedBy if not already listed
         if (!alreadyListed) {
           t.set(
             newAssetRef,
@@ -351,7 +418,6 @@ export default function useThemeLibrary() {
           );
         }
 
-        // 3) Decrement old asset if different
         if (prevAssetId && prevAssetId !== asset.id) {
           const oldRef = doc(db, "episodeBackgrounds", prevAssetId);
           const oldSnap = await t.get(oldRef);
@@ -385,7 +451,9 @@ export default function useThemeLibrary() {
     updateTheme,
     deleteTheme,
     bulkCreateDraftsFromFiles,
-    uploadThemeBg,
-    applyBackgroundAsset, // exported
+    uploadThemeBg,   // file + progress
+    revertThemeBg,   // for the card Revert button
+    applyBackgroundAsset,
   };
 }
+

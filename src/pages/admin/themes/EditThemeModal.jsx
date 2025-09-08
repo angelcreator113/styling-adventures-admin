@@ -1,8 +1,11 @@
-// EditThemeModal.jsx
+// src/pages/admin/themes/EditThemeModal.jsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Timestamp } from "firebase/firestore";
 import EpisodeBackgroundPicker from "./EpisodeBackgroundPicker.jsx";
+import { prepareBackgroundImage } from "@/utils/prepareBackgroundImage";
 
+/* ----------------------------------------------------------------------------
+   Helpers
+---------------------------------------------------------------------------- */
 const toInput = (ts) => {
   if (!ts) return "";
   const ms =
@@ -12,24 +15,34 @@ const toInput = (ts) => {
       ? ts
       : null;
   if (!ms) return "";
+  // format for <input type="datetime-local"> => "YYYY-MM-DDTHH:mm"
   return new Date(ms).toISOString().slice(0, 16);
 };
 
-const fromInput = (str) => (str ? Timestamp.fromDate(new Date(str)) : null);
+// lightweight validator — returns Date or null
+const parseAnyDate = (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isFinite(d.valueOf()) ? d : null;
+};
 
+/* ----------------------------------------------------------------------------
+   Component
+---------------------------------------------------------------------------- */
 export default function EditThemeModal({
   theme,
   onClose,
   onSave,
-  onUploadBg,   // validates 16:9, >=1280×720
+  onUploadBg,   // expects File/Blob; we preprocess before calling it
   onDelete,
-  onApplyAsset, // hook.applyBackgroundAsset
+  onApplyAsset, // hook.applyBackgroundAsset(themeId, asset) -> url
 }) {
   const fileRef = useRef(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [pickOpen, setPickOpen] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   const initialAud = useMemo(() => {
     if (Array.isArray(theme?.audiences) && theme.audiences.length) return theme.audiences;
@@ -100,27 +113,44 @@ export default function EditThemeModal({
     return "Live";
   }, [theme]);
 
+  /* ----------------------------------------------------------------------------
+     Save (validate here; convert to Firestore Timestamp inside the hook)
+  ---------------------------------------------------------------------------- */
   async function doSave() {
     setSaving(true);
     setError("");
     try {
-      const audiences = (form.audiences && form.audiences.length) ? form.audiences : ["all"];
+      const audiences =
+        (form.audiences && form.audiences.length) ? form.audiences : ["all"];
+
+      // Validate date strings but DO NOT convert here
+      const issues = [];
+      if (form.releaseAt && !parseAnyDate(form.releaseAt)) issues.push("Release at");
+      if (audiences.includes("vip") && form.vipReleaseAt && !parseAnyDate(form.vipReleaseAt)) issues.push("VIP early access");
+      if (form.expiresAt && !parseAnyDate(form.expiresAt)) issues.push("Expires at");
+      if (form.deleteAt && !parseAnyDate(form.deleteAt)) issues.push("Delete at");
+      if (issues.length) throw new Error(`Invalid time value for: ${issues.join(", ")}`);
+
       const patch = {
         name: form.name.trim(),
         description: form.description.trim(),
         visibility: form.visibility,
         audiences,
         featuredOnLogin: !!form.featuredOnLogin,
-        releaseAt: fromInput(form.releaseAt),
-        vipReleaseAt: audiences.includes("vip") ? fromInput(form.vipReleaseAt) : null,
-        expiresAt: fromInput(form.expiresAt),
-        deleteAt: fromInput(form.deleteAt),
+
+        // send raw strings or null; hook converts to Timestamps
+        releaseAt: form.releaseAt || null,
+        vipReleaseAt: audiences.includes("vip") ? (form.vipReleaseAt || null) : null,
+        expiresAt: form.expiresAt || null,
+        deleteAt: form.deleteAt || null,
+
         rollout: {
           vip: Number.isFinite(form.rolloutVip) ? Number(form.rolloutVip) : 100,
           all: Number.isFinite(form.rolloutAll) ? Number(form.rolloutAll) : 100,
         },
         abRollout: Number.isFinite(form.rolloutAll) ? Number(form.rolloutAll) : 100,
       };
+
       await onSave?.(patch);
       onClose?.();
     } catch (e) {
@@ -134,19 +164,57 @@ export default function EditThemeModal({
     fileRef.current?.click();
   }
 
+  /* ----------------------------------------------------------------------------
+     Background: preprocess to 1280×720 (cover), then upload via parent hook
+  ---------------------------------------------------------------------------- */
+  async function processAndUpload(fileOrBlob) {
+    if (!fileOrBlob?.type?.startsWith?.("image/")) {
+      throw new Error("Please choose an image file");
+    }
+    const { blob } = await prepareBackgroundImage(fileOrBlob, {
+      targetW: 1280,
+      targetH: 720,
+      mime: "image/jpeg",
+      quality: 0.9,
+      mode: "cover", // use "contain" to letterbox instead of crop
+    });
+    const url = await onUploadBg?.(blob);
+    if (url) setForm((f) => ({ ...f, bgUrl: url }));
+  }
+
   async function onFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
     setError("");
     try {
-      const url = await onUploadBg?.(file);
-      if (url) setForm((f) => ({ ...f, bgUrl: url }));
+      await processAndUpload(file);
+      window?.toast?.success?.("Background updated");
     } catch (err) {
       setError(err?.message || String(err));
+      window?.toast?.error?.("Upload failed");
     } finally {
       setUploading(false);
       e.target.value = "";
+    }
+  }
+
+  async function onDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError("");
+    try {
+      await processAndUpload(file);
+      window?.toast?.success?.("Background updated");
+    } catch (err) {
+      setError(err?.message || String(err));
+      window?.toast?.error?.("Upload failed");
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -203,11 +271,32 @@ export default function EditThemeModal({
         <div className="grid" style={{ display: "grid", gap: 16, gridTemplateColumns: "1.15fr .85fr", alignItems: "start" }}>
           <section className="card" style={{ padding: 12 }}>
             <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 12, alignItems: "start" }}>
-              <div style={{ width: "100%", height: 220, borderRadius: 10, background: "#f6f1fa", display: "grid", placeItems: "center", overflow: "hidden" }}>
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={onDrop}
+                style={{
+                  width: "100%", height: 220, borderRadius: 10,
+                  background: dragOver ? "rgba(139,92,246,.06)" : "#f6f1fa",
+                  outline: `1px dashed ${dragOver ? "rgba(139,92,246,.45)" : "transparent"}`,
+                  display: "grid", placeItems: "center", overflow: "hidden", position: "relative"
+                }}
+              >
                 {form.bgUrl ? (
                   <img src={form.bgUrl} alt={form.name || theme?.id} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
-                  <span className="muted">No background</span>
+                  <span className="muted">Drop an image here (auto 1280×720)</span>
+                )}
+                {uploading && (
+                  <div
+                    style={{
+                      position: "absolute", inset: 0,
+                      background: "rgba(255,255,255,.55)",
+                      display: "grid", placeItems: "center", fontWeight: 600
+                    }}
+                  >
+                    Uploading…
+                  </div>
                 )}
               </div>
 
@@ -223,7 +312,7 @@ export default function EditThemeModal({
 
                 <input ref={fileRef} type="file" hidden accept="image/*" onChange={onFile} />
                 <div className="muted" style={{ marginTop: 6, fontSize: 12, lineHeight: 1.4 }}>
-                  <strong>Requirement:</strong> YouTube sized background — 16:9 aspect ratio, at least <code>1280×720</code>.
+                  <strong>Requirement:</strong> 16:9, at least <code>1280×720</code>. We auto-crop/resize to exactly 1280×720.
                 </div>
               </div>
             </div>
@@ -233,16 +322,23 @@ export default function EditThemeModal({
               <label className="muted">Name</label>
               <input className="input" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
               <label className="muted" style={{ marginTop: 8 }}>Description</label>
-              <textarea className="input" rows={3} value={form.description}
-                        onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+              <textarea
+                className="input"
+                rows={3}
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              />
             </div>
 
             {/* Visibility + Audience */}
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
               <label className="muted">
                 Visibility
-                <select className="input" value={form.visibility}
-                        onChange={(e) => setForm((f) => ({ ...f, visibility: e.target.value }))}>
+                <select
+                  className="input"
+                  value={form.visibility}
+                  onChange={(e) => setForm((f) => ({ ...f, visibility: e.target.value }))}
+                >
                   <option value="public">Public</option>
                   <option value="private">Private (draft)</option>
                 </select>
@@ -252,12 +348,19 @@ export default function EditThemeModal({
                 <div className="muted">Audience</div>
                 <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
                   <label className="chip">
-                    <input type="checkbox" checked={(form.audiences || []).includes("vip")} onChange={toggleAudience("vip")} />
+                    <input
+                      type="checkbox"
+                      checked={(form.audiences || []).includes("vip")}
+                      onChange={toggleAudience("vip")}
+                    />
                     VIP
                   </label>
                   <label className="chip">
-                    <input type="checkbox" checked={(form.audiences || ["all"]).includes("all")}
-                           onChange={toggleAudience("all")} />
+                    <input
+                      type="checkbox"
+                      checked={(form.audiences || ["all"]).includes("all")}
+                      onChange={toggleAudience("all")}
+                    />
                     All fans
                   </label>
                 </div>
@@ -268,13 +371,25 @@ export default function EditThemeModal({
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
               <label className="muted">
                 VIP Rollout %
-                <input type="number" min={0} max={100} className="input" value={form.rolloutVip}
-                       onChange={(e) => setForm((f) => ({ ...f, rolloutVip: Number(e.target.value) }))} />
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  className="input"
+                  value={form.rolloutVip}
+                  onChange={(e) => setForm((f) => ({ ...f, rolloutVip: Number(e.target.value) }))}
+                />
               </label>
               <label className="muted">
                 All Fans Rollout %
-                <input type="number" min={0} max={100} className="input" value={form.rolloutAll}
-                       onChange={(e) => setForm((f) => ({ ...f, rolloutAll: Number(e.target.value) }))} />
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  className="input"
+                  value={form.rolloutAll}
+                  onChange={(e) => setForm((f) => ({ ...f, rolloutAll: Number(e.target.value) }))}
+                />
               </label>
             </div>
 
@@ -282,14 +397,22 @@ export default function EditThemeModal({
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
               <label className="muted">
                 Release at (All)
-                <input className="input" type="datetime-local" value={form.releaseAt}
-                       onChange={(e) => setForm((f) => ({ ...f, releaseAt: e.target.value }))} />
+                <input
+                  className="input"
+                  type="datetime-local"
+                  value={form.releaseAt}
+                  onChange={(e) => setForm((f) => ({ ...f, releaseAt: e.target.value }))}
+                />
               </label>
               {(form.audiences || []).includes("vip") && (
                 <label className="muted">
                   VIP early access at
-                  <input className="input" type="datetime-local" value={form.vipReleaseAt}
-                         onChange={(e) => setForm((f) => ({ ...f, vipReleaseAt: e.target.value }))} />
+                  <input
+                    className="input"
+                    type="datetime-local"
+                    value={form.vipReleaseAt}
+                    onChange={(e) => setForm((f) => ({ ...f, vipReleaseAt: e.target.value }))}
+                  />
                 </label>
               )}
             </div>
@@ -297,19 +420,30 @@ export default function EditThemeModal({
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
               <label className="muted">
                 Expires at
-                <input className="input" type="datetime-local" value={form.expiresAt}
-                       onChange={(e) => setForm((f) => ({ ...f, expiresAt: e.target.value }))} />
+                <input
+                  className="input"
+                  type="datetime-local"
+                  value={form.expiresAt}
+                  onChange={(e) => setForm((f) => ({ ...f, expiresAt: e.target.value }))}
+                />
               </label>
               <label className="muted">
                 Delete at (auto archive)
-                <input className="input" type="datetime-local" value={form.deleteAt}
-                       onChange={(e) => setForm((f) => ({ ...f, deleteAt: e.target.value }))} />
+                <input
+                  className="input"
+                  type="datetime-local"
+                  value={form.deleteAt}
+                  onChange={(e) => setForm((f) => ({ ...f, deleteAt: e.target.value }))}
+                />
               </label>
             </div>
 
             <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10 }}>
-              <input type="checkbox" checked={!!form.featuredOnLogin}
-                     onChange={(e) => setForm((f) => ({ ...f, featuredOnLogin: e.target.checked }))} />
+              <input
+                type="checkbox"
+                checked={!!form.featuredOnLogin}
+                onChange={(e) => setForm((f) => ({ ...f, featuredOnLogin: e.target.checked }))}
+              />
               Featured on login
             </label>
           </section>

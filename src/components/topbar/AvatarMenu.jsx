@@ -1,58 +1,70 @@
 // src/components/topbar/AvatarMenu.jsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "@/utils/init-firebase";
 import Icon from "@/components/Icon";
-import { useAuth } from "@/context/AuthContext";   // if you have it
-import { logout } from "@/utils/auth-client";      // ← import once
 
 export default function AvatarMenu() {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const navigate = useNavigate();
-  const { role } = useAuth?.() ?? { role: "fan" }; // optional role-based items
 
   useEffect(() => {
     const onDoc = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
     document.addEventListener("pointerdown", onDoc);
-    return () => document.removeEventListener("pointerdown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   const doLogout = async () => {
     try {
-      await logout();                   // clears cookie + Firebase auth
-    } finally {
-      navigate("/login", { replace: true });
+      await signOut(auth);
+      navigate("/login");
+    } catch (e) {
+      console.error(e);
     }
   };
 
   return (
-    <div className="avatar-wrap menu-anchor" ref={ref}>
+    <div className="menu-anchor" ref={ref}>
       <button
-        className="avatar-btn"
+        className="icon-btn"
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label="Account"
+        title="Account"
         onClick={() => setOpen(v => !v)}
-        title="Account menu"
       >
         <Icon name="user" />
       </button>
 
       {open && (
-        <div className="menu" role="menu">
-          <Link to="/profile"  role="menuitem" className="menu-item">Profile</Link>
-          <Link to="/settings" role="menuitem" className="menu-item">Settings</Link>
-          <Link to="/billing"  role="menuitem" className="menu-item">Payments</Link>
-          {/* Optional role-based shortcuts */}
-          {role === "admin"   && <Link to="/admin"   role="menuitem" className="menu-item">Admin Console</Link>}
-          {role === "creator" && <Link to="/creator" role="menuitem" className="menu-item">Creator Console</Link>}
-          <a href="https://help.example.com" target="_blank" rel="noreferrer" role="menuitem" className="menu-item">Help</a>
+        <div className="menu" role="menu" style={{ minWidth: 220 }}>
+          <div className="menu-item" role="menuitem" tabIndex={-1}>
+            <strong>My Account</strong>
+          </div>
+          <Link to="/home" className="menu-item" role="menuitem" tabIndex={-1}>
+            <Icon name="home" /> Home
+          </Link>
+          <Link to="/boards" className="menu-item" role="menuitem" tabIndex={-1}>
+            <Icon name="layout" /> Boards
+          </Link>
+          <Link to="/admin/home" className="menu-item" role="menuitem" tabIndex={-1}>
+            <Icon name="shield" /> Admin Console
+          </Link>
           <div className="menu-sep" role="separator" />
-          <button type="button" className="menu-item danger" role="menuitem" onClick={doLogout}>
-            🚪 Logout
+          <button className="menu-item" role="menuitem" onClick={doLogout}>
+            <Icon name="log-out" /> Sign out
           </button>
         </div>
       )}
     </div>
   );
 }
+
 

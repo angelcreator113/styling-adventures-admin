@@ -10,8 +10,8 @@ import toast, { Toaster } from "react-hot-toast";
 /* ---------- emulator base url helper ---------- */
 function emulatorBase() {
   const useEmu =
-    import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === "true" ||
-    import.meta.env.VITE_USE_EMULATORS === "true";
+    import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === "false" ||
+    import.meta.env.VITE_USE_EMULATORS === "false";
 
   if (!useEmu) return null;
 

@@ -10,7 +10,7 @@ export default function EpisodeBackgroundPicker({ open, onClose, onSelect }) {
   const [episode, setEpisode] = useState("");
   const [type, setType] = useState("all"); // "image" | "video" | "all"
 
-  // Live list from Firestore
+  // Live list from Firestore (latest first)
   useEffect(() => {
     if (!open) return;
     const ref = collection(db, "episodeBackgrounds");
@@ -25,15 +25,12 @@ export default function EpisodeBackgroundPicker({ open, onClose, onSelect }) {
     const t = qText.trim().toLowerCase();
 
     return rows.filter((r) => {
-      // Your uploader sets "kind" ("image" | "video"). Fall back to "type" if present.
       const itemKind = r.kind || r.type || "image";
-
       const okType = type === "all" ? true : itemKind === type;
       const okSeason = season ? String(r.season ?? "") === String(season) : true;
       const okEpisode = episode ? String(r.episode ?? "") === String(episode) : true;
 
-      const hay =
-        `${r.title || ""} ${(r.category || "")} ${(r.tags || []).join(" ")}`.toLowerCase();
+      const hay = `${r.title || ""} ${(r.category || "")} ${(r.tags || []).join(" ")}`.toLowerCase();
       const okText = !t || hay.includes(t);
 
       return okType && okSeason && okEpisode && okText;
@@ -139,7 +136,6 @@ export default function EpisodeBackgroundPicker({ open, onClose, onSelect }) {
                   }}
                 >
                   {itemKind === "video" ? (
-                    // Show poster if available (no autoplay here)
                     preview ? (
                       <img
                         src={preview}
@@ -208,3 +204,4 @@ export default function EpisodeBackgroundPicker({ open, onClose, onSelect }) {
     </div>
   );
 }
+

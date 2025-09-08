@@ -1,15 +1,20 @@
 // src/pages/admin/themes/VotingSettings.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query,
-  serverTimestamp, setDoc, Timestamp
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "@/utils/init-firebase";
 
 const toTs = (v) => (v ? Timestamp.fromDate(new Date(v)) : null);
-const fromTsLocal = (ts) =>
-  ts?.toDate ? new Date(ts.toDate().getTime() - new Date().getTimezoneOffset()*60000)
-              .toISOString().slice(0,16) : "";
 
 export default function VotingSettings() {
   const [themes, setThemes] = useState([]);
@@ -73,12 +78,13 @@ export default function VotingSettings() {
     await deleteDoc(doc(db, "themeCampaigns", c.id));
   }
 
-  // quick “test vote” button (writes to campaign’s votes subcollection)
+  // quick “test vote” (writes to campaign’s votes subcollection).
+  // Your Cloud Function can listen and increment themes/{id}.voteCount.
   async function addTestVote(c, themeId) {
-    if (!themeId) return alert("Pick a theme on the campaign first.");
+    if (!themeId) return alert("Pick a theme in the campaign first.");
     await addDoc(collection(db, `themeCampaigns/${c.id}/votes`), {
       themeId,
-      themeName: themes.find(t => t.id === themeId)?.name || themeId,
+      themeName: themes.find((t) => t.id === themeId)?.name || themeId,
       timestamp: serverTimestamp(),
       by: "admin-test",
     });
@@ -161,7 +167,9 @@ export default function VotingSettings() {
               <input
                 type="checkbox"
                 checked={form.anonymousAllowed}
-                onChange={(e) => setForm((f) => ({ ...f, anonymousAllowed: e.target.checked }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, anonymousAllowed: e.target.checked }))
+                }
               />
               Allow anonymous?
             </label>
@@ -202,7 +210,9 @@ export default function VotingSettings() {
           </div>
 
           <div>
-            <button className="btn primary" type="submit">Create campaign</button>
+            <button className="btn primary" type="submit">
+              Create campaign
+            </button>
           </div>
         </form>
       </div>
@@ -264,3 +274,4 @@ export default function VotingSettings() {
     </section>
   );
 }
+
